@@ -5,14 +5,14 @@
 [ext_resource type="Texture2D" uid="uid://cml4630dsacla" path="res://assets/white.png" id="2_xbt28"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_sn0t7"]
-size = Vector2(427, 240)
+size = Vector2(260, 280)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bhunq"]
 size = Vector2(800, 60)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_fnfnh"]
 shader = ExtResource("2_6pnl8")
-shader_parameter/rect_size = Vector2(800, 268)
+shader_parameter/rect_size = Vector2(540, 268)
 shader_parameter/overhang = 8.0
 shader_parameter/col_shallow = Color(0.2, 0.58, 0.62, 0.38)
 shader_parameter/col_deep = Color(0.04, 0.13, 0.34, 0.74)
@@ -29,23 +29,23 @@ shader_parameter/caustic_strength = 0.1
 [node name="Cove" type="Node2D" unique_id=457360959]
 
 [node name="Axolotl" parent="." unique_id=1466163284 instance=ExtResource("2_1gfh3")]
-position = Vector2(0, 120)
+position = Vector2(-300, -60)
 has_water = true
 
 [node name="Beach" type="StaticBody2D" parent="." unique_id=423457899]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Beach" unique_id=591406187]
-position = Vector2(0.5, 120)
+position = Vector2(-270, 100)
 shape = SubResource("RectangleShape2D_sn0t7")
 
 [node name="Polygon2D" type="Polygon2D" parent="Beach" unique_id=307852546]
-color = Color(0.9063318, 1, 1, 1)
-polygon = PackedVector2Array(-400, 2, -140.08, -2, -140, 238, -400, 238)
+color = Color(0.9058309, 0.86504203, 0.7483791, 1)
+polygon = PackedVector2Array(-400, -40, -140, -40, -140, 240, -400, 240)
 
 [node name="Seabed" type="StaticBody2D" parent="." unique_id=561913786]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Seabed" unique_id=883235013]
-position = Vector2(-270, 118)
+position = Vector2(0, 290)
 shape = SubResource("RectangleShape2D_bhunq")
 
 [node name="Polygon2D" type="Polygon2D" parent="Seabed" unique_id=1600107471]
@@ -55,7 +55,7 @@ polygon = PackedVector2Array(-400, 260, 400, 260, 400, 320, -400, 320)
 [node name="Water" type="Sprite2D" parent="." unique_id=575328831]
 z_index = 5
 material = SubResource("ShaderMaterial_fnfnh")
-position = Vector2(-400, -8)
+position = Vector2(-140, -8)
 scale = Vector2(268, 268)
 texture = ExtResource("2_xbt28")
 centered = false
