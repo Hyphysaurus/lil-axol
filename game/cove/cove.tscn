@@ -1,0 +1,19 @@
+[gd_scene format=3 uid="uid://npmxewd65pxb"]
+
+[ext_resource type="Script" uid="uid://b0o73n627pt8j" path="res://game/cove/polygon_2d.gd" id="1_byawo"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_bhunq"]
+size = Vector2(800, 40)
+
+[node name="Cove" type="Node2D" unique_id=457360959]
+
+[node name="Ground" type="StaticBody2D" parent="." unique_id=149187520]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Ground" unique_id=2048788156]
+position = Vector2(0, 200)
+shape = SubResource("RectangleShape2D_bhunq")
+
+[node name="Polygon2D" type="Polygon2D" parent="Ground" unique_id=709148291]
+color = Color(0.9063318, 0.86504203, 0.7483791, 1)
+polygon = PackedVector2Array(-400, 180, 400, 180, 400, 220, -400, 220)
+script = ExtResource("1_byawo")

@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://kp4ulvda52rd"]
+
+[ext_resource type="PackedScene" uid="uid://npmxewd65pxb" path="res://game/cove/cove.tscn" id="1_ig7tw"]
+
+[node name="Main" type="Node2D" unique_id=1125150980]
+
+[node name="Cove" parent="." unique_id=457360959 instance=ExtResource("1_ig7tw")]
+position = Vector2(402, 28)
