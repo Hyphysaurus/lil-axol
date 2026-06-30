@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://npmxewd65pxb"]
 
 [ext_resource type="Script" uid="uid://b0o73n627pt8j" path="res://game/cove/polygon_2d.gd" id="1_byawo"]
+[ext_resource type="PackedScene" uid="uid://ctc8p2qndbyfw" path="res://game/axolotl/axolotl.tscn" id="2_1gfh3"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bhunq"]
 size = Vector2(800, 40)
@@ -17,3 +18,6 @@ shape = SubResource("RectangleShape2D_bhunq")
 color = Color(0.9063318, 0.86504203, 0.7483791, 1)
 polygon = PackedVector2Array(-400, 180, 400, 180, 400, 220, -400, 220)
 script = ExtResource("1_byawo")
+
+[node name="Axolotl" parent="." unique_id=1466163284 instance=ExtResource("2_1gfh3")]
+position = Vector2(0, 120)
