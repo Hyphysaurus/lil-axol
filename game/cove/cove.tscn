@@ -1,23 +1,61 @@
 [gd_scene format=3 uid="uid://npmxewd65pxb"]
 
-[ext_resource type="Script" uid="uid://b0o73n627pt8j" path="res://game/cove/polygon_2d.gd" id="1_byawo"]
 [ext_resource type="PackedScene" uid="uid://ctc8p2qndbyfw" path="res://game/axolotl/axolotl.tscn" id="2_1gfh3"]
+[ext_resource type="Shader" uid="uid://djpicv5djwrh2" path="res://shaders/water.gdshader" id="2_6pnl8"]
+[ext_resource type="Texture2D" uid="uid://cml4630dsacla" path="res://assets/white.png" id="2_xbt28"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_sn0t7"]
+size = Vector2(427, 240)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bhunq"]
-size = Vector2(800, 40)
+size = Vector2(800, 60)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_fnfnh"]
+shader = ExtResource("2_6pnl8")
+shader_parameter/rect_size = Vector2(800, 268)
+shader_parameter/overhang = 8.0
+shader_parameter/col_shallow = Color(0.2, 0.58, 0.62, 0.38)
+shader_parameter/col_deep = Color(0.04, 0.13, 0.34, 0.74)
+shader_parameter/col_foam = Color(0.88, 0.97, 1, 0.95)
+shader_parameter/clean = 1.0
+shader_parameter/col_oily_shallow = Color(0.15, 0.2, 0.12, 0.62)
+shader_parameter/col_oily_deep = Color(0.05, 0.06, 0.04, 0.86)
+shader_parameter/wave_amp = 4.0
+shader_parameter/wave_len = 90.0
+shader_parameter/wave_speed = 1.2
+shader_parameter/foam_thickness = 2.5
+shader_parameter/caustic_strength = 0.1
 
 [node name="Cove" type="Node2D" unique_id=457360959]
 
-[node name="Ground" type="StaticBody2D" parent="." unique_id=149187520]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Ground" unique_id=2048788156]
-position = Vector2(0, 200)
-shape = SubResource("RectangleShape2D_bhunq")
-
-[node name="Polygon2D" type="Polygon2D" parent="Ground" unique_id=709148291]
-color = Color(0.9063318, 0.86504203, 0.7483791, 1)
-polygon = PackedVector2Array(-400, 180, 400, 180, 400, 220, -400, 220)
-script = ExtResource("1_byawo")
-
 [node name="Axolotl" parent="." unique_id=1466163284 instance=ExtResource("2_1gfh3")]
 position = Vector2(0, 120)
+has_water = true
+
+[node name="Beach" type="StaticBody2D" parent="." unique_id=423457899]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Beach" unique_id=591406187]
+position = Vector2(0.5, 120)
+shape = SubResource("RectangleShape2D_sn0t7")
+
+[node name="Polygon2D" type="Polygon2D" parent="Beach" unique_id=307852546]
+color = Color(0.9063318, 1, 1, 1)
+polygon = PackedVector2Array(-400, 2, -140.08, -2, -140, 238, -400, 238)
+
+[node name="Seabed" type="StaticBody2D" parent="." unique_id=561913786]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Seabed" unique_id=883235013]
+position = Vector2(-270, 118)
+shape = SubResource("RectangleShape2D_bhunq")
+
+[node name="Polygon2D" type="Polygon2D" parent="Seabed" unique_id=1600107471]
+color = Color(0.4366271, 0.48452926, 0.5563933, 1)
+polygon = PackedVector2Array(-400, 260, 400, 260, 400, 320, -400, 320)
+
+[node name="Water" type="Sprite2D" parent="." unique_id=575328831]
+z_index = 5
+material = SubResource("ShaderMaterial_fnfnh")
+position = Vector2(-400, -8)
+scale = Vector2(268, 268)
+texture = ExtResource("2_xbt28")
+centered = false
