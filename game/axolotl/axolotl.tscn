@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://ctc8p2qndbyfw"]
 
 [ext_resource type="Script" uid="uid://n1pfp0w7r8tm" path="res://game/axolotl/axolotl.gd" id="1_t8ay6"]
+[ext_resource type="SpriteFrames" uid="uid://71wljt4yqu6g" path="res://game/axolotl/axolotl_frames.tres" id="2_rvbxv"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bhunq"]
 size = Vector2(16, 18)
@@ -8,12 +9,13 @@ size = Vector2(16, 18)
 [node name="Axolotl" type="CharacterBody2D" unique_id=1466163284]
 script = ExtResource("1_t8ay6")
 
-[node name="Polygon2D" type="Polygon2D" parent="." unique_id=354244527]
-color = Color(0.6350498, 0.89624393, 0.91775256, 1)
-polygon = PackedVector2Array(-8, -9, 8, -9, 8, 9, -8, 9)
-
 [node name="Col" type="CollisionShape2D" parent="." unique_id=829835055]
 shape = SubResource("RectangleShape2D_bhunq")
 
 [node name="Camera" type="Camera2D" parent="." unique_id=920053632]
 zoom = Vector2(3, 3)
+
+[node name="Sprite" type="AnimatedSprite2D" parent="." unique_id=904301367]
+sprite_frames = ExtResource("2_rvbxv")
+animation = &"idle"
+autoplay = "idle"
