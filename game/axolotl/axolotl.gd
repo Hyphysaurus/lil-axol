@@ -1,6 +1,7 @@
 extends CharacterBody2D
 ## Lil Axolotl — land movement + swim. Reads InputMap actions (touch/gamepad-ready).
-## The cove sets has_water + water_surface_y on this instance (Inspector exports).
+## Water geometry (has_water, surface_y, left/right span) comes from the cove's
+## injected CoveConfig — the parent Cove calls setup(cfg) before the first physics frame.
 
 # --- land ---
 const WALK_SPEED := 90.0
@@ -25,18 +26,18 @@ const SURFACE_HOP := -300.0   # strong enough to clear the beach ledge out of th
 const SPRAY_REACH := 40.0     # px in front of the axo the spray reaches
 const SPRAY_RADIUS := 36.0    # clean radius around the spray point
 
-@export var has_water := false
-@export var water_surface_y := 0.0
-@export var water_left := -1e20    # the water body's horizontal span; outside it the axo is on land,
-@export var water_right := 1e20    # so it can't "swim in the air" over the beach or the gap
-
 @onready var _spr: AnimatedSprite2D = $Sprite
 
+var _cfg: CoveConfig            # water geometry, injected by the cove (see setup)
 var _face := 1.0
 var _t := 0.0
 var _hop_grace := 0.0
 var _in_water := false
 var _spray_p: CPUParticles2D
+
+## Called by the Cove composition root once, before the first physics frame.
+func setup(cfg: CoveConfig) -> void:
+	_cfg = cfg
 
 ## Axo position in the cove's (parent) frame — the water bounds are authored there.
 func _cove_local() -> Vector2:
@@ -78,18 +79,20 @@ func _physics_process(delta: float) -> void:
 		get_tree().call_group("oil_manager", "spray_at", reach, SPRAY_RADIUS, delta)
 
 	# --- water: enter / exit / swim, polled vs the waterline (hysteresis stops surface flicker) ---
-	# water_surface_y / water_left / water_right are authored in the cove's (parent) frame, so test the
+	# The config's surface_y / water_left / water_right are authored in the cove's (parent) frame, so test the
 	# axo in that frame too. Using global_position added the cove's world offset and made every poll read
 	# "over water / submerged" — the axo spawned swimming on the sand and floated in the beach/water gap.
 	var local := _cove_local()
 	var feet := local.y + HALF_H
-	var over_water := local.x > water_left and local.x < water_right
+	var has_water := _cfg != null and _cfg.has_water
 	var submerged := false
-	if has_water and over_water:
-		if _in_water:
-			submerged = feet > water_surface_y - 2.0   # stay in until fully out
-		else:
-			submerged = feet > water_surface_y + 4.0   # dip in to start
+	if has_water:
+		var over_water := local.x > _cfg.water_left and local.x < _cfg.water_right
+		if over_water:
+			if _in_water:
+				submerged = feet > _cfg.surface_y - 2.0   # stay in until fully out
+			else:
+				submerged = feet > _cfg.surface_y + 4.0   # dip in to start
 	if submerged and not _in_water:
 		_enter_water()
 	elif not submerged and _in_water:
@@ -111,7 +114,7 @@ func _physics_process(delta: float) -> void:
 func _swim(delta: float, dir: float) -> void:
 	var vin := Input.get_axis("move_up", "move_down")    # +1 = down (dive)
 	var feet := _cove_local().y + HALF_H
-	var depth := feet - water_surface_y                  # >0 = below the surface
+	var depth := feet - _cfg.surface_y                   # >0 = below the surface
 	var tv := Vector2(dir * SWIM_H, vin * SWIM_V)
 
 	# no vertical input -> buoyancy spring toward REST_DEPTH + a gentle surface bob
@@ -162,7 +165,7 @@ func _splash(amt: float) -> void:
 	p.amount = int(10.0 * amt) + 6
 	p.lifetime = 0.5
 	p.explosiveness = 0.85
-	p.position = Vector2(_cove_local().x, water_surface_y)   # entry point on the waterline (cove frame)
+	p.position = Vector2(_cove_local().x, _cfg.surface_y)   # entry point on the waterline (cove frame)
 	p.direction = Vector2(0, -1)
 	p.spread = 55.0
 	p.initial_velocity_min = 40.0 * amt

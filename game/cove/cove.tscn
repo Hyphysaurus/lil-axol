@@ -11,7 +11,9 @@
 [ext_resource type="Script" uid="uid://cggix17myooge" path="res://game/cove/oil_spill.gd" id="9_oil"]
 [ext_resource type="Shader" uid="uid://11o3xut4heem" path="res://shaders/post.gdshader" id="10_post"]
 [ext_resource type="Shader" uid="uid://dd3yvdkuamgxm" path="res://shaders/sand.gdshader" id="11_sand"]
-[ext_resource type="Script" path="res://game/cove/cove_life.gd" id="12_life"]
+[ext_resource type="Script" uid="uid://cbcl3mfdm8ehn" path="res://game/cove/cove_life.gd" id="12_life"]
+[ext_resource type="Script" uid="uid://b6wjxws8mp3l4" path="res://game/cove/cove.gd" id="13_cove"]
+[ext_resource type="Resource" uid="uid://b0covea0cfg01" path="res://game/cove/cove_a.tres" id="14_cfg"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_sn0t7"]
 size = Vector2(255, 280)
@@ -62,9 +64,6 @@ shader_parameter/sky_reflect = Color(0.5, 0.62, 0.85, 1)
 shader_parameter/reflect_strength = 0.35
 shader_parameter/reflect_depth = 70.0
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_water"]
-size = Vector2(598.5, 240)
-
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_xbt28"]
 shader = ExtResource("4_6pnl8")
 shader_parameter/col_top = Color(0.05, 0.07, 0.16, 1)
@@ -104,14 +103,12 @@ shader_parameter/mid_lift = 0.96
 
 [node name="Cove" type="Node2D" unique_id=457360959]
 position = Vector2(509, 172)
+script = ExtResource("13_cove")
+config = ExtResource("14_cfg")
 
 [node name="Axolotl" parent="." unique_id=1466163284 instance=ExtResource("2_1gfh3")]
 z_index = 2
 position = Vector2(-295, -50)
-has_water = true
-water_surface_y = -27.0
-water_left = -142.0
-water_right = 457.0
 
 [node name="Beach" type="StaticBody2D" parent="." unique_id=423457899]
 
@@ -166,14 +163,6 @@ script = ExtResource("9_oil")
 
 [node name="CoveLife" type="Node2D" parent="." unique_id=771000007]
 script = ExtResource("12_life")
-
-[node name="WaterArea" type="Area2D" parent="." unique_id=252148129 groups=["water"]]
-position = Vector2(59, 202)
-monitoring = false
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="WaterArea" unique_id=333211149]
-position = Vector2(98, -81)
-shape = SubResource("RectangleShape2D_water")
 
 [node name="SkyLayer" type="CanvasLayer" parent="." unique_id=145102971]
 layer = -100
