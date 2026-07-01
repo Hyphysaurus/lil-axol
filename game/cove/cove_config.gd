@@ -1,0 +1,32 @@
+extends Resource
+class_name CoveConfig
+## Single source of truth for one cove's geometry + gameplay tuning.
+## Every cove component (axolotl, oil spill, ecosystem) reads these instead of
+## hardcoding its own copy. One .tres per cove/level — new numbers, zero code.
+##
+## Frame: all coordinates are in the Cove node's local space (the same frame the
+## water bounds have always been authored in). Shader COLORS are intentionally NOT
+## here — they stay authored on the scene materials in the inspector.
+
+@export_group("Water Geometry")
+## Whether this cove has a swimmable water body at all (land-only levels set false).
+@export var has_water: bool = true
+## Horizontal span of the water body. Outside [left, right] the axo is on land.
+@export var water_left: float = -142.0
+@export var water_right: float = 457.0
+## Y of the still waterline (feet below this = submerged).
+@export var surface_y: float = -27.0
+## Y of the seabed top (floor of the water column; kelp bases sit here).
+@export var seabed_y: float = 166.0
+
+@export_group("Oil Spill")
+@export var blob_count: int = 9
+## Horizontal span the floating oil slicks spawn across.
+@export var spill_left: float = 120.0
+@export var spill_right: float = 445.0
+## How fast a sprayed blob clears (amount/sec).
+@export var clean_rate: float = 1.4
+
+@export_group("Ecosystem")
+@export var kelp_count: int = 6
+@export var fish_count: int = 5

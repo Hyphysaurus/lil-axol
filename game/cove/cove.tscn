@@ -12,6 +12,8 @@
 [ext_resource type="Shader" uid="uid://11o3xut4heem" path="res://shaders/post.gdshader" id="10_post"]
 [ext_resource type="Shader" uid="uid://dd3yvdkuamgxm" path="res://shaders/sand.gdshader" id="11_sand"]
 [ext_resource type="Script" path="res://game/cove/cove_life.gd" id="12_life"]
+[ext_resource type="Script" path="res://game/cove/cove.gd" id="13_cove"]
+[ext_resource type="Resource" uid="uid://b0covea0cfg01" path="res://game/cove/cove_a.tres" id="14_cfg"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_sn0t7"]
 size = Vector2(255, 280)
@@ -104,14 +106,12 @@ shader_parameter/mid_lift = 0.96
 
 [node name="Cove" type="Node2D" unique_id=457360959]
 position = Vector2(509, 172)
+script = ExtResource("13_cove")
+config = ExtResource("14_cfg")
 
 [node name="Axolotl" parent="." unique_id=1466163284 instance=ExtResource("2_1gfh3")]
 z_index = 2
 position = Vector2(-295, -50)
-has_water = true
-water_surface_y = -27.0
-water_left = -142.0
-water_right = 457.0
 
 [node name="Beach" type="StaticBody2D" parent="." unique_id=423457899]
 
