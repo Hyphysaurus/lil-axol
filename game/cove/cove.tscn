@@ -14,7 +14,8 @@
 [ext_resource type="Script" uid="uid://cbcl3mfdm8ehn" path="res://game/cove/cove_life.gd" id="12_life"]
 [ext_resource type="Script" uid="uid://b6wjxws8mp3l4" path="res://game/cove/cove.gd" id="13_cove"]
 [ext_resource type="Resource" uid="uid://b0covea0cfg01" path="res://game/cove/cove_a.tres" id="14_cfg"]
-[ext_resource type="Script" path="res://game/cove/restoration_banner.gd" id="15_banner"]
+[ext_resource type="Script" uid="uid://dy6aiscabt3wf" path="res://game/cove/restoration_banner.gd" id="15_banner"]
+[ext_resource type="Script" uid="uid://sd8o1ipttvn2" path="res://game/cove/seabed_backdrop.gd" id="16_seabed"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_sn0t7"]
 size = Vector2(255, 280)
@@ -132,7 +133,7 @@ position = Vector2(157.5, 203.5)
 shape = SubResource("RectangleShape2D_bhunq")
 
 [node name="Polygon2D" type="Polygon2D" parent="Seabed" unique_id=1600107471]
-color = Color(0.4366271, 0.48452926, 0.5563933, 1)
+color = Color(0.11, 0.16, 0.23, 1)
 polygon = PackedVector2Array(-142, 166, 457, 166, 457, 241, -142, 241)
 
 [node name="Grass" type="Sprite2D" parent="." unique_id=771000001]
@@ -165,6 +166,9 @@ script = ExtResource("9_oil")
 [node name="CoveLife" type="Node2D" parent="." unique_id=771000007]
 script = ExtResource("12_life")
 
+[node name="SeabedBackdrop" type="Node2D" parent="." unique_id=771000011]
+script = ExtResource("16_seabed")
+
 [node name="SkyLayer" type="CanvasLayer" parent="." unique_id=145102971]
 layer = -100
 
@@ -192,7 +196,6 @@ color = Color(0.61960787, 0.6784314, 0.8784314, 1)
 
 [node name="TimeOfDay" type="Node" parent="." unique_id=847138532]
 script = ExtResource("5_fnfnh")
-day_length = 120.0
 start_time = 0.1
 
 [node name="CloudLayer" type="CanvasLayer" parent="." unique_id=2047723366]

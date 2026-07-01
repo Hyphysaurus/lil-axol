@@ -2,12 +2,14 @@
 
 [ext_resource type="Script" uid="uid://n1pfp0w7r8tm" path="res://game/axolotl/axolotl.gd" id="1_t8ay6"]
 [ext_resource type="SpriteFrames" uid="uid://71wljt4yqu6g" path="res://game/axolotl/axolotl_frames.tres" id="2_rvbxv"]
+[ext_resource type="Resource" uid="uid://d1fmj65martxw" path="res://game/axolotl/axolotl_anims.tres" id="3_anims"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bhunq"]
 size = Vector2(16, 18)
 
 [node name="Axolotl" type="CharacterBody2D" unique_id=1466163284]
 script = ExtResource("1_t8ay6")
+anim_set = ExtResource("3_anims")
 
 [node name="Col" type="CollisionShape2D" parent="." unique_id=829835055]
 shape = SubResource("RectangleShape2D_bhunq")

@@ -12,6 +12,7 @@ func _ready() -> void:
 	_inject($Axolotl)
 	_inject($OilSpill)
 	_inject($CoveLife)
+	_inject($SeabedBackdrop)
 
 func _inject(n: Node) -> void:
 	# has_method guard keeps the scene runnable while components are migrated one at a time

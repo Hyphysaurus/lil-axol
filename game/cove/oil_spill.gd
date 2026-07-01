@@ -122,6 +122,17 @@ func spray_at(world_pos: Vector2, radius: float, delta: float) -> void:
 			_milestone += 1                     # escalating burst as the cove recovers
 			_fx.pop(p)
 
+## Oil coverage (0..1) at a world position — used by the axolotl to sludge its movement in oil.
+func oil_at(world_pos: Vector2) -> float:
+	if _mask == null:
+		return 0.0
+	var p := to_local(world_pos)
+	var mx := int((p.x - _origin.x) / _size.x * float(MASK_W))
+	var my := int((p.y - _origin.y) / _size.y * float(MASK_H))
+	if mx < 0 or mx >= MASK_W or my < 0 or my >= MASK_H:
+		return 0.0
+	return _mask.get_pixel(mx, my).r
+
 func _set_clean() -> void:
 	current_clean = clampf(1.0 - _remaining / _total, 0.0, 1.0)
 	if _water_mat:

@@ -21,14 +21,21 @@ const BUOY_MAX := 42.0
 const BOB_AMP := 5.0
 const BOB_FREQ := 2.2
 const SURFACE_HOP := -300.0   # strong enough to clear the beach ledge out of the water
+const OIL_DRAG := 0.5         # max swim slow-down when in thick oil (0 = none .. 1 = stuck)
 
 # --- spray (oil cleanup) ---
 const SPRAY_REACH := 40.0     # px in front of the axo the spray reaches
 const SPRAY_RADIUS := 36.0    # clean radius around the spray point
 
+## Logical-state -> clip-name map (assigned in the scene). Clip names live here as data, not
+## as literals in the movement code below.
+@export var anim_set: CharacterAnimSet
+
 @onready var _spr: AnimatedSprite2D = $Sprite
 
 var _cfg: CoveConfig            # water geometry, injected by the cove (see setup)
+var _oil_mgr: Node             # oil manager, for the in-oil movement debuff (fetched in setup)
+var _anims: AnimationController  # drives _spr from the states the movement code picks
 var _face := 1.0
 var _t := 0.0
 var _hop_grace := 0.0
@@ -38,12 +45,19 @@ var _spray_p: CPUParticles2D
 ## Called by the Cove composition root once, before the first physics frame.
 func setup(cfg: CoveConfig) -> void:
 	_cfg = cfg
+	# grabbed here (not _ready) because the oil manager joins its group in its own _ready first
+	_oil_mgr = get_tree().get_first_node_in_group("oil_manager")
 
 ## Axo position in the cove's (parent) frame — the water bounds are authored there.
 func _cove_local() -> Vector2:
 	return (get_parent() as Node2D).to_local(global_position)
 
 func _ready() -> void:
+	# data-driven animation: movement picks a logical state, the controller plays the mapped clip
+	if anim_set == null:
+		anim_set = CharacterAnimSet.new()   # defaults match the SpriteFrames clip names
+	_anims = AnimationController.new(_spr)
+
 	# persistent water-spray emitter, toggled on while the spray button is held
 	_spray_p = CPUParticles2D.new()
 	_spray_p.emitting = false
@@ -115,7 +129,10 @@ func _swim(delta: float, dir: float) -> void:
 	var vin := Input.get_axis("move_up", "move_down")    # +1 = down (dive)
 	var feet := _cove_local().y + HALF_H
 	var depth := feet - _cfg.surface_y                   # >0 = below the surface
-	var tv := Vector2(dir * SWIM_H, vin * SWIM_V)
+	# oil debuff: thick oil sludges both top speed and how fast you accelerate (0 oil => no change)
+	var oil: float = _oil_mgr.oil_at(global_position) if _oil_mgr else 0.0
+	var slow := 1.0 - OIL_DRAG * oil
+	var tv := Vector2(dir * SWIM_H * slow, vin * SWIM_V * slow)
 
 	# no vertical input -> buoyancy spring toward REST_DEPTH + a gentle surface bob
 	# (suspended during a hop's grace window so it can't drag the leap back down)
@@ -124,7 +141,7 @@ func _swim(delta: float, dir: float) -> void:
 		var near_surface := clampf(1.0 - absf(depth - REST_DEPTH) / 24.0, 0.0, 1.0)
 		tv.y = spring + sin(_t * BOB_FREQ) * BOB_AMP * near_surface
 
-	velocity = velocity.lerp(tv, clampf(SWIM_LERP * delta, 0.0, 1.0))
+	velocity = velocity.lerp(tv, clampf(SWIM_LERP * slow * delta, 0.0, 1.0))
 
 	# buoyancy alone never flings the axo out...
 	if depth <= 0.0 and velocity.y < 0.0 and _hop_grace <= 0.0:
@@ -135,21 +152,17 @@ func _swim(delta: float, dir: float) -> void:
 		velocity.x = dir * RUN_SPEED
 		_hop_grace = 0.3
 
-	if dir != 0.0:
-		_spr.flip_h = _face < 0.0
 	var moving := absf(velocity.x) > MOVE_EPS or vin != 0.0
-	_anim("swim" if moving else "swim_idle")
+	_anims.play(anim_set.swim if moving else anim_set.swim_idle, _face)
 	move_and_slide()
 
-func _animate_land(dir: float, running: bool) -> void:
-	if dir != 0.0:
-		_spr.flip_h = _face < 0.0
+func _animate_land(_dir: float, running: bool) -> void:
 	if not is_on_floor():
-		_anim("jump" if velocity.y < 0.0 else "fall")
+		_anims.play(anim_set.jump if velocity.y < 0.0 else anim_set.fall, _face)
 	elif absf(velocity.x) > MOVE_EPS:
-		_anim("run" if running else "walk")
+		_anims.play(anim_set.run if running else anim_set.walk, _face)
 	else:
-		_anim("idle")
+		_anims.play(anim_set.idle, _face)
 
 func _enter_water() -> void:
 	_splash(1.0)
@@ -177,7 +190,3 @@ func _splash(amt: float) -> void:
 	p.z_index = 8
 	get_parent().add_child(p)   # add to the cove (world coords) so the splash stays at the surface
 	p.finished.connect(p.queue_free)
-
-func _anim(a: String) -> void:
-	if _spr.animation != a:
-		_spr.play(a)

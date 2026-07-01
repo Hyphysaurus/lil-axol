@@ -40,12 +40,18 @@ float bfbm(vec2 p, int oct) {
 vec2 cumulus(vec2 uv, float scale, float by, float h, float dx) {
 	float ux = uv.x * scale + dx;
 	float topn = clamp(bfbm(vec2(ux, 2.3), 5) * coverage, 0.0, 1.0);
-	float cloud_top = by - h * topn;
-	float flat_bottom = clamp((by - uv.y) / 0.015, 0.0, 1.0);
+	// break the bank into separate masses so it isn't a continuous wall along the horizon
+	float gap = smoothstep(0.22, 0.55, vnoise(vec2(ux * 0.5, 4.0)));
+	topn *= gap;
+	// undulate the underside per column so the bottom is not one ruler-straight horizon line
+	float wob = (vnoise(vec2(ux * 0.6, 11.0)) - 0.5) * 0.07;
+	float bb = by + wob;
+	float cloud_top = bb - h * topn;
+	float flat_bottom = clamp((bb - uv.y) / 0.05, 0.0, 1.0);   // softer, feathered belly
 	float soft_top = clamp((uv.y - cloud_top) / 0.035, 0.0, 1.0);
 	float det = bfbm(vec2(ux * 2.1, uv.y * scale * 1.6 + 5.0), 4);
 	float alpha = clamp(soft_top * flat_bottom * (1.0 - puffiness * det), 0.0, 1.0);
-	float depth = clamp((uv.y - cloud_top) / max(by - cloud_top, 0.001), 0.0, 1.0);
+	float depth = clamp((uv.y - cloud_top) / max(bb - cloud_top, 0.001), 0.0, 1.0);
 	return vec2(alpha, depth);
 }
 
