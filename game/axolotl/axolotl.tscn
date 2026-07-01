@@ -6,9 +6,6 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bhunq"]
 size = Vector2(16, 18)
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_water"]
-radius = 2.0
-
 [node name="Axolotl" type="CharacterBody2D" unique_id=1466163284]
 script = ExtResource("1_t8ay6")
 
@@ -22,10 +19,3 @@ zoom = Vector2(3, 3)
 sprite_frames = ExtResource("2_rvbxv")
 animation = &"idle"
 autoplay = "idle"
-
-[node name="WaterSensor" type="Area2D" parent="."]
-monitorable = false
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="WaterSensor"]
-position = Vector2(0, 9)
-shape = SubResource("CircleShape2D_water")
