@@ -1,0 +1,1162 @@
+[
+  {
+    "file": "terrain/terrain_grass_block_narrow.png",
+    "id": 0,
+    "category": "terrain",
+    "name": "terrain_grass_block_narrow",
+    "desc": "Tall narrow grass-topped dirt block with dark oily boulders at base",
+    "quality": "clean"
+  },
+  {
+    "file": "terrain/terrain_grass_block_sprout.png",
+    "id": 1,
+    "category": "terrain",
+    "name": "terrain_grass_block_sprout",
+    "desc": "Narrow grass-topped dirt column with a sprout on top and oily boulders below",
+    "quality": "clean"
+  },
+  {
+    "file": "terrain/terrain_grass_block_wide.png",
+    "id": 2,
+    "category": "terrain",
+    "name": "terrain_grass_block_wide",
+    "desc": "Wide grass-topped dirt platform with oily boulder deposits along the bottom",
+    "quality": "clean"
+  },
+  {
+    "file": "terrain/terrain_grass_block.png",
+    "id": 3,
+    "category": "terrain",
+    "name": "terrain_grass_block",
+    "desc": "Grass-topped dirt block with dark oily rocks at the base",
+    "quality": "clean"
+  },
+  {
+    "file": "terrain/terrain_grass_edge_left.png",
+    "id": 4,
+    "category": "terrain",
+    "name": "terrain_grass_edge_left",
+    "desc": "Grass-topped dirt block with rounded left edge and oily boulders below",
+    "quality": "clean"
+  },
+  {
+    "file": "terrain/terrain_grass_block_sprout_2.png",
+    "id": 5,
+    "category": "terrain",
+    "name": "terrain_grass_block_sprout_2",
+    "desc": "Grass-topped dirt platform with a sprout on top and oily rocks at base",
+    "quality": "clean"
+  },
+  {
+    "file": "terrain/terrain_grass_block_narrow_2.png",
+    "id": 6,
+    "category": "terrain",
+    "name": "terrain_grass_block_narrow_2",
+    "desc": "Tall narrow grass-topped dirt block with dark oily boulders at the bottom",
+    "quality": "clean"
+  },
+  {
+    "file": "terrain/terrain_grass_block_columns.png",
+    "id": 7,
+    "category": "terrain",
+    "name": "terrain_grass_block_columns",
+    "desc": "Grass-topped dirt block over tall stacked oily boulder columns",
+    "quality": "clean"
+  },
+  {
+    "file": "terrain/terrain_grass_block_wide_2.png",
+    "id": 8,
+    "category": "terrain",
+    "name": "terrain_grass_block_wide_2",
+    "desc": "Wide grass-topped dirt platform with a row of dark oily boulders at the base",
+    "quality": "clean"
+  },
+  {
+    "file": "oil/oil_puddle_wide.png",
+    "id": 9,
+    "category": "oil",
+    "name": "oil_puddle_wide",
+    "desc": "Wide glossy black oil puddle with rounded drip lobes along its lower edge",
+    "quality": "clean"
+  },
+  {
+    "file": "oil/oil_splat.png",
+    "id": 10,
+    "category": "oil",
+    "name": "oil_splat",
+    "desc": "Compact black oil splat blob with small drips around the edges",
+    "quality": "clean"
+  },
+  {
+    "file": "oil/oil_slick_large.png",
+    "id": 11,
+    "category": "oil",
+    "name": "oil_slick_large",
+    "desc": "Large irregular dark purple oil slick with trailing drips at the bottom",
+    "quality": "clean"
+  },
+  {
+    "file": "oil/oil_splat_2.png",
+    "id": 12,
+    "category": "oil",
+    "name": "oil_splat_2",
+    "desc": "Rounded purple-black oil splat blob with lobed dripping edges",
+    "quality": "clean"
+  },
+  {
+    "file": "oil/oil_puddle_wide_2.png",
+    "id": 13,
+    "category": "oil",
+    "name": "oil_puddle_wide_2",
+    "desc": "Wide flat dark oil puddle with small rounded drip lobes underneath",
+    "quality": "clean"
+  },
+  {
+    "file": "terrain/terrain_grass_block_wide_3.png",
+    "id": 14,
+    "category": "terrain",
+    "name": "terrain_grass_block_wide_3",
+    "desc": "Wide grass-topped dirt platform with clustered dark oily boulders at the base",
+    "quality": "clean"
+  },
+  {
+    "file": "oil/oil_covered_terrain_block.png",
+    "id": 15,
+    "category": "oil",
+    "name": "oil_covered_terrain_block",
+    "desc": "Grass-topped terrain block with thick black oil pooled over the dirt body",
+    "quality": "clean"
+  },
+  {
+    "file": "oil/oil_covered_terrain_block_2.png",
+    "id": 16,
+    "category": "oil",
+    "name": "oil_covered_terrain_block_2",
+    "desc": "Grass-topped block with oily black sludge over dirt and dark rocky base",
+    "quality": "clean"
+  },
+  {
+    "file": "oil/oil_covered_terrain_column.png",
+    "id": 17,
+    "category": "oil",
+    "name": "oil_covered_terrain_column",
+    "desc": "Tall grass-topped column, dirt body slicked with oil over a dark cobble base",
+    "quality": "clean"
+  },
+  {
+    "file": "oil/oil_covered_terrain_column_2.png",
+    "id": 18,
+    "category": "oil",
+    "name": "oil_covered_terrain_column_2",
+    "desc": "Tall narrow grass-topped column with oil-stained dirt and dark stone base",
+    "quality": "clean"
+  },
+  {
+    "file": "oil/oil_covered_terrain_column_double.png",
+    "id": 19,
+    "category": "oil",
+    "name": "oil_covered_terrain_column_double",
+    "desc": "Two adjacent grass-topped oily dirt columns over dark rock, stuck together",
+    "quality": "merged"
+  },
+  {
+    "file": "oil/oil_drip_ledge.png",
+    "id": 20,
+    "category": "oil",
+    "name": "oil_drip_ledge",
+    "desc": "Grass ledge with heavy black oil spilling and dripping down the dirt face",
+    "quality": "clean"
+  },
+  {
+    "file": "industrial/hatch_round.png",
+    "id": 21,
+    "category": "industrial",
+    "name": "hatch_round",
+    "desc": "Dark round metal hatch or cap with bolted rim and small feet",
+    "quality": "clean"
+  },
+  {
+    "file": "oil/oil_slick_large_2.png",
+    "id": 22,
+    "category": "oil",
+    "name": "oil_slick_large_2",
+    "desc": "Wide irregular black oil slick puddle with glossy purple highlights and drips",
+    "quality": "clean"
+  },
+  {
+    "file": "oil/oil_slick_small.png",
+    "id": 23,
+    "category": "oil",
+    "name": "oil_slick_small",
+    "desc": "Smaller dark oil slick puddle with droplets, glossy purple-black sheen",
+    "quality": "clean"
+  },
+  {
+    "file": "industrial/barrel_leaking.png",
+    "id": 24,
+    "category": "industrial",
+    "name": "barrel_leaking",
+    "desc": "Open metal barrel with purple oil overflowing and dripping down its sides",
+    "quality": "clean"
+  },
+  {
+    "file": "oil/oil_covered_terrain_block_3.png",
+    "id": 25,
+    "category": "oil",
+    "name": "oil_covered_terrain_block_3",
+    "desc": "Grass-topped block with oil-slicked dirt over a dark rocky base",
+    "quality": "clean"
+  },
+  {
+    "file": "oil/oil_covered_terrain_column_3.png",
+    "id": 26,
+    "category": "oil",
+    "name": "oil_covered_terrain_column_3",
+    "desc": "Tall grass-topped column with oily dirt body and dark cobble base",
+    "quality": "clean"
+  },
+  {
+    "file": "oil/oil_drip_ledge_2.png",
+    "id": 27,
+    "category": "oil",
+    "name": "oil_drip_ledge_2",
+    "desc": "Grass ledge with black oil pooled on top and dripping over the dirt edge",
+    "quality": "clean"
+  },
+  {
+    "file": "oil/oil_covered_terrain_block_4.png",
+    "id": 28,
+    "category": "oil",
+    "name": "oil_covered_terrain_block_4",
+    "desc": "Grass-topped block, oil-stained dirt body over rounded dark stones",
+    "quality": "clean"
+  },
+  {
+    "file": "decor/seaweed_cluster.png",
+    "id": 29,
+    "category": "decor",
+    "name": "seaweed_cluster",
+    "desc": "Cluster of green seaweed and pink coral growing on a mossy rocky ledge",
+    "quality": "clean"
+  },
+  {
+    "file": "oil/oil_blobs_cluster.png",
+    "id": 30,
+    "category": "oil",
+    "name": "oil_blobs_cluster",
+    "desc": "Row of dark glossy oil blobs/droplets sitting on a navy ledge",
+    "quality": "merged"
+  },
+  {
+    "file": "water_polluted/water_polluted_slick.png",
+    "id": 31,
+    "category": "water_polluted",
+    "name": "water_polluted_slick",
+    "desc": "Wide dark navy oily polluted water slick with bubbly underside",
+    "quality": "clean"
+  },
+  {
+    "file": "water_polluted/water_polluted_ledge_drip.png",
+    "id": 32,
+    "category": "water_polluted",
+    "name": "water_polluted_ledge_drip",
+    "desc": "Dark purple polluted water ledge with hanging sludge drips",
+    "quality": "clean"
+  },
+  {
+    "file": "terrain/terrain_grass_block_2.png",
+    "id": 33,
+    "category": "terrain",
+    "name": "terrain_grass_block_2",
+    "desc": "Grass-topped dirt terrain block with rounded boulder rows",
+    "quality": "clean"
+  },
+  {
+    "file": "decor/coral_blue.png",
+    "id": 34,
+    "category": "decor",
+    "name": "coral_blue",
+    "desc": "Teal/blue coral or sea plant cluster",
+    "quality": "clean"
+  },
+  {
+    "file": "decor/coral_pink.png",
+    "id": 35,
+    "category": "decor",
+    "name": "coral_pink",
+    "desc": "Pink branching coral with blue base foliage",
+    "quality": "clean"
+  },
+  {
+    "file": "decor/seaweed_plant.png",
+    "id": 36,
+    "category": "decor",
+    "name": "seaweed_plant",
+    "desc": "Small leafy aquatic plant with blue berries/buds",
+    "quality": "clean"
+  },
+  {
+    "file": "industrial/barrels_row.png",
+    "id": 37,
+    "category": "industrial",
+    "name": "barrels_row",
+    "desc": "Row of teal and dark barrels/drums clustered together",
+    "quality": "merged"
+  },
+  {
+    "file": "oil/oil_blobs_cluster_2.png",
+    "id": 38,
+    "category": "oil",
+    "name": "oil_blobs_cluster_2",
+    "desc": "Row of dark glossy oil blobs on a navy ledge",
+    "quality": "merged"
+  },
+  {
+    "file": "water_polluted/water_polluted_slick_2.png",
+    "id": 39,
+    "category": "water_polluted",
+    "name": "water_polluted_slick_2",
+    "desc": "Wide dark oily polluted water slick with bubbly edge",
+    "quality": "clean"
+  },
+  {
+    "file": "water_polluted/water_polluted_puddle.png",
+    "id": 40,
+    "category": "water_polluted",
+    "name": "water_polluted_puddle",
+    "desc": "Dark purple oily polluted water puddle/spill",
+    "quality": "clean"
+  },
+  {
+    "file": "water_polluted/water_polluted_table_ledge.png",
+    "id": 41,
+    "category": "water_polluted",
+    "name": "water_polluted_table_ledge",
+    "desc": "Rounded dark navy polluted water ledge/platform with legs",
+    "quality": "clean"
+  },
+  {
+    "file": "water_polluted/water_polluted_ledge_drip_2.png",
+    "id": 42,
+    "category": "water_polluted",
+    "name": "water_polluted_ledge_drip_2",
+    "desc": "Dark purple polluted water ledge with hanging sludge drips",
+    "quality": "clean"
+  },
+  {
+    "file": "decor/seaweed_plant_2.png",
+    "id": 43,
+    "category": "decor",
+    "name": "seaweed_plant_2",
+    "desc": "Small green leafy plant with blue buds",
+    "quality": "clean"
+  },
+  {
+    "file": "oil/oil_blobs_cluster_3.png",
+    "id": 44,
+    "category": "oil",
+    "name": "oil_blobs_cluster_3",
+    "desc": "Row of dark glossy oil blobs/droplets on a navy ledge",
+    "quality": "merged"
+  },
+  {
+    "file": "water_polluted/water_polluted_surface.png",
+    "id": 45,
+    "category": "water_polluted",
+    "name": "water_polluted_surface",
+    "desc": "Dark oily polluted water surface strip with bubbly sludge top edge",
+    "quality": "clean"
+  },
+  {
+    "file": "water_polluted/water_polluted_block.png",
+    "id": 46,
+    "category": "water_polluted",
+    "name": "water_polluted_block",
+    "desc": "Dark purple oily polluted water block of murky sludge bubbles",
+    "quality": "clean"
+  },
+  {
+    "file": "water/water_clean_block.png",
+    "id": 47,
+    "category": "water",
+    "name": "water_clean_block",
+    "desc": "Clean blue water block of bubbly tiles",
+    "quality": "clean"
+  },
+  {
+    "file": "water/water_clean_seabed.png",
+    "id": 48,
+    "category": "water",
+    "name": "water_clean_seabed",
+    "desc": "Clean blue water scene with seaweed and coral on the seabed",
+    "quality": "merged"
+  },
+  {
+    "file": "water/water_clean_column.png",
+    "id": 49,
+    "category": "water",
+    "name": "water_clean_column",
+    "desc": "Tall clean blue water column of bubbly tiles",
+    "quality": "clean"
+  },
+  {
+    "file": "water/water_clean_column_2.png",
+    "id": 50,
+    "category": "water",
+    "name": "water_clean_column_2",
+    "desc": "Clean blue water column, narrow bubbly tile strip",
+    "quality": "clean"
+  },
+  {
+    "file": "water/water_clean_seabed_2.png",
+    "id": 51,
+    "category": "water",
+    "name": "water_clean_seabed_2",
+    "desc": "Clean blue water column with coral and plants at the base",
+    "quality": "merged"
+  },
+  {
+    "file": "water/water_clean_seabed_3.png",
+    "id": 52,
+    "category": "water",
+    "name": "water_clean_seabed_3",
+    "desc": "Clean blue water column with pink coral at the bottom",
+    "quality": "merged"
+  },
+  {
+    "file": "water/water_clean_seabed_4.png",
+    "id": 53,
+    "category": "water",
+    "name": "water_clean_seabed_4",
+    "desc": "Clean blue water column with bubbles and coral at base",
+    "quality": "merged"
+  },
+  {
+    "file": "water/water_clean_seabed_5.png",
+    "id": 54,
+    "category": "water",
+    "name": "water_clean_seabed_5",
+    "desc": "Clean blue water column with coral and weeds at the floor",
+    "quality": "merged"
+  },
+  {
+    "file": "decor/seaweed.png",
+    "id": 55,
+    "category": "decor",
+    "name": "seaweed",
+    "desc": "Tall green and purple seaweed plants on a small water-tile base",
+    "quality": "clean"
+  },
+  {
+    "file": "water_polluted/water_polluted_surface_2.png",
+    "id": 56,
+    "category": "water_polluted",
+    "name": "water_polluted_surface_2",
+    "desc": "Oily polluted water surface with dark sludge bubbles below the rim",
+    "quality": "clean"
+  },
+  {
+    "file": "water_polluted/water_polluted_block_2.png",
+    "id": 57,
+    "category": "water_polluted",
+    "name": "water_polluted_block_2",
+    "desc": "Purple-black polluted water block of oily sludge bubbles",
+    "quality": "clean"
+  },
+  {
+    "file": "water_polluted/water_polluted_drip.png",
+    "id": 58,
+    "category": "water_polluted",
+    "name": "water_polluted_drip",
+    "desc": "Oily polluted water ledge with dark dripping sludge tendrils",
+    "quality": "clean"
+  },
+  {
+    "file": "water_polluted/water_polluted_drip_2.png",
+    "id": 59,
+    "category": "water_polluted",
+    "name": "water_polluted_drip_2",
+    "desc": "Polluted oily water ledge dripping purple sludge drops",
+    "quality": "clean"
+  },
+  {
+    "file": "water_polluted/water_polluted_drip_ledge.png",
+    "id": 60,
+    "category": "water_polluted",
+    "name": "water_polluted_drip_ledge",
+    "desc": "Dark purple oily water ledge with sludge drips and hanging blobs along the bottom edge",
+    "quality": "clean"
+  },
+  {
+    "file": "water_polluted/water_polluted_weeds.png",
+    "id": 61,
+    "category": "water_polluted",
+    "name": "water_polluted_weeds",
+    "desc": "Polluted water surface with dead green hanging weeds dangling from an oily top edge",
+    "quality": "clean"
+  },
+  {
+    "file": "water_polluted/water_polluted_column.png",
+    "id": 62,
+    "category": "water_polluted",
+    "name": "water_polluted_column",
+    "desc": "Tall dark oily polluted water column with sludge drip top and two pillar legs below",
+    "quality": "merged"
+  },
+  {
+    "file": "water/water_clean_column_3.png",
+    "id": 63,
+    "category": "water",
+    "name": "water_clean_column_3",
+    "desc": "Clean blue bubbly water column with a few green seaweed sprigs",
+    "quality": "clean"
+  },
+  {
+    "file": "water/water_clean_slope.png",
+    "id": 64,
+    "category": "water",
+    "name": "water_clean_slope",
+    "desc": "Clean blue water arranged as a stepped diagonal slope of bubbly tiles",
+    "quality": "clean"
+  },
+  {
+    "file": "water/water_clean_coral.png",
+    "id": 65,
+    "category": "water",
+    "name": "water_clean_coral",
+    "desc": "Clean blue water block with pink and teal coral growing at the base",
+    "quality": "clean"
+  },
+  {
+    "file": "water/water_clean_seaweed.png",
+    "id": 66,
+    "category": "water",
+    "name": "water_clean_seaweed",
+    "desc": "Narrow clean blue water column with green seaweed fronds",
+    "quality": "clean"
+  },
+  {
+    "file": "water/water_clean_block_2.png",
+    "id": 67,
+    "category": "water",
+    "name": "water_clean_block_2",
+    "desc": "Small clean blue bubbly water block",
+    "quality": "clean"
+  },
+  {
+    "file": "water/water_clean_strip.png",
+    "id": 68,
+    "category": "water",
+    "name": "water_clean_strip",
+    "desc": "Short clean blue bubbly water strip tile",
+    "quality": "clean"
+  },
+  {
+    "file": "water/water_clean_column_4.png",
+    "id": 69,
+    "category": "water",
+    "name": "water_clean_column_4",
+    "desc": "Tall clean blue bubbly water column",
+    "quality": "clean"
+  },
+  {
+    "file": "water/water_clean_block_3.png",
+    "id": 70,
+    "category": "water",
+    "name": "water_clean_block_3",
+    "desc": "Small clean blue bubbly water block",
+    "quality": "clean"
+  },
+  {
+    "file": "water/water_clean_coral_2.png",
+    "id": 71,
+    "category": "water",
+    "name": "water_clean_coral_2",
+    "desc": "Clean blue water column with pink coral and seaweed at the base",
+    "quality": "clean"
+  },
+  {
+    "file": "water/water_clean_column_5.png",
+    "id": 72,
+    "category": "water",
+    "name": "water_clean_column_5",
+    "desc": "Tall clean blue bubbly water column",
+    "quality": "clean"
+  },
+  {
+    "file": "water_polluted/water_polluted_drip_ledge_2.png",
+    "id": 73,
+    "category": "water_polluted",
+    "name": "water_polluted_drip_ledge_2",
+    "desc": "Dark purple oily water ledge with sludge drips and hanging dark blobs",
+    "quality": "clean"
+  },
+  {
+    "file": "water_polluted/water_polluted_drip_blobs.png",
+    "id": 74,
+    "category": "water_polluted",
+    "name": "water_polluted_drip_blobs",
+    "desc": "Polluted oily water with heavy sludge drips and clustered dark hanging blobs",
+    "quality": "clean"
+  },
+  {
+    "file": "water_polluted/oil_blob_cluster.png",
+    "id": 75,
+    "category": "water_polluted",
+    "name": "oil_blob_cluster",
+    "desc": "Dark blue-black clustered oily sludge blobs",
+    "quality": "clean"
+  },
+  {
+    "file": "oil/oil_droplet_large.png",
+    "id": 76,
+    "category": "oil",
+    "name": "oil_droplet_large",
+    "desc": "Large round dark purple-black oil droplet with highlight",
+    "quality": "clean"
+  },
+  {
+    "file": "water_polluted/oil_bubble_cluster.png",
+    "id": 77,
+    "category": "water_polluted",
+    "name": "oil_bubble_cluster",
+    "desc": "Cluster of bright blue oily bubbles/blobs",
+    "quality": "clean"
+  },
+  {
+    "file": "decor/coral_cluster.png",
+    "id": 78,
+    "category": "decor",
+    "name": "coral_cluster",
+    "desc": "Teal-cyan coral or crystal growth cluster",
+    "quality": "clean"
+  },
+  {
+    "file": "decor/coral_on_rock.png",
+    "id": 79,
+    "category": "decor",
+    "name": "coral_on_rock",
+    "desc": "Cyan coral fronds growing on a dark purple rock",
+    "quality": "clean"
+  },
+  {
+    "file": "decor/coral_branch.png",
+    "id": 80,
+    "category": "decor",
+    "name": "coral_branch",
+    "desc": "Tall blue branching coral or sea plant",
+    "quality": "clean"
+  },
+  {
+    "file": "oil/oil_droplet_small.png",
+    "id": 81,
+    "category": "oil",
+    "name": "oil_droplet_small",
+    "desc": "Small round dark oil droplet",
+    "quality": "clean"
+  },
+  {
+    "file": "oil/oil_splat_3.png",
+    "id": 82,
+    "category": "oil",
+    "name": "oil_splat_3",
+    "desc": "Irregular dark purple oil splat blob",
+    "quality": "clean"
+  },
+  {
+    "file": "oil/oil_droplet_small_2.png",
+    "id": 83,
+    "category": "oil",
+    "name": "oil_droplet_small_2",
+    "desc": "Small dark blue oil droplet with shine",
+    "quality": "clean"
+  },
+  {
+    "file": "oil/oil_droplet_small_3.png",
+    "id": 84,
+    "category": "oil",
+    "name": "oil_droplet_small_3",
+    "desc": "Small round dark oil bead",
+    "quality": "clean"
+  },
+  {
+    "file": "oil/oil_droplet_large_2.png",
+    "id": 85,
+    "category": "oil",
+    "name": "oil_droplet_large_2",
+    "desc": "Large dark blue-black oil droplet with highlight",
+    "quality": "clean"
+  },
+  {
+    "file": "water_polluted/water_polluted_ledge_weeds.png",
+    "id": 86,
+    "category": "water_polluted",
+    "name": "water_polluted_ledge_weeds",
+    "desc": "Polluted water ledge top with dead green hanging weeds dripping below",
+    "quality": "clean"
+  },
+  {
+    "file": "water_polluted/oil_blob_field.png",
+    "id": 87,
+    "category": "water_polluted",
+    "name": "oil_blob_field",
+    "desc": "Wide field of clustered dark oily blobs over blue base",
+    "quality": "clean"
+  },
+  {
+    "file": "water_polluted/oil_bubble_cluster_2.png",
+    "id": 88,
+    "category": "water_polluted",
+    "name": "oil_bubble_cluster_2",
+    "desc": "Cluster of bright blue oily bubbles",
+    "quality": "clean"
+  },
+  {
+    "file": "oil/oil_droplet_large_3.png",
+    "id": 89,
+    "category": "oil",
+    "name": "oil_droplet_large_3",
+    "desc": "Large round dark oil droplet with light fringe",
+    "quality": "halo"
+  },
+  {
+    "file": "oil/oil_puddle_round.png",
+    "id": 90,
+    "category": "oil",
+    "name": "oil_puddle_round",
+    "desc": "Small round dark oil blob/puddle",
+    "quality": "clean"
+  },
+  {
+    "file": "oil/oil_splat_small.png",
+    "id": 91,
+    "category": "oil",
+    "name": "oil_splat_small",
+    "desc": "Tiny dark oil splat fragment",
+    "quality": "clean"
+  },
+  {
+    "file": "industrial/hatch.png",
+    "id": 92,
+    "category": "industrial",
+    "name": "hatch",
+    "desc": "Metal hatch/access panel with central opening and rivets",
+    "quality": "clean"
+  },
+  {
+    "file": "industrial/crate_metal.png",
+    "id": 93,
+    "category": "industrial",
+    "name": "crate_metal",
+    "desc": "Riveted metal crate/box with cross-bracing",
+    "quality": "clean"
+  },
+  {
+    "file": "industrial/scaffold_tower.png",
+    "id": 94,
+    "category": "industrial",
+    "name": "scaffold_tower",
+    "desc": "Tall wooden/metal scaffold tower frame",
+    "quality": "clean"
+  },
+  {
+    "file": "industrial/scaffold_corner.png",
+    "id": 95,
+    "category": "industrial",
+    "name": "scaffold_corner",
+    "desc": "Riveted metal triangular corner brace/gusset",
+    "quality": "clean"
+  },
+  {
+    "file": "industrial/scaffold_bracket.png",
+    "id": 96,
+    "category": "industrial",
+    "name": "scaffold_bracket",
+    "desc": "Metal angled support bracket/brace",
+    "quality": "clean"
+  },
+  {
+    "file": "industrial/bridge.png",
+    "id": 97,
+    "category": "industrial",
+    "name": "bridge",
+    "desc": "Metal bridge/platform span with railing posts and X-brace",
+    "quality": "clean"
+  },
+  {
+    "file": "industrial/scaffold_tower_2.png",
+    "id": 98,
+    "category": "industrial",
+    "name": "scaffold_tower_2",
+    "desc": "Metal scaffold tower with railing posts and X-bracing",
+    "quality": "clean"
+  },
+  {
+    "file": "industrial/scaffold_beam.png",
+    "id": 99,
+    "category": "industrial",
+    "name": "scaffold_beam",
+    "desc": "Riveted metal beam/strut assembly fragment",
+    "quality": "partial"
+  },
+  {
+    "file": "industrial/pipe_vertical.png",
+    "id": 100,
+    "category": "industrial",
+    "name": "pipe_vertical",
+    "desc": "Vertical riveted metal pipe/column segment",
+    "quality": "clean"
+  },
+  {
+    "file": "industrial/chain.png",
+    "id": 101,
+    "category": "industrial",
+    "name": "chain",
+    "desc": "Hanging metal chain links",
+    "quality": "clean"
+  },
+  {
+    "file": "industrial/pipe_vertical_2.png",
+    "id": 102,
+    "category": "industrial",
+    "name": "pipe_vertical_2",
+    "desc": "Vertical riveted metal pipe/post with bolts",
+    "quality": "clean"
+  },
+  {
+    "file": "industrial/bridge_2.png",
+    "id": 103,
+    "category": "industrial",
+    "name": "bridge_2",
+    "desc": "Metal bridge/platform with railing posts atop crate base",
+    "quality": "merged"
+  },
+  {
+    "file": "industrial/bridge_3.png",
+    "id": 104,
+    "category": "industrial",
+    "name": "bridge_3",
+    "desc": "Metal bridge/platform span with railing over brick/rubble base",
+    "quality": "merged"
+  },
+  {
+    "file": "industrial/hatch_2.png",
+    "id": 105,
+    "category": "industrial",
+    "name": "hatch_2",
+    "desc": "Riveted metal door or hatch panel with a frame and bolts",
+    "quality": "clean"
+  },
+  {
+    "file": "industrial/bridge_4.png",
+    "id": 106,
+    "category": "industrial",
+    "name": "bridge_4",
+    "desc": "Horizontal riveted metal plank bridge or catwalk segment",
+    "quality": "clean"
+  },
+  {
+    "file": "industrial/scaffold_tower_3.png",
+    "id": 107,
+    "category": "industrial",
+    "name": "scaffold_tower_3",
+    "desc": "Tall metal pillar with attached scaffold beams and pipe, sitting on a blue base",
+    "quality": "merged"
+  },
+  {
+    "file": "industrial/scaffold_tower_4.png",
+    "id": 108,
+    "category": "industrial",
+    "name": "scaffold_tower_4",
+    "desc": "Tall cross-braced metal scaffold tower on a stone block base",
+    "quality": "merged"
+  },
+  {
+    "file": "industrial/scaffold_frame.png",
+    "id": 109,
+    "category": "industrial",
+    "name": "scaffold_frame",
+    "desc": "Short rectangular riveted metal frame with shelf bracing",
+    "quality": "clean"
+  },
+  {
+    "file": "industrial/crate.png",
+    "id": 110,
+    "category": "industrial",
+    "name": "crate",
+    "desc": "Square wooden/metal crate with diagonal cross-bracing and bolts",
+    "quality": "clean"
+  },
+  {
+    "file": "industrial/crate_2.png",
+    "id": 111,
+    "category": "industrial",
+    "name": "crate_2",
+    "desc": "Riveted metal crate panel with X cross-brace",
+    "quality": "clean"
+  },
+  {
+    "file": "industrial/scaffold_frame_2.png",
+    "id": 112,
+    "category": "industrial",
+    "name": "scaffold_frame_2",
+    "desc": "Wooden crate-style frame with X-brace and legs, like a support trestle",
+    "quality": "clean"
+  },
+  {
+    "file": "industrial/chain_2.png",
+    "id": 113,
+    "category": "industrial",
+    "name": "chain_2",
+    "desc": "Narrow vertical strip of bolted metal plates / short chain segment",
+    "quality": "clean"
+  },
+  {
+    "file": "industrial/chain_3.png",
+    "id": 114,
+    "category": "industrial",
+    "name": "chain_3",
+    "desc": "Vertical hanging chain with dark links and bolted caps",
+    "quality": "clean"
+  },
+  {
+    "file": "industrial/crane.png",
+    "id": 115,
+    "category": "industrial",
+    "name": "crane",
+    "desc": "Industrial crane arm with pulley wheel and hanging hook on a base",
+    "quality": "clean"
+  },
+  {
+    "file": "industrial/chain_4.png",
+    "id": 116,
+    "category": "industrial",
+    "name": "chain_4",
+    "desc": "Two vertical chains strung between bolted metal end caps",
+    "quality": "clean"
+  },
+  {
+    "file": "industrial/pipe_straight.png",
+    "id": 117,
+    "category": "industrial",
+    "name": "pipe_straight",
+    "desc": "Vertical metal pipework with elbow joint running down to a base",
+    "quality": "clean"
+  },
+  {
+    "file": "industrial/scaffold_tower_5.png",
+    "id": 118,
+    "category": "industrial",
+    "name": "scaffold_tower_5",
+    "desc": "Riveted metal archway / portal frame with cross-braced legs",
+    "quality": "clean"
+  },
+  {
+    "file": "industrial/barrel.png",
+    "id": 119,
+    "category": "industrial",
+    "name": "barrel",
+    "desc": "Vertical metal pillar / tank with banded crate body and pipe top",
+    "quality": "clean"
+  },
+  {
+    "file": "industrial/scaffold_tower_6.png",
+    "id": 120,
+    "category": "industrial",
+    "name": "scaffold_tower_6",
+    "desc": "Tall riveted metal scaffold tower with X cross-bracing",
+    "quality": "clean"
+  },
+  {
+    "file": "industrial/pipe_elbow.png",
+    "id": 121,
+    "category": "industrial",
+    "name": "pipe_elbow",
+    "desc": "Metal pipe elbow joint bent at a right angle",
+    "quality": "clean"
+  },
+  {
+    "file": "industrial/pipe_elbow_2.png",
+    "id": 122,
+    "category": "industrial",
+    "name": "pipe_elbow_2",
+    "desc": "Dark metal pipe elbow joint, 90-degree bend",
+    "quality": "clean"
+  },
+  {
+    "file": "industrial/pipe_elbow_flanged.png",
+    "id": 123,
+    "category": "industrial",
+    "name": "pipe_elbow_flanged",
+    "desc": "Pipe elbow with bolted flange fittings on both ends",
+    "quality": "clean"
+  },
+  {
+    "file": "industrial/hatch_door.png",
+    "id": 124,
+    "category": "industrial",
+    "name": "hatch_door",
+    "desc": "Rusty metal hatch or door with riveted frame and slot",
+    "quality": "clean"
+  },
+  {
+    "file": "industrial/hatch_porthole.png",
+    "id": 125,
+    "category": "industrial",
+    "name": "hatch_porthole",
+    "desc": "Riveted metal hatch panel with a blue porthole window",
+    "quality": "clean"
+  },
+  {
+    "file": "industrial/barrel_leaking_2.png",
+    "id": 126,
+    "category": "industrial",
+    "name": "barrel_leaking_2",
+    "desc": "Wooden barrel tipped with oil pouring out of the spout",
+    "quality": "clean"
+  },
+  {
+    "file": "industrial/tank_valve.png",
+    "id": 127,
+    "category": "industrial",
+    "name": "tank_valve",
+    "desc": "Metal cylindrical tank with valve leaking dark oil",
+    "quality": "clean"
+  },
+  {
+    "file": "industrial/barrel_oil_valve.png",
+    "id": 128,
+    "category": "industrial",
+    "name": "barrel_oil_valve",
+    "desc": "Black oil barrel with flammable icon and side valve wheel",
+    "quality": "clean"
+  },
+  {
+    "file": "industrial/crate_metal_2.png",
+    "id": 129,
+    "category": "industrial",
+    "name": "crate_metal_2",
+    "desc": "Rusty riveted metal crate or panel block",
+    "quality": "clean"
+  },
+  {
+    "file": "industrial/crate_metal_wide.png",
+    "id": 130,
+    "category": "industrial",
+    "name": "crate_metal_wide",
+    "desc": "Wide rusty riveted metal crate or hatch panel",
+    "quality": "clean"
+  },
+  {
+    "file": "industrial/valve_assembly.png",
+    "id": 131,
+    "category": "industrial",
+    "name": "valve_assembly",
+    "desc": "Dark metal valve and pump assembly with fittings",
+    "quality": "clean"
+  },
+  {
+    "file": "water/water_clean_surface.png",
+    "id": 132,
+    "category": "water",
+    "name": "water_clean_surface",
+    "desc": "Clean blue water surface strip with foamy wave crest",
+    "quality": "clean"
+  },
+  {
+    "file": "water/water_clean_column_6.png",
+    "id": 133,
+    "category": "water",
+    "name": "water_clean_column_6",
+    "desc": "Clean blue water body with wave lines and bubbles",
+    "quality": "clean"
+  },
+  {
+    "file": "water/water_clean_column_7.png",
+    "id": 134,
+    "category": "water",
+    "name": "water_clean_column_7",
+    "desc": "Clean blue water with surface waves over a tiled floor edge",
+    "quality": "clean"
+  },
+  {
+    "file": "industrial/metal_platform_strip.png",
+    "id": 135,
+    "category": "industrial",
+    "name": "metal_platform_strip",
+    "desc": "Riveted metal armored platform/bridge strip beneath a clean water surface band",
+    "quality": "merged"
+  },
+  {
+    "file": "industrial/barrel_leaking_3.png",
+    "id": 136,
+    "category": "industrial",
+    "name": "barrel_leaking_3",
+    "desc": "Wooden/metal barrel with a spigot leaking dark oil at its base",
+    "quality": "clean"
+  },
+  {
+    "file": "industrial/barrel_valve_leaking.png",
+    "id": 137,
+    "category": "industrial",
+    "name": "barrel_valve_leaking",
+    "desc": "Dark metal barrel/tank with a red valve wheel leaking oil onto the ground",
+    "quality": "clean"
+  },
+  {
+    "file": "industrial/barrel_leaking_4.png",
+    "id": 138,
+    "category": "industrial",
+    "name": "barrel_leaking_4",
+    "desc": "Dark metal barrel with rust marks leaking oil from its base",
+    "quality": "clean"
+  },
+  {
+    "file": "industrial/pipe_valve.png",
+    "id": 139,
+    "category": "industrial",
+    "name": "pipe_valve",
+    "desc": "T-shaped metal pipe junction with a hanging chain and hook",
+    "quality": "clean"
+  },
+  {
+    "file": "decor/seaweed_rocks_bed.png",
+    "id": 140,
+    "category": "decor",
+    "name": "seaweed_rocks_bed",
+    "desc": "Underwater scene strip of seaweed/kelp plants and coral over a rocky pebble bed",
+    "quality": "merged"
+  },
+  {
+    "file": "industrial/crate_3.png",
+    "id": 141,
+    "category": "industrial",
+    "name": "crate_3",
+    "desc": "Dark riveted metal crate/container with cross-banded face",
+    "quality": "clean"
+  },
+  {
+    "file": "industrial/crate_4.png",
+    "id": 142,
+    "category": "industrial",
+    "name": "crate_4",
+    "desc": "Dark riveted metal crate with X-brace front panel",
+    "quality": "clean"
+  },
+  {
+    "file": "industrial/crate_5.png",
+    "id": 143,
+    "category": "industrial",
+    "name": "crate_5",
+    "desc": "Dark metal banded crate/container with cross strapping",
+    "quality": "clean"
+  },
+  {
+    "file": "industrial/crate_6.png",
+    "id": 144,
+    "category": "industrial",
+    "name": "crate_6",
+    "desc": "Dark riveted metal crate with X-brace, similar to others in set",
+    "quality": "clean"
+  }
+]

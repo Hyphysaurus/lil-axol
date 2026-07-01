@@ -14,15 +14,21 @@ const HALF_H := 9.0            # half the 16x18 collision box (feet are this far
 const SWIM_H := 60.0
 const SWIM_V := 54.0
 const SWIM_LERP := 7.0
-const REST_DEPTH := 50.0     # feet settle this far below the surface (head floats out)
+const REST_DEPTH := 5.0      # feet settle this far below the surface (head floats out)
 const BUOY_SPRING := 5.5
 const BUOY_MAX := 42.0
 const BOB_AMP := 5.0
 const BOB_FREQ := 2.2
-const SURFACE_HOP := -210.0
+const SURFACE_HOP := -300.0   # strong enough to clear the beach ledge out of the water
+
+# --- spray (oil cleanup) ---
+const SPRAY_REACH := 40.0     # px in front of the axo the spray reaches
+const SPRAY_RADIUS := 36.0    # clean radius around the spray point
 
 @export var has_water := false
 @export var water_surface_y := 0.0
+@export var water_left := -1e20    # the water body's horizontal span; outside it the axo is on land,
+@export var water_right := 1e20    # so it can't "swim in the air" over the beach or the gap
 
 @onready var _spr: AnimatedSprite2D = $Sprite
 
@@ -30,6 +36,28 @@ var _face := 1.0
 var _t := 0.0
 var _hop_grace := 0.0
 var _in_water := false
+var _spray_p: CPUParticles2D
+
+## Axo position in the cove's (parent) frame — the water bounds are authored there.
+func _cove_local() -> Vector2:
+	return (get_parent() as Node2D).to_local(global_position)
+
+func _ready() -> void:
+	# persistent water-spray emitter, toggled on while the spray button is held
+	_spray_p = CPUParticles2D.new()
+	_spray_p.emitting = false
+	_spray_p.local_coords = false
+	_spray_p.amount = 22
+	_spray_p.lifetime = 0.4
+	_spray_p.spread = 16.0
+	_spray_p.initial_velocity_min = 130.0
+	_spray_p.initial_velocity_max = 190.0
+	_spray_p.gravity = Vector2(0, 260)
+	_spray_p.scale_amount_min = 0.6
+	_spray_p.scale_amount_max = 1.5
+	_spray_p.color = Color(0.72, 0.9, 1.0, 0.9)
+	_spray_p.z_index = 7
+	add_child(_spray_p)
 
 func _physics_process(delta: float) -> void:
 	_t += delta
@@ -40,10 +68,24 @@ func _physics_process(delta: float) -> void:
 		_face = signf(dir)
 	var running := Input.is_action_pressed("run")
 
+	# --- spray: clean oil blobs in front of the axo (works on land or in the water) ---
+	var spraying := Input.is_action_pressed("spray")
+	_spray_p.emitting = spraying
+	if spraying:
+		_spray_p.position = Vector2(_face * 10.0, 1.0)   # at the snout/mouth tip
+		_spray_p.direction = Vector2(_face, -0.25)
+		var reach := global_position + Vector2(_face * SPRAY_REACH, 0.0)
+		get_tree().call_group("oil_manager", "spray_at", reach, SPRAY_RADIUS, delta)
+
 	# --- water: enter / exit / swim, polled vs the waterline (hysteresis stops surface flicker) ---
-	var feet := global_position.y + HALF_H
+	# water_surface_y / water_left / water_right are authored in the cove's (parent) frame, so test the
+	# axo in that frame too. Using global_position added the cove's world offset and made every poll read
+	# "over water / submerged" — the axo spawned swimming on the sand and floated in the beach/water gap.
+	var local := _cove_local()
+	var feet := local.y + HALF_H
+	var over_water := local.x > water_left and local.x < water_right
 	var submerged := false
-	if has_water:
+	if has_water and over_water:
 		if _in_water:
 			submerged = feet > water_surface_y - 2.0   # stay in until fully out
 		else:
@@ -68,7 +110,7 @@ func _physics_process(delta: float) -> void:
 
 func _swim(delta: float, dir: float) -> void:
 	var vin := Input.get_axis("move_up", "move_down")    # +1 = down (dive)
-	var feet := global_position.y + HALF_H
+	var feet := _cove_local().y + HALF_H
 	var depth := feet - water_surface_y                  # >0 = below the surface
 	var tv := Vector2(dir * SWIM_H, vin * SWIM_V)
 
@@ -120,7 +162,7 @@ func _splash(amt: float) -> void:
 	p.amount = int(10.0 * amt) + 6
 	p.lifetime = 0.5
 	p.explosiveness = 0.85
-	p.position = Vector2(global_position.x, water_surface_y)   # at the entry point on the waterline
+	p.position = Vector2(_cove_local().x, water_surface_y)   # entry point on the waterline (cove frame)
 	p.direction = Vector2(0, -1)
 	p.spread = 55.0
 	p.initial_velocity_min = 40.0 * amt

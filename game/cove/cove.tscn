@@ -3,21 +3,54 @@
 [ext_resource type="PackedScene" uid="uid://ctc8p2qndbyfw" path="res://game/axolotl/axolotl.tscn" id="2_1gfh3"]
 [ext_resource type="Shader" uid="uid://djpicv5djwrh2" path="res://shaders/water.gdshader" id="2_6pnl8"]
 [ext_resource type="Texture2D" uid="uid://cml4630dsacla" path="res://assets/white.png" id="2_xbt28"]
+[ext_resource type="Shader" uid="uid://b7djm760plhd5" path="res://shaders/sky.gdshader" id="4_6pnl8"]
+[ext_resource type="Script" uid="uid://e1ti2bl53baf" path="res://game/cove/day_night.gd" id="5_fnfnh"]
+[ext_resource type="Shader" uid="uid://bpe6jvhoautac" path="res://shaders/clouds.gdshader" id="6_pgiku"]
+[ext_resource type="Shader" uid="uid://ewodp7khlums" path="res://shaders/celestial.gdshader" id="7_cel"]
+[ext_resource type="Shader" uid="uid://5r4m75b0cepm" path="res://shaders/wind_grass.gdshader" id="8_grs"]
+[ext_resource type="Script" uid="uid://cggix17myooge" path="res://game/cove/oil_spill.gd" id="9_oil"]
+[ext_resource type="Shader" uid="uid://11o3xut4heem" path="res://shaders/post.gdshader" id="10_post"]
+[ext_resource type="Shader" uid="uid://dd3yvdkuamgxm" path="res://shaders/sand.gdshader" id="11_sand"]
+[ext_resource type="Script" path="res://game/cove/cove_life.gd" id="12_life"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_sn0t7"]
-size = Vector2(260, 280)
+size = Vector2(255, 280)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_sand"]
+shader = ExtResource("11_sand")
+shader_parameter/sand_top = Color(0.91, 0.85, 0.71, 1)
+shader_parameter/sand_low = Color(0.58, 0.5, 0.39, 1)
+shader_parameter/grain = 0.11
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bhunq"]
-size = Vector2(800, 60)
+size = Vector2(599, 75)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_grs"]
+shader = ExtResource("8_grs")
+shader_parameter/base_col = Color(0.16, 0.4, 0.18, 1)
+shader_parameter/tip_col = Color(0.48, 0.74, 0.34, 1)
+shader_parameter/blades = 64.0
+shader_parameter/wind = 0.05
+shader_parameter/wind_speed = 1.4
+shader_parameter/height = 0.9
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_grsF"]
+shader = ExtResource("8_grs")
+shader_parameter/base_col = Color(0.1, 0.26, 0.12, 1)
+shader_parameter/tip_col = Color(0.32, 0.54, 0.24, 1)
+shader_parameter/blades = 48.0
+shader_parameter/wind = 0.06
+shader_parameter/wind_speed = 1.65
+shader_parameter/height = 0.9
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_fnfnh"]
 shader = ExtResource("2_6pnl8")
-shader_parameter/rect_size = Vector2(540, 268)
+shader_parameter/rect_size = Vector2(599, 276)
 shader_parameter/overhang = 8.0
 shader_parameter/col_shallow = Color(0.2, 0.58, 0.62, 0.38)
 shader_parameter/col_deep = Color(0.04, 0.13, 0.34, 0.74)
 shader_parameter/col_foam = Color(0.88, 0.97, 1, 0.95)
-shader_parameter/clean = 1.0
+shader_parameter/clean = 0.0
 shader_parameter/col_oily_shallow = Color(0.15, 0.2, 0.12, 0.62)
 shader_parameter/col_oily_deep = Color(0.05, 0.06, 0.04, 0.86)
 shader_parameter/wave_amp = 4.0
@@ -25,37 +58,173 @@ shader_parameter/wave_len = 90.0
 shader_parameter/wave_speed = 1.2
 shader_parameter/foam_thickness = 2.5
 shader_parameter/caustic_strength = 0.1
+shader_parameter/sky_reflect = Color(0.5, 0.62, 0.85, 1)
+shader_parameter/reflect_strength = 0.35
+shader_parameter/reflect_depth = 70.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_water"]
+size = Vector2(598.5, 240)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_xbt28"]
+shader = ExtResource("4_6pnl8")
+shader_parameter/col_top = Color(0.05, 0.07, 0.16, 1)
+shader_parameter/col_horizon = Color(0.18, 0.34, 0.4, 1)
+shader_parameter/col_bottom = Color(0.3, 0.26, 0.4, 1)
+shader_parameter/horizon = 0.6
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_cel"]
+shader = ExtResource("7_cel")
+shader_parameter/sun_uv = Vector2(0.5, 0.25)
+shader_parameter/moon_uv = Vector2(0.5, 1.5)
+shader_parameter/sun_col = Color(1, 0.93, 0.7, 1)
+shader_parameter/moon_col = Color(0.82, 0.9, 1, 1)
+shader_parameter/sun_vis = 1.0
+shader_parameter/moon_vis = 0.0
+shader_parameter/radius = 0.045
+shader_parameter/glow = 8.5
+shader_parameter/aspect = 1.7777
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_bhunq"]
+shader = ExtResource("6_pgiku")
+shader_parameter/light_col = Color(1, 0.99, 0.95, 1)
+shader_parameter/shadow_col = Color(0.5, 0.6, 0.8, 1)
+shader_parameter/base_y = 0.6
+shader_parameter/height = 0.34
+shader_parameter/puffiness = 0.65
+shader_parameter/coverage = 1.35
+shader_parameter/drift = 0.04
+shader_parameter/opacity = 1.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_post"]
+shader = ExtResource("10_post")
+shader_parameter/grain = 0.035
+shader_parameter/vignette = 0.4
+shader_parameter/warm = 0.03
+shader_parameter/mid_lift = 0.96
 
 [node name="Cove" type="Node2D" unique_id=457360959]
+position = Vector2(509, 172)
 
 [node name="Axolotl" parent="." unique_id=1466163284 instance=ExtResource("2_1gfh3")]
-position = Vector2(-300, -60)
+z_index = 2
+position = Vector2(-295, -50)
 has_water = true
+water_surface_y = -27.0
+water_left = -142.0
+water_right = 457.0
 
 [node name="Beach" type="StaticBody2D" parent="." unique_id=423457899]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Beach" unique_id=591406187]
-position = Vector2(-270, 100)
+position = Vector2(-268, 101)
+scale = Vector2(0.9877633, 1)
 shape = SubResource("RectangleShape2D_sn0t7")
 
-[node name="Polygon2D" type="Polygon2D" parent="Beach" unique_id=307852546]
-color = Color(0.9058309, 0.86504203, 0.7483791, 1)
-polygon = PackedVector2Array(-400, -40, -140, -40, -140, 240, -400, 240)
+[node name="Sand" type="Sprite2D" parent="Beach" unique_id=307852546]
+material = SubResource("ShaderMaterial_sand")
+position = Vector2(-394, -39)
+scale = Vector2(252, 280)
+texture = ExtResource("2_xbt28")
+centered = false
 
 [node name="Seabed" type="StaticBody2D" parent="." unique_id=561913786]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Seabed" unique_id=883235013]
-position = Vector2(0, 290)
+position = Vector2(157.5, 203.5)
 shape = SubResource("RectangleShape2D_bhunq")
 
 [node name="Polygon2D" type="Polygon2D" parent="Seabed" unique_id=1600107471]
 color = Color(0.4366271, 0.48452926, 0.5563933, 1)
-polygon = PackedVector2Array(-400, 260, 400, 260, 400, 320, -400, 320)
+polygon = PackedVector2Array(-142, 166, 457, 166, 457, 241, -142, 241)
+
+[node name="Grass" type="Sprite2D" parent="." unique_id=771000001]
+z_index = 1
+material = SubResource("ShaderMaterial_grs")
+position = Vector2(-394, -66)
+scale = Vector2(252, 28)
+texture = ExtResource("2_xbt28")
+centered = false
+
+[node name="GrassFront" type="Sprite2D" parent="." unique_id=771000006]
+z_index = 3
+material = SubResource("ShaderMaterial_grsF")
+position = Vector2(-394, -52)
+scale = Vector2(252, 14)
+texture = ExtResource("2_xbt28")
+centered = false
 
 [node name="Water" type="Sprite2D" parent="." unique_id=575328831]
 z_index = 5
 material = SubResource("ShaderMaterial_fnfnh")
-position = Vector2(-140, -8)
-scale = Vector2(268, 268)
+position = Vector2(-142, -35)
+scale = Vector2(599, 276)
 texture = ExtResource("2_xbt28")
 centered = false
+
+[node name="OilSpill" type="Node2D" parent="." unique_id=771000002]
+script = ExtResource("9_oil")
+
+[node name="CoveLife" type="Node2D" parent="." unique_id=771000007]
+script = ExtResource("12_life")
+
+[node name="WaterArea" type="Area2D" parent="." unique_id=252148129 groups=["water"]]
+position = Vector2(59, 202)
+monitoring = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WaterArea" unique_id=333211149]
+position = Vector2(98, -81)
+shape = SubResource("RectangleShape2D_water")
+
+[node name="SkyLayer" type="CanvasLayer" parent="." unique_id=145102971]
+layer = -100
+
+[node name="Sky" type="ColorRect" parent="SkyLayer" unique_id=1324204070]
+material = SubResource("ShaderMaterial_xbt28")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="SunMoon" type="ColorRect" parent="SkyLayer" unique_id=771000003]
+material = SubResource("ShaderMaterial_cel")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Mood" type="CanvasModulate" parent="." unique_id=578198269]
+position = Vector2(-1, 0)
+color = Color(0.61960787, 0.6784314, 0.8784314, 1)
+
+[node name="TimeOfDay" type="Node" parent="." unique_id=847138532]
+script = ExtResource("5_fnfnh")
+day_length = 20.0
+start_time = 0.1
+
+[node name="CloudLayer" type="CanvasLayer" parent="." unique_id=2047723366]
+layer = -90
+
+[node name="Clouds" type="ColorRect" parent="CloudLayer" unique_id=786478252]
+material = SubResource("ShaderMaterial_bhunq")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="PostFX" type="CanvasLayer" parent="." unique_id=771000004]
+layer = 100
+
+[node name="Post" type="ColorRect" parent="PostFX" unique_id=771000005]
+material = SubResource("ShaderMaterial_post")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2

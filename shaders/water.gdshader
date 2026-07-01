@@ -22,6 +22,11 @@ uniform float wave_speed = 1.2;
 uniform float foam_thickness = 2.5;  // px
 uniform float caustic_strength = 0.10;
 
+// sky reflection: clean water mirrors the sky just under the surface (oily water stays matte)
+uniform vec4 sky_reflect : source_color = vec4(0.5, 0.62, 0.85, 1.0);  // colour set by day_night.gd
+uniform float reflect_strength : hint_range(0.0, 1.0) = 0.35;
+uniform float reflect_depth = 70.0;  // px the reflection fades over
+
 void fragment() {
 	float H = rect_size.y;
 	float W = rect_size.x;
@@ -49,6 +54,9 @@ void fragment() {
 		// gentle brighten just beneath the foam
 		float band = smoothstep(crest + foam_thickness, crest + foam_thickness + 8.0, px_y);
 		c.rgb += (1.0 - band) * 0.08;
+		// sky reflection near the surface, fading with depth; gated by clean so oil stays matte
+		float refl = 1.0 - smoothstep(0.0, reflect_depth, px_y - (crest + foam_thickness));
+		c.rgb = mix(c.rgb, sky_reflect.rgb, refl * reflect_strength * clean);
 		COLOR = c;
 	}
 }
