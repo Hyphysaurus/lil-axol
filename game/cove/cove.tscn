@@ -14,6 +14,7 @@
 [ext_resource type="Script" uid="uid://cbcl3mfdm8ehn" path="res://game/cove/cove_life.gd" id="12_life"]
 [ext_resource type="Script" uid="uid://b6wjxws8mp3l4" path="res://game/cove/cove.gd" id="13_cove"]
 [ext_resource type="Resource" uid="uid://b0covea0cfg01" path="res://game/cove/cove_a.tres" id="14_cfg"]
+[ext_resource type="Script" path="res://game/cove/restoration_banner.gd" id="15_banner"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_sn0t7"]
 size = Vector2(255, 280)
@@ -191,7 +192,7 @@ color = Color(0.61960787, 0.6784314, 0.8784314, 1)
 
 [node name="TimeOfDay" type="Node" parent="." unique_id=847138532]
 script = ExtResource("5_fnfnh")
-day_length = 20.0
+day_length = 120.0
 start_time = 0.1
 
 [node name="CloudLayer" type="CanvasLayer" parent="." unique_id=2047723366]
@@ -217,3 +218,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+
+[node name="RestorationBanner" type="CanvasLayer" parent="." unique_id=771000010]
+script = ExtResource("15_banner")
