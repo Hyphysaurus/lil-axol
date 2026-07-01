@@ -20,11 +20,11 @@ class_name CoveConfig
 @export var seabed_y: float = 166.0
 
 @export_group("Oil Spill")
-@export var blob_count: int = 9
-## Horizontal span the floating oil slicks spawn across.
+## Horizontal span the oil slick covers on the water surface.
 @export var spill_left: float = 120.0
 @export var spill_right: float = 445.0
-## How fast a sprayed blob clears (amount/sec).
+## Brush erase strength — how fast the spray scrubs oil coverage away (coverage/sec at the
+## brush centre). Higher = easier/faster cleaning.
 @export var clean_rate: float = 1.4
 
 @export_group("Ecosystem")
