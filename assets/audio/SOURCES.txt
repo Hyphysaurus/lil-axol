@@ -1,0 +1,23 @@
+Audio sources & licenses (verified 2026-07-01, files copied from the shared Asset Library)
+
+sfx/splash_1-6.wav        Helton Yan — Pixel Combat Audio ("DSGNMisc_SKILL RELEASE-Wet Splash")
+                          License: LICENSE.txt in pack (Asset Library copy)
+sfx/spray_loop.ogg        TomMusic — Free Fantasy 200 SFX Pack ("Waterspray 1")
+sfx/jump.wav, land.wav    TomMusic — same pack ("Dirt Jump" / "Dirt Land")
+ambience/sea.ogg          TomMusic — same pack (BGS Loops/Sea)
+                          License (itch page, checked 2026-07-01): royalty-free, commercial OK,
+                          credit appreciated not required, no resale/redistribution of the assets.
+                          https://tommusic.itch.io/free-fantasy-200-sfx-pack
+sfx/scrub_pop_1-3.wav     SwishSwoosh — Cute UI & Interact SFX Pack ("SFX_Pop_Bubble_Single")
+sfx/bubble_loop.wav       same pack ("SFX_Pop_Bubble_Water_Loop_1") — spray-loop fallback
+sfx/milestone_chime.wav   same pack ("SFX_Chimes_Glowing_Stars_1")
+                          License: GameDev.tv General Asset License 2.0 (txt in pack)
+sfx/win_stinger.wav       Sound FX Starter Pack Vol. 1 ("Area Discovered")
+ambience/grassy_field_loop.wav  same pack ("Grassy Field Loop")
+                          License: royalty-free per pack page (link in pack)
+music/gentle_breeze.ogg   Pizza Doggy — Cozy Tunes v1.5.2
+music/wildflowers_by_the_river.ogg  same pack
+                          License (itch page, checked 2026-07-01): royalty-free, commercial
+                          permitted; dev asks pay-what-you-want for commercial projects —
+                          toss them a couple bucks if LilAxol ever ships paid.
+                          https://pizzadoggy.itch.io/cozy-tunes
