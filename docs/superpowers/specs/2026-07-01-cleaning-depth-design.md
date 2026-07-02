@@ -63,3 +63,13 @@ Tie recovery to incremental discovery, not just the global fade:
 
 ## Out of scope
 Audio (separate spec), backdrop art (separate spec), multi-cove progression.
+
+## Build-state note (2026-07-01 audit)
+None of the three layers has been started — the sheen/dark-core reads in `oil_surface.gdshader`
+and the blotchy mask are the pre-spec baseline this spec sharpens, not partial implementation.
+Layer 2 is **art-ready, code-absent**: `assets/props/industrial/` stages `barrel_leaking` +
+valve variants, all unreferenced. Meanwhile an **unspec'd mechanic shipped** in `b6197aa`: an
+oil swim debuff (`OIL_DRAG` in `axolotl.gd` — up to 50% slower swim in thick oil, land
+untouched). It partially answers the "sludge = skill vs patience?" question with *friction*
+and rubs against this spec's "never punishment" tenet — needs a ruling (DECISIONS.md P-3)
+and, if kept, a paragraph here making it intentional.

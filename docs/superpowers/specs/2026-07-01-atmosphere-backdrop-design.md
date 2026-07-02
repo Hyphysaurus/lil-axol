@@ -1,7 +1,7 @@
 # Atmosphere & Backdrop Art — Design Proposal
 
 **Date:** 2026-07-01
-**Status:** PROPOSAL — for Mario's review
+**Status:** CORE IMPLEMENTED (commit `b6197aa`, 2026-07-01) — add-ons still open, see Build outcome below
 **Context:** Mario wants to fold real 2D art (skies, oceans) into the cove. Paint-to-clean's
 core reward is *revealing the world underneath* — good backdrop art amplifies exactly that.
 
@@ -69,3 +69,15 @@ procedural water tint, as the payoff layer for paint-to-clean:
 
 ## Out of scope
 Cleaning depth (separate spec), audio, multi-cove level flow.
+
+## Build outcome (2026-07-01 audit)
+The core recommendation shipped in `b6197aa` with three accepted deviations:
+- **No parallax band** — plain Sprite2D tiles (fine for a single-screen cove; revisit if coves scroll).
+- **Per-tile modulate jitter replaced** by a new `seabed.gdshader` (top/edge/bottom fades +
+  depth tint matched to the darkened floor polygon) — melts seams instead of jittering tiles.
+- **"No new shaders" cost claim exceeded** by that same shader; worth it, the band reads as
+  environment rather than a sticker.
+Cloud add-on answered differently than spec'd: the procedural `clouds.gdshader` was improved
+(gap mask, belly wobble, softer horizon) instead of adding sprite clouds — sprite clouds remain
+an open taste call. Mood-swap skies stay deferred to future coves. Tile texture/colors are
+consts on SeabedBackdrop, not CoveConfig — lift them when a second cove needs a different reef.
