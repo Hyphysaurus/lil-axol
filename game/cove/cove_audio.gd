@@ -27,6 +27,8 @@ const NIGHT_DUCK_DB := -4.0        # deep-night hush on the whole ambience
 const MUSIC_AT := 0.85             # the music is the prize
 const MUSIC_DB := -6.0             # approaching the win
 const MUSIC_FULL_DB := 0.0         # fully restored
+const TITLE_DB := -8.0             # the theme also plays under the title veil, then fades:
+const FADE_OUT_DB := -50.0         # the spilled cove has lost its song until you restore it
 
 var _cfg: CoveConfig
 var _sea: AudioStreamPlayer
@@ -85,12 +87,25 @@ func _process(delta: float) -> void:
 	var life := smoothstep(0.05, 0.45, _mix) * day
 	_life.volume_db = lerpf(LIFE_MIN_DB, LIFE_MAX_DB, life)
 	_sea.volume_db = SEA_DB + NIGHT_DUCK_DB * (1.0 - day) * 0.5
-	# earned music: eases in near the end, opens fully when the banner fires
+	# music: plays under the title veil, fades out for the spilled cove, and is EARNED
+	# back near the end of the heal — the restored cove remembers its song
+	var title_up := get_tree().get_first_node_in_group("title_veil") != null
 	if not _music_on and _mix >= MUSIC_AT:
 		_start_music()
+	if title_up and not _music.playing:
+		_music.volume_db = -30.0
+		_music.play()
 	if _music.playing:
-		var target := MUSIC_FULL_DB if _restored else MUSIC_DB
+		var target := FADE_OUT_DB
+		if title_up:
+			target = TITLE_DB
+		elif _restored:
+			target = MUSIC_FULL_DB
+		elif _music_on:
+			target = MUSIC_DB
 		_music.volume_db = move_toward(_music.volume_db, target, delta * 6.0)
+		if not title_up and not _music_on and _music.volume_db <= FADE_OUT_DB + 1.0:
+			_music.stop()
 
 func _on_restored() -> void:
 	_restored = true

@@ -15,6 +15,7 @@ func _ready() -> void:
 	if Settings.title_shown:
 		queue_free()
 		return
+	add_to_group("title_veil")     # CoveAudio plays the cove's theme while this exists
 	Settings.push_ui_lock()
 	_build()
 
