@@ -23,12 +23,17 @@ the player uncovers by cleaning. Build deviations (accepted): no parallax band, 
 modulate jitter replaced by `seabed.gdshader` edge crossfade, improved procedural clouds
 instead of sprite clouds.
 
+## D-0005 — Leak is gentle pressure (2026-07-02, Mario)
+The Layer-2 leak slowly re-oils a small radius until capped (hard-capped: coverage never
+exceeds the level's start — oil resists, it never wins). Capping is a soft objective, not
+a gate: ignoring it just keeps the spill lively longer.
+
+## D-0006 — Sludge is skill (2026-07-02, Mario)
+Thick sludge near the source needs SUSTAINED close-range spray to break (a held beam that
+"bites in"), not just repeat passes. Tune so it reads as technique, never as a wall.
+
 ## PENDING (awaiting Mario's ruling)
 
-- **P-1 Leak tension** — is the Layer-2 leak gentle pressure (re-oils until capped) or pure
-  flavor, or is Layer 2 skipped? (cleaning-depth spec, open question)
-- **P-2 Sludge model** — thick sludge = more passes (patience) vs held-spray (skill) vs
-  visual-only. (cleaning-depth spec, open question)
 - **P-3 Oil swim debuff** — built unspec'd (`OIL_DRAG` 0.5 max slow, swim-only): keep & record,
   soften (~25%), or remove. Intersects the "never punishment" pillar.
 - **P-4 Next spec priority** — game-loop/post-win vs audio vs straight to implementation.
