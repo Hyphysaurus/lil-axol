@@ -24,6 +24,7 @@
 [ext_resource type="Script" path="res://game/cove/shine.gd" id="22_shine"]
 [ext_resource type="Script" path="res://game/hud/shine_hud.gd" id="23_shinehud"]
 [ext_resource type="Script" path="res://game/hud/high_scores.gd" id="24_scores"]
+[ext_resource type="Script" path="res://game/cove/cove_audio.gd" id="25_audio"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_sn0t7"]
 size = Vector2(255, 280)
@@ -254,3 +255,6 @@ script = ExtResource("23_shinehud")
 
 [node name="HighScores" type="CanvasLayer" parent="."]
 script = ExtResource("24_scores")
+
+[node name="CoveAudio" type="Node" parent="."]
+script = ExtResource("25_audio")

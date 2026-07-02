@@ -12,7 +12,7 @@ dest_files=["res://.godot/imported/wildflowers_by_the_river.ogg-440e5c34143cf752
 
 [params]
 
-loop=false
+loop=true
 loop_offset=0
 bpm=0
 beat_count=0

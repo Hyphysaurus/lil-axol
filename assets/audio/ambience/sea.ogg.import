@@ -12,7 +12,7 @@ dest_files=["res://.godot/imported/sea.ogg-2d2113ed2cf3fa22ee589f8288b75ba3.oggv
 
 [params]
 
-loop=false
+loop=true
 loop_offset=0
 bpm=0
 beat_count=0

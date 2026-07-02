@@ -329,13 +329,17 @@ func _land() -> void:
 	_dust()
 	Sfx.play("land")
 
+signal submerged_changed(on: bool)   # audio keys the underwater muffle off this
+
 func _enter_water() -> void:
+	submerged_changed.emit(true)
 	_splash(1.0)
 	Sfx.play("splash")
 	_spr.scale = Vector2(0.8, 1.2)    # slip in long and lean
 	velocity.y *= 0.35   # soften the plunge
 
 func _exit_water() -> void:
+	submerged_changed.emit(false)
 	_splash(0.7)
 	Sfx.play("splash", -6.0)   # lighter, like the 0.7 particle burst
 

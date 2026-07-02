@@ -44,6 +44,11 @@ func _ready() -> void:
 	_t = start_time
 	_apply(_t)
 
+## Phase of the day, 0..1 (0 = midnight, 0.5 = noon). Read-only accessor for audio /
+## afterglow content; callers use has_method so old coves degrade gracefully.
+func time_of_day() -> float:
+	return _t
+
 func _process(delta: float) -> void:
 	if paused or day_length <= 0.0:
 		return

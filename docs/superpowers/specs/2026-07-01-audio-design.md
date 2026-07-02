@@ -1,7 +1,7 @@
 # Audio ("Hear the Cove Come Back") — Design Proposal
 
 **Date:** 2026-07-01
-**Status:** PHASE 1 BUILT (2026-07-01, committed 2026-07-02) — buses + `Sfx` autoload + all Phase-1
+**Status:** PHASES 1-3 BUILT (P1 2026-07-01; P2-3 "the cove breathes" + earned music 2026-07-02) — buses + `Sfx` autoload + all Phase-1
 verb sounds wired (splash in/out/hop, jump/land, spray loop, scrub ticks with rising pitch,
 milestone chimes suppressed at 1.0, win stinger). Phases 2–5 open; the open questions below
 still need Mario's rulings. (Spec synthesized from a 2-design judge panel: SFX-first won;

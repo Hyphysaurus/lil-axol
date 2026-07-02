@@ -31,6 +31,12 @@ class_name CoveConfig
 @export var kelp_count: int = 6
 @export var fish_count: int = 5
 
+@export_group("Audio")
+## Optional per-cove soundscape; null keeps the shared defaults (see cove_audio.gd).
+@export var ambience: AudioStream
+@export var life_layer: AudioStream
+@export var music: AudioStream
+
 @export_group("Win")
 ## Cleanliness (0..1) at which the cove counts as restored. The banner and any future
 ## gate (cove exit, afterglow content) all read this one value so they can never desync.

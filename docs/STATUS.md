@@ -91,7 +91,7 @@ the reward is the living world revealed underneath.
 - ~~Post-win game loop~~ → DESIGNED, **Phase 1 BUILT**: "A New Day" hold-R
   restart + banner handoff (`specs/2026-07-01-game-loop-post-win-design.md`). Multi-cove
   stays deferred with an approved blueprint inside that spec.
-- ~~Audio~~ → DESIGNED, **Phase 1 BUILT**: verbs make sound
+- ~~Audio~~ → **Phases 1–3 BUILT**: verbs make sound; the cove breathes (sea bed + life layer opening with the healing low-pass, birds by day, submerged muffle); music is EARNED at ~85% and opens fully with the banner
   (`specs/2026-07-01-audio-design.md`). Phases 2–5 (CoveAudio ambience + healing low-pass,
   earned music, day/night mix, bespoke Ableton pass) still open.
 
