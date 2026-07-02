@@ -50,4 +50,17 @@ vertical aim.
 `touch_controls.gd` (bubble button), `cove.tscn`, `project.godot` (`bubble` action).
 
 ## Out of scope
-Bubble Shield, mouse aim, persistent score/leaderboards, spending Shine, land bubbles.
+Bubble Shield, mouse aim, persistent score/leaderboards, spending Shine.
+
+## Post-build amendments (2026-07-02, Mario)
+- **Land bubble built** (was deferred): blown on shore it drifts along the aim, settles,
+  and pops the moment it kisses the water surface — right on the film.
+- **Land/air dash built**: same verb as the wake dash, minus cleaning — a traversal scoot
+  for the shore puzzles Mario is planning. Dashing off a ledge into water continues as a
+  wake dash.
+- **Cleanliness is now visibility-weighted + float-exact** (fixes "stuck at 81%"):
+  progress counts only renderable oil (the film shader's ~0.28 knee), sub-visible residue
+  snaps clean, coverage math moved off the 8-bit Image (truncation was silently leaking
+  ~4% of credit), and win_threshold relaxed to 0.98. Sim: full scrub now reads 1.0000.
+- **Axolotl.ttf** (Asset Library) is the project-wide theme font — ⚠ license unverified,
+  see assets/fonts/SOURCES.txt.

@@ -41,6 +41,10 @@ window/stretch/aspect="expand"
 
 enabled=PackedStringArray("res://addons/MetroidvaniaSystem/EditorExtension/plugin.cfg", "res://addons/MetroidvaniaSystem/plugin.cfg", "res://addons/lit/plugin.cfg", "res://addons/mcp_bridge/plugin.cfg", "res://addons/rmsmartshape/plugin.cfg", "res://addons/softbody2d/plugin.cfg")
 
+[gui]
+
+theme/custom_font="res://assets/fonts/Axolotl.ttf"
+
 [input]
 
 move_left={

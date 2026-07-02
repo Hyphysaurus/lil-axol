@@ -34,4 +34,6 @@ class_name CoveConfig
 @export_group("Win")
 ## Cleanliness (0..1) at which the cove counts as restored. The banner and any future
 ## gate (cove exit, afterglow content) all read this one value so they can never desync.
-@export var win_threshold: float = 0.999
+## 0.98, not 0.999: progress is visibility-weighted now, but the last shimmer specks
+## still shouldn't demand a pixel hunt.
+@export var win_threshold: float = 0.98

@@ -5,8 +5,10 @@ extends Node2D
 ## bright pop-chime. Spawned cove-local by the axolotl; entirely self-contained.
 
 const DRIFT := 90.0
-const LIFT := -26.0            # gentle buoyancy pull while drifting
-const LIFE := 1.1              # seconds before it pops on its own
+const LIFT := -26.0            # gentle buoyancy pull while drifting underwater
+const LIFE := 1.1              # underwater: seconds before it pops on its own
+const LIFE_AIR := 1.8          # in air it floats longer, looking for water
+const AIR_SINK := 30.0         # soap-bubble settle toward the water when blown on land
 const POP_RADIUS := 64.0
 const POP_STRENGTH := 0.6      # spray_at delta-equivalent (sim-tuned: ~10-15% of the cove)
 const R := 13.0
@@ -15,6 +17,7 @@ var _vel := Vector2.ZERO
 var _cfg: CoveConfig
 var _t := 0.0
 var _popped := false
+var _in_air := false
 
 func setup(aim: Vector2, cfg: CoveConfig) -> void:
 	_vel = aim * DRIFT
@@ -22,15 +25,24 @@ func setup(aim: Vector2, cfg: CoveConfig) -> void:
 
 func _ready() -> void:
 	z_index = 7
+	_in_air = _cfg != null and position.y < _cfg.surface_y - 2.0
 
 func _physics_process(delta: float) -> void:
 	_t += delta
-	_vel.y += LIFT * delta
-	position += _vel * delta
+	if _in_air:
+		# blown on land: drifts along the aim, settles toward the water, pops the moment
+		# it kisses the surface — right on the film, exactly where a bubble should burst
+		_vel.y += AIR_SINK * delta
+		position += _vel * delta
+		if (_cfg != null and position.y >= _cfg.surface_y - 4.0) or _t >= LIFE_AIR:
+			_pop()
+	else:
+		_vel.y += LIFT * delta
+		position += _vel * delta
+		if _t >= LIFE or (_cfg != null and position.y < _cfg.surface_y + 10.0):
+			_pop()
 	scale = Vector2.ONE * (1.0 + 0.06 * sin(_t * 9.0))   # soap-film wobble
 	queue_redraw()
-	if _t >= LIFE or (_cfg != null and position.y < _cfg.surface_y + 10.0):
-		_pop()
 
 func _pop() -> void:
 	if _popped:

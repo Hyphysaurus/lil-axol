@@ -15,13 +15,20 @@ const WHITE := preload("res://assets/white.png")
 const MASK_W := 192
 const MASK_H := 88
 const MILESTONES := [0.25, 0.5, 0.75, 1.0]   # escalating burst reward as the cove recovers
+# The film shader renders nothing below ~0.28 coverage (minus up to 0.15 of edge noise), so
+# progress is counted in VISIBLE oil: what the player can't possibly see can't block 100%.
+const VIS_FLOOR := 0.13      # provably invisible below this, even at max noise
+const VIS_FULL := 0.42       # solidly-visible film on average
 const CHIME_STEPS := [1.0, 1.125, 1.25]      # major-pentatonic rise; the 1.0 milestone is the
                                              # win stinger's moment, so it gets no chime
 
 var _cfg: CoveConfig
 var _fx: CleanupFX
 var _water_mat: ShaderMaterial
-var _mask: Image
+var _mask: Image                      # 8-bit view for the shader ONLY — never do math on it
+var _cov: PackedFloat32Array          # source of truth: float coverage per cell (no
+                                      # quantization drift — 8-bit truncation was silently
+                                      # leaking ~4% of progress and capping cleanliness)
 var _mask_tex: ImageTexture
 var _surface: Sprite2D
 var _origin := Vector2.ZERO   # water rect top-left (cove-local)
@@ -52,6 +59,7 @@ func setup(cfg: CoveConfig) -> void:
 
 func _build_mask() -> void:
 	_mask = Image.create_empty(MASK_W, MASK_H, false, Image.FORMAT_RGBA8)
+	_cov.resize(MASK_W * MASK_H)
 	var surf := _cfg.surface_y
 	_total = 0.0
 	for my in MASK_H:
@@ -69,8 +77,11 @@ func _build_mask() -> void:
 			# blotchy thickness so the slick isn't a flat slab
 			var blot := 0.5 + 0.5 * sin(lx * 0.07 + ly * 0.05) * cos(lx * 0.03 - ly * 0.11)
 			var cov := clampf(in_x * in_y * (0.62 + 0.38 * blot), 0.0, 1.0)
+			if cov < VIS_FLOOR:
+				cov = 0.0                   # don't birth oil nobody can ever see
+			_cov[my * MASK_W + mx] = cov
 			_mask.set_pixel(mx, my, Color(cov, 0.0, 0.0, 1.0))
-			_total += cov
+			_total += _vis(cov)
 	_total = maxf(_total, 0.001)
 	_remaining = _total
 	_mask_tex = ImageTexture.create_from_image(_mask)
@@ -107,13 +118,15 @@ func spray_at(world_pos: Vector2, radius: float, delta: float) -> void:
 			var d := Vector2(float(mx) - cx, float(my) - cy).length()
 			if d > rpx:
 				continue
-			var col := _mask.get_pixel(mx, my)
-			if col.r <= 0.0:
+			var old := _cov[my * MASK_W + mx]
+			if old <= 0.0:
 				continue
-			var nr := maxf(0.0, col.r - strength * (1.0 - d / rpx))   # soft brush falloff
-			removed += col.r - nr
-			col.r = nr
-			_mask.set_pixel(mx, my, col)
+			var nr := maxf(0.0, old - strength * (1.0 - d / rpx))   # soft brush falloff
+			if nr < VIS_FLOOR:
+				nr = 0.0                    # sub-visible residue snaps clean (renders as nothing)
+			removed += _vis(old) - _vis(nr)
+			_cov[my * MASK_W + mx] = nr
+			_mask.set_pixel(mx, my, Color(nr, 0.0, 0.0, 1.0))
 	if removed > 0.0:
 		_mask_tex.update(_mask)
 		_remaining = maxf(0.0, _remaining - removed)
@@ -142,7 +155,13 @@ func oil_at(world_pos: Vector2) -> float:
 	var my := int((p.y - _origin.y) / _size.y * float(MASK_H))
 	if mx < 0 or mx >= MASK_W or my < 0 or my >= MASK_H:
 		return 0.0
-	return _mask.get_pixel(mx, my).r
+	return _cov[my * MASK_W + mx]
+
+## Progress weight of a coverage value — matches the film shader's visibility ramp, so the
+## meter and the win can never demand oil the player cannot find. Raw coverage (oil_at)
+## stays untouched for the debuff and the ecosystem reveal.
+func _vis(c: float) -> float:
+	return clampf((c - VIS_FLOOR) / (VIS_FULL - VIS_FLOOR), 0.0, 1.0)
 
 func _set_clean() -> void:
 	current_clean = clampf(1.0 - _remaining / _total, 0.0, 1.0)

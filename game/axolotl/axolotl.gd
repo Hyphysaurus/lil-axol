@@ -109,6 +109,7 @@ func _physics_process(delta: float) -> void:
 	_hop_grace = maxf(0.0, _hop_grace - delta)
 	_land_t = maxf(0.0, _land_t - delta)
 	_dash_cd = maxf(0.0, _dash_cd - delta)
+	_dash_t = maxf(0.0, _dash_t - delta)
 
 	# menus (title / settings / rest card) own the input; the cove keeps living behind them
 	var ui := Settings.ui_locked()
@@ -149,8 +150,8 @@ func _physics_process(delta: float) -> void:
 	elif not submerged and _in_water:
 		_exit_water()
 	_in_water = submerged
-	if submerged and not ui and Input.is_action_just_pressed("bubble"):
-		_fire_bubble(dir)
+	if not ui and Input.is_action_just_pressed("bubble"):
+		_fire_bubble(dir)   # works on land too — the bubble drifts down to the water
 	if submerged:
 		_swim(delta, dir)
 		_juice(delta)
@@ -158,7 +159,20 @@ func _physics_process(delta: float) -> void:
 
 	# --- land movement ---
 	_bubbles.emitting = false
-	velocity.x = dir * (tuning.run_speed if running else tuning.walk_speed)
+	# same dash verb on land/air — a traversal scoot for shore puzzles (no cleaning up here)
+	if not ui and Input.is_action_just_pressed("dash") and _dash_cd <= 0.0:
+		if dir != 0.0:
+			_face = signf(dir)
+		_dash_t = tuning.dash_time
+		_dash_cd = tuning.dash_cooldown
+		_spr.scale = Vector2(1.3, 0.75)
+		if is_on_floor():
+			_dust()
+		Sfx.play("jump", -4.0, 1.3)
+	if _dash_t > 0.0:
+		velocity.x = _face * tuning.dash_speed   # the dash owns X; gravity still applies
+	else:
+		velocity.x = dir * (tuning.run_speed if running else tuning.walk_speed)
 	if not is_on_floor():
 		velocity.y += tuning.gravity * delta
 	if not ui and Input.is_action_just_pressed("jump") and is_on_floor():
@@ -181,7 +195,6 @@ func _swim(delta: float, dir: float) -> void:
 
 	# --- clean wake dash: a joyful burst that scrubs a stripe of the film behind you ---
 	if _dash_t > 0.0:
-		_dash_t -= delta
 		# the film lives in a band just under the waterline — aim the wake there (when in
 		# reach) and erode several times harder than the spray: a passing brush only touches
 		# each cell for ~0.13s, so at 1x it removes ~0.19 coverage and nothing visibly changes
@@ -245,7 +258,11 @@ func _swim(delta: float, dir: float) -> void:
 	move_and_slide()
 
 func _animate_land(running: bool, spraying: bool, delta: float) -> void:
-	if not is_on_floor():
+	if _dash_t > 0.0:
+		_sitting = false
+		_idle_t = 0.0
+		_anims.play(anim_set.dash, _face)
+	elif not is_on_floor():
 		_sitting = false
 		_idle_t = 0.0
 		_anims.play(anim_set.jump if velocity.y < 0.0 else anim_set.fall, _face)

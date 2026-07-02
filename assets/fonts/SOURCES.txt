@@ -1,0 +1,6 @@
+Fonts
+
+Axolotl.ttf — from the shared Asset Library (Dev/Asset Library/Fonts/).
+  ⚠ No license file was stored with it. Likely the "Axolotl" display font from
+  dafont (Vladimir Nikolic): free for personal use, donation expected for
+  commercial. VERIFY BEFORE SHIPPING and record the terms here.
