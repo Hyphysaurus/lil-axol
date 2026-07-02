@@ -21,6 +21,8 @@
 [ext_resource type="Script" path="res://game/cove/postfx.gd" id="19_postfx"]
 [ext_resource type="Script" path="res://game/cove/shore_health.gd" id="20_shore"]
 [ext_resource type="Script" path="res://game/hud/restoration_meter.gd" id="21_meter"]
+[ext_resource type="Script" path="res://game/cove/shine.gd" id="22_shine"]
+[ext_resource type="Script" path="res://game/hud/shine_hud.gd" id="23_shinehud"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_sn0t7"]
 size = Vector2(255, 280)
@@ -242,3 +244,9 @@ script = ExtResource("20_shore")
 
 [node name="RestorationMeter" type="CanvasLayer" parent="."]
 script = ExtResource("21_meter")
+
+[node name="Shine" type="Node" parent="."]
+script = ExtResource("22_shine")
+
+[node name="ShineHud" type="CanvasLayer" parent="."]
+script = ExtResource("23_shinehud")

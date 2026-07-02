@@ -10,7 +10,7 @@ const DIM_INK := Color(0.70, 0.85, 0.90)
 const ACTION_LABELS := {
 	"move_left": "move left", "move_right": "move right", "move_up": "up / float",
 	"move_down": "down / dive", "jump": "jump", "run": "run", "spray": "spray",
-	"dash": "dash", "restart": "new day (hold)",
+	"dash": "dash", "bubble": "bubble bomb", "restart": "new day (hold)",
 }
 
 var _root: Control

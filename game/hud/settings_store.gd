@@ -12,7 +12,7 @@ const PATH := "user://settings.cfg"
 const BUSES := ["Master", "SFX", "Ambience", "Music"]
 ## Rebindable gameplay actions, in menu display order.
 const ACTIONS := ["move_left", "move_right", "move_up", "move_down",
-	"jump", "run", "spray", "dash", "restart"]
+	"jump", "run", "spray", "dash", "bubble", "restart"]
 
 var title_shown := false             # session-only: New Day reloads skip the title veil
 

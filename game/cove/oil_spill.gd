@@ -7,6 +7,7 @@ extends Node2D
 ## `cleanliness` signal. Visual juice (sparkle trail, milestone bursts) is delegated to CleanupFX.
 
 signal cleanliness(v: float)   # 0 oily -> 1 restored
+signal scrubbed(frac: float, world_pos: Vector2)   # oil actually removed (frac of the whole spill)
 
 const OIL_SURFACE_SHADER := preload("res://shaders/oil_surface.gdshader")
 const WHITE := preload("res://assets/white.png")
@@ -117,6 +118,7 @@ func spray_at(world_pos: Vector2, radius: float, delta: float) -> void:
 		_mask_tex.update(_mask)
 		_remaining = maxf(0.0, _remaining - removed)
 		_set_clean()
+		scrubbed.emit(removed / _total, to_global(p))   # Shine and friends key off real progress
 		_spark_cd -= delta
 		if _spark_cd <= 0.0:                    # local sparkle trail while actively scrubbing
 			_spark_cd = 0.05

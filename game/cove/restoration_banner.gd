@@ -19,6 +19,7 @@ var _cfg: CoveConfig
 var _root: Control
 var _corner: Control
 var _subline: Label
+var _tally: Label              # final Shine, set the moment the cove is restored
 var _fade := 0.0
 var _target := 0.0
 var _hold := 0.0
@@ -49,6 +50,10 @@ func _on_clean(v: float) -> void:
 		_target = 1.0
 		_hold = HOLD_SECONDS
 		Sfx.play("win")
+		var keeper = get_tree().get_first_node_in_group("shine")
+		if keeper and "score" in keeper:
+			_tally.text = "shine  %d" % int(keeper.score)
+			_tally.visible = true
 		restored.emit()
 
 func _process(delta: float) -> void:
@@ -114,6 +119,13 @@ func _build() -> void:
 	sub.add_theme_font_size_override("font_size", 18)
 	sub.add_theme_color_override("font_color", Color(0.70, 0.85, 0.90))
 	vb.add_child(sub)
+
+	_tally = Label.new()
+	_tally.visible = false
+	_tally.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_tally.add_theme_font_size_override("font_size", 15)
+	_tally.add_theme_color_override("font_color", Color(1.0, 0.87, 0.55))
+	vb.add_child(_tally)
 
 	# corner handoff (top-right): a little sun glyph + the one-time teaching subline
 	_corner = Control.new()

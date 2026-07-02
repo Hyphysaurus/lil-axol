@@ -5,6 +5,7 @@ extends CharacterBody2D
 ## Movement/spray numbers come from the AxolotlTuning resource (defaults = D-0003 contract).
 
 const MOVE_EPS := 6.0
+const BubbleBomb := preload("res://game/axolotl/bubble.gd")
 
 # --- juice (visual only — never touches movement; D-0002: art stays out of config) ---
 const TILT_MAX := 0.35          # swim nose-down/up lean, radians at full vertical speed
@@ -121,9 +122,11 @@ func _physics_process(delta: float) -> void:
 	_spray_p.emitting = spraying
 	Sfx.loop("spray", spraying, -6.0)
 	if spraying:
-		_spray_p.position = Vector2(_face * 10.0, 1.0)   # at the snout/mouth tip
-		_spray_p.direction = Vector2(_face, -0.25)
-		var reach := global_position + Vector2(_face * tuning.spray_reach, 0.0)
+		# aim follows the input direction (stick = analog, keys = 8-way); neutral = facing
+		var aim := _aim(dir)
+		_spray_p.position = aim * 10.0 + Vector2(0.0, 1.0)   # off the snout, along the aim
+		_spray_p.direction = aim + Vector2(0.0, -0.15)        # slight cosmetic lift on the jet
+		var reach := global_position + aim * tuning.spray_reach
 		get_tree().call_group("oil_manager", "spray_at", reach, tuning.spray_radius, delta)
 
 	# --- water: enter / exit / swim, polled vs the waterline (hysteresis stops surface flicker) ---
@@ -146,6 +149,8 @@ func _physics_process(delta: float) -> void:
 	elif not submerged and _in_water:
 		_exit_water()
 	_in_water = submerged
+	if submerged and not ui and Input.is_action_just_pressed("bubble"):
+		_fire_bubble(dir)
 	if submerged:
 		_swim(delta, dir)
 		_juice(delta)
@@ -336,6 +341,27 @@ func _splash(amt: float) -> void:
 	p.z_index = 8
 	get_parent().add_child(p)   # add to the cove (world coords) so the splash stays at the surface
 	p.finished.connect(p.queue_free)
+
+## Current aim: input direction (analog on stick, 8-way on keys), facing when neutral.
+func _aim(dir: float) -> Vector2:
+	var v := Vector2(dir, 0.0 if Settings.ui_locked() else Input.get_axis("move_up", "move_down"))
+	return v.normalized() if v != Vector2.ZERO else Vector2(_face, 0.0)
+
+## Bubble Bomb: spend a full Shine charge on a big drifting AOE cleaner (see bubble.gd).
+func _fire_bubble(dir: float) -> void:
+	var keeper = get_tree().get_first_node_in_group("shine")
+	if keeper == null:
+		return
+	if not keeper.spend_bubble():
+		Sfx.play("scrub", -16.0, 0.65)   # soft "not charged yet" blip
+		return
+	var aim := _aim(dir)
+	var b := BubbleBomb.new()
+	b.position = _cove_local() + aim * 12.0
+	b.setup(aim, _cfg)
+	get_parent().add_child(b)
+	Sfx.play("splash", -10.0, 1.5)
+	_spr.scale = Vector2(0.8, 1.2)   # a little puff of effort
 
 ## Underwater burst kicked off behind a dash: droplets that brake in the water and
 ## bubble upward. One-shot, added to the cove so the trail stays where the dash began.

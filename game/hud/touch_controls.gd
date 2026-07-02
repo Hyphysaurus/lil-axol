@@ -125,6 +125,7 @@ func _buttons() -> Dictionary:
 	return {
 		"spray": [Vector2(s.x - 76.0, s.y - 96.0), BTN_R],
 		"jump": [Vector2(s.x - 186.0, s.y - 66.0), BTN_R],
+		"bubble": [Vector2(s.x - 96.0, s.y - 192.0), BTN_R * 0.85],
 		"restart": [Vector2(s.x - 44.0, 44.0), RESTART_R],
 	}
 
@@ -174,6 +175,9 @@ class TouchCanvas extends Control:
 					for i in 3:
 						var d := Vector2.from_angle(-0.45 + 0.45 * i)
 						draw_line(c + d * 4.0 + Vector2(-8, 0), c + d * 16.0 + Vector2(-4, 0), ink, 3.0, true)
+				"bubble":   # a bubble with its highlight
+					draw_arc(c, 12.0, 0.0, TAU, 24, ink, 3.0, true)
+					draw_arc(c, 7.0, -2.2, -1.2, 8, ink, 2.0, true)
 				"restart":  # circular arrow (hold for a new day)
 					draw_arc(c, 10.0, -PI * 0.35, PI * 1.15, 24, ink, 3.0, true)
 					var tip := c + Vector2.from_angle(-PI * 0.35) * 10.0

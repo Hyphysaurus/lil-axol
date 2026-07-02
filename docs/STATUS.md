@@ -65,6 +65,14 @@ the reward is the living world revealed underneath.
 - **Restoration meters** (Terra Nil) — top-left water gauge (% + milestone notch pulses)
   with kelp/fish stage minis driven by cove_life's exact envelopes (`restoration_meter.gd`);
   hides while menus are up.
+- **Aimed spray + Shine + Bubble Bomb** (2026-07-02, spec
+  `2026-07-02-aim-shine-bubble-design.md`) — spray aims along input direction (8-way keys /
+  analog stick, neutral = facing). `Shine` (`game/cove/shine.gd`, group "shine"): points off
+  OilSpill's new `scrubbed` signal, ×1–×4 combo while scrubbing is sustained, floating "+N"
+  pops, banner tally. Combo-free base Shine charges the Bubble Bomb (V / pad Y / touch):
+  a drifting bubble that pops into a ~15%-of-cove AOE carve (`game/axolotl/bubble.gd`).
+  Charge is capped per scrub event so pops can't pay for themselves. HUD: top-right score
+  ticker + combo badge + charge orb (`game/hud/shine_hud.gd`).
 
 ## DESIGNED, NOT BUILT
 
