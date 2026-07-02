@@ -23,7 +23,7 @@ the reward is the living world revealed underneath.
 - **Win banner** — `restoration_banner.gd`, one-shot "Cove Restored" at cleanliness ≥ 0.999.
 - **Cleanup FX** — `cleanup_fx.gd` particle bursts/rings/sparkles.
 
-## BUILT, UNCOMMITTED (working tree, verified by headless boot 2026-07-01)
+## BUILT, SECOND WAVE (committed 2026-07-02: vendor + audio + anim-set + app-shell commits)
 
 - **Juice + idle life** — squash/stretch, swim tilt + bubble trail, landing squash + dust;
   blink + AFK liedown→sleep chain; full SeethingSwarm strip set imported and wired into
@@ -80,10 +80,10 @@ the reward is the living world revealed underneath.
 
 ## NOT DESIGNED (holes)
 
-- ~~Post-win game loop~~ → DESIGNED, **Phase 1 BUILT** (uncommitted): "A New Day" hold-R
+- ~~Post-win game loop~~ → DESIGNED, **Phase 1 BUILT**: "A New Day" hold-R
   restart + banner handoff (`specs/2026-07-01-game-loop-post-win-design.md`). Multi-cove
   stays deferred with an approved blueprint inside that spec.
-- ~~Audio~~ → DESIGNED, **Phase 1 BUILT** (uncommitted): verbs make sound
+- ~~Audio~~ → DESIGNED, **Phase 1 BUILT**: verbs make sound
   (`specs/2026-07-01-audio-design.md`). Phases 2–5 (CoveAudio ambience + healing low-pass,
   earned music, day/night mix, bespoke Ableton pass) still open.
 

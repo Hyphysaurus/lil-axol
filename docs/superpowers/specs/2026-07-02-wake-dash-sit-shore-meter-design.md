@@ -1,7 +1,7 @@
 # Wake Dash · Sit & Watch · Sludged Shore · Restoration Meters — Design
 
 **Date:** 2026-07-02
-**Status:** BUILT (2026-07-02, uncommitted) — verified by headless + real-renderer boot.
+**Status:** BUILT (2026-07-02, committed 2026-07-02) — verified by headless + real-renderer boot.
 Needs a feel playtest: dash speed/time, sit camera zoom (2.55), shore heal rate (0.3/s).
 **Context:** Four additive features: the two build-now ideation winners, plus Mario's asks —
 grass/land visual polish that starts oiled, and Terra Nil-style restoration meters.

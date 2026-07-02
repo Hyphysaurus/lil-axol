@@ -1,7 +1,7 @@
 # Title Veil & Settings — Design (Approach A, approved)
 
 **Date:** 2026-07-01
-**Status:** BUILT (2026-07-02, uncommitted) — verified by headless + real-renderer boot.
+**Status:** BUILT (2026-07-02, committed 2026-07-02) — verified by headless + real-renderer boot.
 Adversarially reviewed (partial fleet — 4/8 agents hit session limits); 3 confirmed findings
 fixed: touch-held actions released on scene exit (was: infinite-reload risk), settings flush
 on close for keyboard-nudged sliders, rebind capture cancelled on tab switch. Focus handling

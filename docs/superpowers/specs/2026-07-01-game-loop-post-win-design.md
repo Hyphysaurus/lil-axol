@@ -1,7 +1,7 @@
 # Game Loop & Post-Win ("A New Day") — Design Proposal
 
 **Date:** 2026-07-01
-**Status:** PHASE 1 BUILT (2026-07-01, uncommitted) — banner corner-sun handoff + `restored`
+**Status:** PHASE 1 BUILT (2026-07-01, committed 2026-07-02) — banner corner-sun handoff + `restored`
 signal, `win_threshold` hoisted to CoveConfig, `new_day.gd` hold-R ring + `restart` action.
 Phases 2–5 (title card, rest card, dawn beat, afterglow) open. (Spec synthesized from a
 3-design judge panel: session-framing won; grafts from the place-to-stay and multi-cove designs.)
