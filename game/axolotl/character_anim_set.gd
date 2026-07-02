@@ -12,13 +12,29 @@ class_name CharacterAnimSet
 @export var run: StringName = &"run"
 @export var jump: StringName = &"jump"
 @export var fall: StringName = &"fall"
+@export var land: StringName = &"land"
 
 @export_group("Water")
 @export var swim: StringName = &"swim"
 @export var swim_idle: StringName = &"swim_idle"
 
-## Reserved for the Celeste-movement pass — assign once the clips exist; empty = skipped.
+## Idle life — one-shot flourishes and the cozy AFK chain (idle -> liedown -> sleep).
+@export_group("Idle Life")
+@export var idle_blink: StringName = &"idle_blink"
+@export var sit: StringName = &"sit"
+@export var liedown: StringName = &"liedown"
+@export var sleep: StringName = &"sleep"
+
+## Verbs. Spray reuses the attack strip (arm-pump into a held pose while the button is down).
+@export_group("Actions")
+@export var spray: StringName = &"attack"
+@export var hurt: StringName = &"hurt"
+@export var die: StringName = &"die"
+
+## Clips exist in the SpriteFrames but no mechanic reads them yet; empty = skipped.
 @export_group("Planned")
-@export var dash: StringName = &""
-@export var wall_slide: StringName = &""
-@export var land: StringName = &""
+@export var dash: StringName = &"dash"
+@export var crouch: StringName = &"crouch"
+@export var sneak: StringName = &"sneak"
+@export var wall_grab: StringName = &"wallgrab"
+@export var wall_climb: StringName = &"wallclimb"

@@ -1,13 +1,6 @@
 [gd_resource type="Resource" script_class="CharacterAnimSet" format=3 uid="uid://d1fmj65martxw"]
 
-[ext_resource type="Script" path="res://game/axolotl/character_anim_set.gd" id="1_anim"]
+[ext_resource type="Script" uid="uid://b5168jwqbdajb" path="res://game/axolotl/character_anim_set.gd" id="1_anim"]
 
 [resource]
 script = ExtResource("1_anim")
-idle = &"idle"
-walk = &"walk"
-run = &"run"
-jump = &"jump"
-fall = &"fall"
-swim = &"swim"
-swim_idle = &"swim_idle"

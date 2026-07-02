@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="AxolotlTuning" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://game/axolotl/axolotl_tuning.gd" id="1_tuning"]
+
+[resource]
+script = ExtResource("1_tuning")
+walk_speed = 90.0
+run_speed = 150.0
+jump_velocity = -300.0
+gravity = 760.0
+swim_h = 60.0
+swim_v = 54.0
+swim_lerp = 7.0
+rest_depth = 5.0
+buoy_spring = 5.5
+buoy_max = 42.0
+bob_amp = 5.0
+bob_freq = 2.2
+surface_hop = -300.0
+oil_drag = 0.5
+spray_reach = 40.0
+spray_radius = 36.0
