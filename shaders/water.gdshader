@@ -48,9 +48,10 @@ void fragment() {
 		vec4 sc = mix(col_oily_shallow, col_shallow, clean);
 		vec4 dc = mix(col_oily_deep, col_deep, clean);
 		vec4 c = mix(sc, dc, depth);
-		// scrolling caustic interference, fading with depth
+		// scrolling caustic interference, fading with depth; murky water diffuses the
+		// light, so the dance only fully returns as the cove heals
 		float ca = sin(px_x * 0.06 + TIME * 0.9) * sin(px_y * 0.05 - TIME * 0.6);
-		c.rgb += ca * caustic_strength * (1.0 - depth);
+		c.rgb += ca * caustic_strength * (1.0 - depth) * (0.25 + 0.75 * clean);
 		// gentle brighten just beneath the foam
 		float band = smoothstep(crest + foam_thickness, crest + foam_thickness + 8.0, px_y);
 		c.rgb += (1.0 - band) * 0.08;

@@ -14,6 +14,8 @@ const WHITE := preload("res://assets/white.png")
 const MASK_W := 192
 const MASK_H := 88
 const MILESTONES := [0.25, 0.5, 0.75, 1.0]   # escalating burst reward as the cove recovers
+const CHIME_STEPS := [1.0, 1.125, 1.25]      # major-pentatonic rise; the 1.0 milestone is the
+                                             # win stinger's moment, so it gets no chime
 
 var _cfg: CoveConfig
 var _fx: CleanupFX
@@ -28,6 +30,7 @@ var _remaining := 0.0
 var _milestone := 0
 var current_clean := 0.0
 var _spark_cd := 0.0
+var _scrub_snd_cd := 0.0       # slower than _spark_cd so the pops tick, not machine-gun
 
 func _ready() -> void:
 	add_to_group("oil_manager")
@@ -118,9 +121,15 @@ func spray_at(world_pos: Vector2, radius: float, delta: float) -> void:
 		if _spark_cd <= 0.0:                    # local sparkle trail while actively scrubbing
 			_spark_cd = 0.05
 			_fx.spark(p)
+		_scrub_snd_cd -= delta
+		if _scrub_snd_cd <= 0.0:                # audible bite only while oil actually comes off:
+			_scrub_snd_cd = 0.12                # spraying clean water stays silent by construction
+			Sfx.play("scrub", 0.0, 0.9 + current_clean * 0.4)
 		if _milestone < MILESTONES.size() and current_clean >= float(MILESTONES[_milestone]):
 			_milestone += 1                     # escalating burst as the cove recovers
 			_fx.pop(p)
+			if _milestone <= CHIME_STEPS.size():
+				Sfx.play("chime", 0.0, CHIME_STEPS[_milestone - 1])
 
 ## Oil coverage (0..1) at a world position — used by the axolotl to sludge its movement in oil.
 func oil_at(world_pos: Vector2) -> float:

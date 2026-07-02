@@ -1,8 +1,20 @@
 [gd_scene format=3 uid="uid://kp4ulvda52rd"]
 
 [ext_resource type="PackedScene" uid="uid://npmxewd65pxb" path="res://game/cove/cove.tscn" id="1_ig7tw"]
+[ext_resource type="Script" path="res://game/hud/title_card.gd" id="2_title"]
+[ext_resource type="Script" path="res://game/hud/rest_card.gd" id="3_rest"]
+[ext_resource type="Script" path="res://game/hud/settings_menu.gd" id="4_settings"]
 
 [node name="Main" type="Node2D" unique_id=1125150980]
 
 [node name="Cove" parent="." unique_id=457360959 instance=ExtResource("1_ig7tw")]
 position = Vector2(402, 28)
+
+[node name="TitleCard" type="CanvasLayer" parent="."]
+script = ExtResource("2_title")
+
+[node name="RestCard" type="CanvasLayer" parent="."]
+script = ExtResource("3_rest")
+
+[node name="SettingsMenu" type="CanvasLayer" parent="."]
+script = ExtResource("4_settings")

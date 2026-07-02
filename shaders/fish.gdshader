@@ -4,6 +4,8 @@ shader_type canvas_item;
 
 uniform vec4 body_col : source_color = vec4(0.95, 0.55, 0.35, 1.0);
 uniform vec4 fin_col : source_color = vec4(0.75, 0.40, 0.28, 1.0);
+// per-fish fade for the local reveal (modulate can't reach a shader that writes COLOR)
+uniform float reveal : hint_range(0.0, 1.0) = 1.0;
 
 void fragment() {
 	vec2 p = UV - vec2(0.5);
@@ -19,5 +21,5 @@ void fragment() {
 	vec3 c = mix(fin_col.rgb, body_col.rgb, body);
 	// eye near the front
 	if (length(p - vec2(0.24, -0.04)) < 0.045) c = vec3(0.06, 0.06, 0.08);
-	COLOR = vec4(c, a);
+	COLOR = vec4(c, a * reveal);
 }

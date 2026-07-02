@@ -30,3 +30,8 @@ class_name CoveConfig
 @export_group("Ecosystem")
 @export var kelp_count: int = 6
 @export var fish_count: int = 5
+
+@export_group("Win")
+## Cleanliness (0..1) at which the cove counts as restored. The banner and any future
+## gate (cove exit, afterglow content) all read this one value so they can never desync.
+@export var win_threshold: float = 0.999

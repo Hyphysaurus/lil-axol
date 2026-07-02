@@ -1,40 +1,78 @@
 extends CanvasLayer
-## Win-state payoff (first pass). When the cove is fully cleaned (OilSpill's cleanliness
-## reaches 1.0) a soft "Cove Restored" banner fades in, holds, then fades away. Purely
-## additive: self-wires to the oil_manager group and never touches gameplay, so it can't
-## affect swim or cleanup. Built in code to match the rest of the cove's code-first style.
+## Win-state payoff + post-win handoff. When the cove is fully cleaned (cleanliness reaches
+## the config's win_threshold) a soft "Cove Restored" banner fades in, holds, then hands off:
+## the panel recedes while a small corner sun glyph fades in and stays for the session, with
+## a one-time subline teaching the New Day restart. Emits `restored` (and sits in the
+## "restoration" group) so future afterglow content — fireflies, visitors — can key off the
+## moment. Purely additive: self-wires to the oil_manager group and never touches gameplay,
+## so it can't affect swim or cleanup. Built in code to match the cove's code-first style.
+
+signal restored
 
 const HOLD_SECONDS := 2.5
 const FADE_SPEED := 1.2
+const SUBLINE_SECONDS := 6.0
 
+var is_restored := false           # one-shot latch; afterglow content may read this
+
+var _cfg: CoveConfig
 var _root: Control
+var _corner: Control
+var _subline: Label
 var _fade := 0.0
 var _target := 0.0
 var _hold := 0.0
-var _fired := false
+var _corner_on := false
+var _corner_fade := 0.0
+var _subline_left := SUBLINE_SECONDS
+var _subline_fade := 1.0
 
 func _ready() -> void:
 	layer = 95                     # above the world, below PostFX (100) so grain/vignette still apply
+	add_to_group("restoration")    # discoverable by future afterglow content
 	_build()
 	var mgr = get_tree().get_first_node_in_group("oil_manager")
 	if mgr and mgr.has_signal("cleanliness"):
 		mgr.cleanliness.connect(_on_clean)
 
+## Injected by the Cove composition root; only win_threshold is read (null-safe while
+## components migrate — without config the old 0.999 behavior stands).
+func setup(cfg: CoveConfig) -> void:
+	_cfg = cfg
+
+func _win_threshold() -> float:
+	return _cfg.win_threshold if _cfg else 0.999
+
 func _on_clean(v: float) -> void:
-	if not _fired and v >= 0.999:
-		_fired = true              # one-shot: only celebrate the first full restoration
+	if not is_restored and v >= _win_threshold():
+		is_restored = true         # one-shot: only celebrate the first full restoration
 		_target = 1.0
 		_hold = HOLD_SECONDS
+		Sfx.play("win")
+		restored.emit()
 
 func _process(delta: float) -> void:
-	if _target <= 0.0 and _fade <= 0.0:
+	if _target <= 0.0 and _fade <= 0.0 and not _corner_on:
 		return
+	# center banner: rise, hold, then recede (slight shrink) as it hands off to the corner
 	_fade = move_toward(_fade, _target, delta * FADE_SPEED)
 	if _fade >= 1.0 and _hold > 0.0:
 		_hold -= delta
 		if _hold <= 0.0:
-			_target = 0.0          # hold elapsed -> begin fade-out
+			_target = 0.0          # hold elapsed -> begin fade-out + corner handoff
+			_corner_on = true
 	_root.modulate.a = _fade
+	_root.pivot_offset = _root.size / 2.0
+	_root.scale = Vector2.ONE * (0.94 + 0.06 * _fade)
+	# corner glyph fades in once and stays; the teaching subline melts away after a while
+	if _corner_on:
+		_corner_fade = move_toward(_corner_fade, 1.0, delta * FADE_SPEED)
+		_corner.modulate.a = _corner_fade
+		if _corner_fade >= 1.0 and _subline_left > 0.0:
+			_subline_left -= delta
+		if _subline_left <= 0.0:
+			_subline_fade = move_toward(_subline_fade, 0.0, delta * FADE_SPEED)
+			_subline.modulate.a = _subline_fade
 
 func _build() -> void:
 	_root = Control.new()
@@ -76,3 +114,44 @@ func _build() -> void:
 	sub.add_theme_font_size_override("font_size", 18)
 	sub.add_theme_color_override("font_color", Color(0.70, 0.85, 0.90))
 	vb.add_child(sub)
+
+	# corner handoff (top-right): a little sun glyph + the one-time teaching subline
+	_corner = Control.new()
+	_corner.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_corner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_corner.modulate.a = 0.0
+	add_child(_corner)
+
+	var stack := VBoxContainer.new()
+	stack.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	stack.offset_left = -300.0
+	stack.offset_top = 16.0
+	stack.offset_right = -16.0
+	stack.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	stack.add_theme_constant_override("separation", 2)
+	_corner.add_child(stack)
+
+	var glyph := SunGlyph.new()
+	glyph.size_flags_horizontal = Control.SIZE_SHRINK_END
+	stack.add_child(glyph)
+
+	_subline = Label.new()
+	_subline.text = "stay awhile — hold R for a new day"
+	_subline.size_flags_horizontal = Control.SIZE_SHRINK_END
+	_subline.add_theme_font_size_override("font_size", 15)
+	_subline.add_theme_color_override("font_color", Color(0.85, 0.93, 0.96, 0.9))
+	stack.add_child(_subline)
+
+## Tiny code-drawn sun: warm disc + rays. Persists in the corner as the "restored" mark.
+class SunGlyph extends Control:
+	func _init() -> void:
+		custom_minimum_size = Vector2(30.0, 30.0)
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	func _draw() -> void:
+		var c := size / 2.0
+		var warm := Color(1.0, 0.87, 0.55, 0.95)
+		draw_circle(c, 6.0, warm)
+		for i in 8:
+			var dir := Vector2.from_angle(TAU * float(i) / 8.0)
+			draw_line(c + dir * 9.0, c + dir * 13.0, warm, 1.6, true)

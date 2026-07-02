@@ -16,6 +16,11 @@
 [ext_resource type="Resource" uid="uid://b0covea0cfg01" path="res://game/cove/cove_a.tres" id="14_cfg"]
 [ext_resource type="Script" uid="uid://dy6aiscabt3wf" path="res://game/cove/restoration_banner.gd" id="15_banner"]
 [ext_resource type="Script" uid="uid://sd8o1ipttvn2" path="res://game/cove/seabed_backdrop.gd" id="16_seabed"]
+[ext_resource type="Script" uid="uid://behyne1yt7kpp" path="res://game/hud/new_day.gd" id="17_newday"]
+[ext_resource type="Script" path="res://game/hud/touch_controls.gd" id="18_touch"]
+[ext_resource type="Script" path="res://game/cove/postfx.gd" id="19_postfx"]
+[ext_resource type="Script" path="res://game/cove/shore_health.gd" id="20_shore"]
+[ext_resource type="Script" path="res://game/hud/restoration_meter.gd" id="21_meter"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_sn0t7"]
 size = Vector2(255, 280)
@@ -214,6 +219,7 @@ mouse_filter = 2
 layer = 100
 
 [node name="Post" type="ColorRect" parent="PostFX" unique_id=771000005]
+script = ExtResource("19_postfx")
 material = SubResource("ShaderMaterial_post")
 anchors_preset = 15
 anchor_right = 1.0
@@ -224,3 +230,15 @@ mouse_filter = 2
 
 [node name="RestorationBanner" type="CanvasLayer" parent="." unique_id=771000010]
 script = ExtResource("15_banner")
+
+[node name="NewDay" type="CanvasLayer" parent="." unique_id=771000012]
+script = ExtResource("17_newday")
+
+[node name="TouchControls" type="CanvasLayer" parent="." unique_id=771000013]
+script = ExtResource("18_touch")
+
+[node name="ShoreHealth" type="Node" parent="."]
+script = ExtResource("20_shore")
+
+[node name="RestorationMeter" type="CanvasLayer" parent="."]
+script = ExtResource("21_meter")

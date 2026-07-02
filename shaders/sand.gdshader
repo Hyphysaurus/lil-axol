@@ -6,6 +6,9 @@ shader_type canvas_item;
 uniform vec4 sand_top : source_color = vec4(0.91, 0.85, 0.71, 1.0); // sunlit surface
 uniform vec4 sand_low : source_color = vec4(0.58, 0.50, 0.39, 1.0); // shaded depth
 uniform float grain : hint_range(0.0, 0.25) = 0.11;
+// oiled state: 1 = spill-washed beach — dimmed sand with dark horizontal oil streaks.
+// Healed toward 0 by ShoreHealth as the cove is cleaned.
+uniform float sludge : hint_range(0.0, 1.0) = 0.0;
 
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 
@@ -35,5 +38,9 @@ void fragment() {
 	c -= speck * 0.06;                                                       // dark speckle
 	// a lighter dune highlight rolling across the top surface
 	c += (1.0 - smoothstep(0.0, 0.18, UV.y)) * 0.05;
+	// washed-up oil: horizontal streak bands + an overall grime dim, healing with the cove
+	float streak = smoothstep(0.55, 0.85, fbm(UV * vec2(26.0, 9.0) + 3.0));
+	c = mix(c, c * vec3(0.32, 0.30, 0.27), sludge * streak * 0.9);
+	c *= 1.0 - 0.15 * sludge;
 	COLOR = vec4(c, 1.0);
 }
