@@ -167,7 +167,7 @@ func _build() -> void:
 	var head := Label.new()
 	head.text = "settings"
 	head.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	head.add_theme_font_size_override("font_size", 24)
+	head.add_theme_font_size_override("font_size", 34)
 	head.add_theme_color_override("font_color", INK)
 	vb.add_child(head)
 
@@ -183,7 +183,7 @@ func _build() -> void:
 	var foot := Label.new()
 	foot.text = "esc closes"
 	foot.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	foot.add_theme_font_size_override("font_size", 13)
+	foot.add_theme_font_size_override("font_size", 18)
 	foot.add_theme_color_override("font_color", Color(DIM_INK, 0.7))
 	vb.add_child(foot)
 

@@ -76,7 +76,7 @@ func _build() -> void:
 	var title := Label.new()
 	title.text = "Lil Axolotl"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 56)
+	title.add_theme_font_size_override("font_size", 76)
 	title.add_theme_color_override("font_color", Color(0.95, 0.99, 1.0))
 	title.add_theme_color_override("font_shadow_color", Color(0.03, 0.10, 0.16, 0.85))
 	title.add_theme_constant_override("shadow_offset_y", 3)
@@ -85,7 +85,7 @@ func _build() -> void:
 	var sub := Label.new()
 	sub.text = "~ tidekeeper ~"
 	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	sub.add_theme_font_size_override("font_size", 20)
+	sub.add_theme_font_size_override("font_size", 28)
 	sub.add_theme_color_override("font_color", Color(1.0, 0.87, 0.55, 0.95))
 	vb.add_child(sub)
 
@@ -100,7 +100,7 @@ func _build() -> void:
 	var hint := Label.new()
 	hint.text = "move WASD/stick · jump Space/A · spray C/X · run Shift/B"
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	hint.add_theme_font_size_override("font_size", 13)
+	hint.add_theme_font_size_override("font_size", 18)
 	hint.add_theme_color_override("font_color", Color(0.70, 0.85, 0.90, 0.85))
 	vb.add_child(hint)
 
@@ -109,7 +109,7 @@ func _button(text: String, on_pressed: Callable) -> Button:
 	b.text = text
 	b.custom_minimum_size = Vector2(180.0, 40.0)
 	b.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	b.add_theme_font_size_override("font_size", 20)
+	b.add_theme_font_size_override("font_size", 26)
 	b.pressed.connect(on_pressed)
 	return b
 

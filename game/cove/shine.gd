@@ -98,7 +98,7 @@ func _spawn_pop(amount: int, at: Vector2) -> void:
 		return
 	var l := Label.new()
 	l.text = "+%d" % amount
-	l.add_theme_font_size_override("font_size", 11)
+	l.add_theme_font_size_override("font_size", 16)
 	var warm := clampf(float(mult - 1) / 3.0, 0.0, 1.0)
 	l.add_theme_color_override("font_color",
 		Color(0.95, 0.98, 1.0).lerp(Color(1.0, 0.84, 0.45), warm))

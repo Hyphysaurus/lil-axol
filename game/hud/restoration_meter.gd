@@ -59,7 +59,7 @@ func _build() -> void:
 
 	_label = Label.new()
 	_label.text = "0%"
-	_label.add_theme_font_size_override("font_size", 14)
+	_label.add_theme_font_size_override("font_size", 20)
 	_label.add_theme_color_override("font_color", Color(0.92, 0.97, 1.0, 0.85))
 	_label.add_theme_color_override("font_shadow_color", Color(0.03, 0.08, 0.12, 0.8))
 	row.add_child(_label)

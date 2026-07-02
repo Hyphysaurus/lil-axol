@@ -25,6 +25,7 @@ MetSys="*uid://c01ibpvrp2wsd"
 LitManager="*uid://brf2hvdtyyw3q"
 Sfx="*res://game/audio/sfx.gd"
 Settings="*res://game/hud/settings_store.gd"
+Leaderboard="*res://game/net/leaderboard.gd"
 
 [debug]
 
@@ -44,6 +45,7 @@ enabled=PackedStringArray("res://addons/MetroidvaniaSystem/EditorExtension/plugi
 [gui]
 
 theme/custom_font="res://assets/fonts/Axolotl.ttf"
+theme/default_font_size=22
 
 [input]
 

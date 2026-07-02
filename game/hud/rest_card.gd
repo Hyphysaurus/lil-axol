@@ -87,7 +87,7 @@ func _build() -> void:
 	var head := Label.new()
 	head.text = "resting…"
 	head.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	head.add_theme_font_size_override("font_size", 22)
+	head.add_theme_font_size_override("font_size", 30)
 	head.add_theme_color_override("font_color", Color(0.95, 0.99, 1.0))
 	vb.add_child(head)
 
@@ -102,6 +102,6 @@ func _button(text: String, on_pressed: Callable) -> Button:
 	var b := Button.new()
 	b.text = text
 	b.custom_minimum_size = Vector2(200.0, 36.0)
-	b.add_theme_font_size_override("font_size", 17)
+	b.add_theme_font_size_override("font_size", 24)
 	b.pressed.connect(on_pressed)
 	return b

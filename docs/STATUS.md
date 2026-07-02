@@ -107,3 +107,15 @@ the reward is the living world revealed underneath.
   need its own `interact` action when built.
 - Day length is 120s (the 20s debug value is gone); confirm as shipping value.
 - Merged branches `feat/win-state-and-hygiene`, `refactor/cove-modular-architecture` not deleted.
+
+## SHIPPED (2026-07-02)
+
+- **Web build live at https://lilaxol.vercel.app** (Vercel project `lilaxol`, static
+  export from `build/lilaxol/`, no-threads web template — no COOP/COEP needed).
+  Export preset: `export_presets.cfg` (gitignored by Godot convention; web preset,
+  mobile VRAM compression OFF — project doesn't import ETC2/ASTC).
+- **Shared high scores ("the tide board")** — Supabase table `lilaxol_scores` on the
+  Pokonook project (free-tier reuse; migrate to its own project if it ever matters).
+  RLS: public read, sanity-checked insert (name ≤12, score ≤1M). Game client:
+  `game/net/leaderboard.gd` autoload; post-win initials card `game/hud/high_scores.gd`.
+  Anon key ships in the client by design; friendly-competition grade, not tamper-proof.

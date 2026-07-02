@@ -109,21 +109,21 @@ func _build() -> void:
 	var title := Label.new()
 	title.text = "Cove Restored"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 44)
+	title.add_theme_font_size_override("font_size", 60)
 	title.add_theme_color_override("font_color", Color(0.93, 0.98, 1.0))
 	vb.add_child(title)
 
 	var sub := Label.new()
 	sub.text = "the water runs clear again"
 	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	sub.add_theme_font_size_override("font_size", 18)
+	sub.add_theme_font_size_override("font_size", 26)
 	sub.add_theme_color_override("font_color", Color(0.70, 0.85, 0.90))
 	vb.add_child(sub)
 
 	_tally = Label.new()
 	_tally.visible = false
 	_tally.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_tally.add_theme_font_size_override("font_size", 15)
+	_tally.add_theme_font_size_override("font_size", 22)
 	_tally.add_theme_color_override("font_color", Color(1.0, 0.87, 0.55))
 	vb.add_child(_tally)
 
@@ -150,7 +150,7 @@ func _build() -> void:
 	_subline = Label.new()
 	_subline.text = "stay awhile — hold R for a new day"
 	_subline.size_flags_horizontal = Control.SIZE_SHRINK_END
-	_subline.add_theme_font_size_override("font_size", 15)
+	_subline.add_theme_font_size_override("font_size", 22)
 	_subline.add_theme_color_override("font_color", Color(0.85, 0.93, 0.96, 0.9))
 	stack.add_child(_subline)
 

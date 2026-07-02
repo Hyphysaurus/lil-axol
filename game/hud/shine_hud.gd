@@ -56,12 +56,12 @@ func _build() -> void:
 
 	_combo = Label.new()
 	_combo.visible = false
-	_combo.add_theme_font_size_override("font_size", 16)
+	_combo.add_theme_font_size_override("font_size", 24)
 	row.add_child(_combo)
 
 	_label = Label.new()
 	_label.text = "0"
-	_label.add_theme_font_size_override("font_size", 16)
+	_label.add_theme_font_size_override("font_size", 24)
 	_label.add_theme_color_override("font_color", Color(0.92, 0.97, 1.0, 0.9))
 	_label.add_theme_color_override("font_shadow_color", Color(0.03, 0.08, 0.12, 0.8))
 	row.add_child(_label)
