@@ -1,6 +1,6 @@
 # LilAxol — Build Status
 
-**Updated:** 2026-07-01 (verified against code + git, commit `b6197aa`)
+**Updated:** 2026-07-02 (verified against code + git; second wave committed through `1c4515c`)
 **Game:** cozy 2D pixel platformer/swimmer — an axolotl paint-to-cleans an oil-spilled cove;
 the reward is the living world revealed underneath.
 
@@ -89,12 +89,13 @@ the reward is the living world revealed underneath.
 
 ## GOTCHAS / LOOSE ENDS
 
-- `shaders/oil.gdshader` is **orphaned** (superseded by `oil_surface.gdshader`) but carries the
-  repo's only uncommitted change (fbm/rainbow rewrite). Decide: commit or delete.
+- `shaders/oil.gdshader` is **orphaned** (superseded by `oil_surface.gdshader`); its
+  fbm/rainbow rewrite is committed for history. Decide: delete or repurpose (leak-source blob?).
 - `newoilset.png` + `waterpack.png` at project root: unreferenced 1536×1024 source sheets being
   imported for nothing (waterpack = spray-backpack concept art). Move under `assets/` or exclude.
 - 144 of 145 prop sprites unused (industrial 52, oil 29, water_polluted 22, water 21, terrain 11,
   decor 10). Only `water_clean_seabed.png` is consumed.
-- `dash` InputMap action defined, never read — candidate for the Layer-2 interact verb.
+- ~~`dash` never read~~ → now the Clean Wake Dash (swim burst). Layer-2 cap-the-leak will
+  need its own `interact` action when built.
 - Day length is 120s (the 20s debug value is gone); confirm as shipping value.
 - Merged branches `feat/win-state-and-hygiene`, `refactor/cove-modular-architecture` not deleted.
