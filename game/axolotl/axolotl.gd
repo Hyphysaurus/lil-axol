@@ -177,7 +177,16 @@ func _swim(delta: float, dir: float) -> void:
 	# --- clean wake dash: a joyful burst that scrubs a stripe of the film behind you ---
 	if _dash_t > 0.0:
 		_dash_t -= delta
-		get_tree().call_group("oil_manager", "spray_at", global_position, tuning.dash_clean_radius, delta)
+		# the film lives in a band just under the waterline — aim the wake there (when in
+		# reach) and erode several times harder than the spray: a passing brush only touches
+		# each cell for ~0.13s, so at 1x it removes ~0.19 coverage and nothing visibly changes
+		var cl := _cove_local()
+		if _cfg != null and cl.y < _cfg.surface_y + tuning.dash_clean_depth:
+			var wake := Vector2(cl.x, clampf(cl.y, _cfg.surface_y + 8.0, _cfg.surface_y + 52.0))
+			var cove := get_parent() as Node2D
+			var wake_world := cove.to_global(wake) if cove else wake
+			get_tree().call_group("oil_manager", "spray_at",
+				wake_world, tuning.dash_clean_radius, delta * tuning.dash_clean_power)
 		_idle_t = 0.0
 		_bubbles.emitting = true
 		_bubbles.position = Vector2(-_face * 8.0, 2.0)
@@ -196,6 +205,7 @@ func _swim(delta: float, dir: float) -> void:
 		_dash_cd = tuning.dash_cooldown
 		_hop_grace = 0.25                # a surface-ward dash may crest the waterline
 		_spr.scale = Vector2(1.3, 0.75)  # long and lean into the burst
+		_dash_burst(dd.normalized())
 		Sfx.play("splash", -6.0, 1.3)
 	# oil debuff: thick oil sludges both top speed and how fast you accelerate (0 oil => no change)
 	var oil: float = _oil_mgr.oil_at(global_position) if _oil_mgr else 0.0
@@ -325,6 +335,30 @@ func _splash(amt: float) -> void:
 	p.color = Color(0.85, 0.95, 1.0, 0.9)
 	p.z_index = 8
 	get_parent().add_child(p)   # add to the cove (world coords) so the splash stays at the surface
+	p.finished.connect(p.queue_free)
+
+## Underwater burst kicked off behind a dash: droplets that brake in the water and
+## bubble upward. One-shot, added to the cove so the trail stays where the dash began.
+func _dash_burst(dd: Vector2) -> void:
+	var p := CPUParticles2D.new()
+	p.one_shot = true
+	p.emitting = true
+	p.amount = 16
+	p.lifetime = 0.55
+	p.explosiveness = 1.0
+	p.position = _cove_local()
+	p.direction = -dd
+	p.spread = 40.0
+	p.initial_velocity_min = 60.0
+	p.initial_velocity_max = 140.0
+	p.damping_min = 60.0
+	p.damping_max = 130.0
+	p.gravity = Vector2(0, -30)      # spent droplets drift up as bubbles
+	p.scale_amount_min = 0.6
+	p.scale_amount_max = 1.5
+	p.color = Color(0.75, 0.93, 1.0, 0.8)
+	p.z_index = 7
+	get_parent().add_child(p)
 	p.finished.connect(p.queue_free)
 
 func _dust() -> void:

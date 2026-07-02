@@ -38,3 +38,8 @@ class_name AxolotlTuning
 @export var dash_cooldown: float = 0.8
 ## Erode radius of the wake stripe (smaller than the spray's 36).
 @export var dash_clean_radius: float = 16.0
+## Erosion multiplier vs the held spray. The dash passes each film cell in ~0.13s, so it
+## needs several times clean_rate to visibly carve in one pass instead of ~0.19 coverage.
+@export var dash_clean_power: float = 6.0
+## The wake stirs the surface slick from up to this far below the waterline.
+@export var dash_clean_depth: float = 90.0
