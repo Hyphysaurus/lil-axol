@@ -64,6 +64,12 @@ func _award(score_pts: float, charge_pts: float) -> void:
 	charge_changed.emit(clampf(_charge / CHARGE_COST, 0.0, 1.0))
 	score_changed.emit(int(score), mult)
 
+## One-off bonus (rescues, discoveries): score only, no bubble charge, pops at the spot.
+func bonus(points: float, at: Vector2) -> void:
+	_award(points, 0.0)
+	_pop_acc += points
+	_pop_at = at
+
 ## Called by the axolotl when the bubble action fires. False = not charged yet.
 func spend_bubble() -> bool:
 	if _charge < CHARGE_COST:

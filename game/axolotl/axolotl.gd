@@ -58,6 +58,7 @@ func _cove_local() -> Vector2:
 	return cove.to_local(global_position) if cove else position
 
 func _ready() -> void:
+	add_to_group("player")   # companions and future systems find the tidekeeper here
 	if tuning == null:
 		tuning = AxolotlTuning.new()   # defaults are the frozen D-0003 numbers
 	# data-driven animation: movement picks a logical state, the controller plays the mapped clip
@@ -129,6 +130,8 @@ func _physics_process(delta: float) -> void:
 		_spray_p.direction = aim + Vector2(0.0, -0.15)        # slight cosmetic lift on the jet
 		var reach := global_position + aim * tuning.spray_reach
 		get_tree().call_group("oil_manager", "spray_at", reach, tuning.spray_radius, delta)
+		# generic spray-the-world hook: anything in "sprayable" reacts (rescues, props later)
+		get_tree().call_group("sprayable", "spray_at", reach, tuning.spray_radius, delta)
 
 	# --- water: enter / exit / swim, polled vs the waterline (hysteresis stops surface flicker) ---
 	# The config's surface_y / water_left / water_right are authored in the cove's (parent) frame, so test the

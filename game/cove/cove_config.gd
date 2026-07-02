@@ -30,6 +30,9 @@ class_name CoveConfig
 @export_group("Ecosystem")
 @export var kelp_count: int = 6
 @export var fish_count: int = 5
+## The rescued friend: an oil-matted companion asleep at friend_pos until sprayed clean.
+@export var friend_enabled: bool = true
+@export var friend_pos: Vector2 = Vector2(425.0, 148.0)
 
 @export_group("Audio")
 ## Optional per-cove soundscape; null keeps the shared defaults (see cove_audio.gd).
