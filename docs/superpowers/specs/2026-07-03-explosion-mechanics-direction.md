@@ -29,9 +29,19 @@ So "explosion clears oil" already exists as a proof of concept, tied to the leak
   Bomb, CleanupFX. A generic `blast_at(world_pos, radius)` on OilSpill (big instant clear) +
   a `Destructible` component (rubble that a blast removes) covers both uses.
 
+## Trigger idea — THERMAL VENTS (Mario, 2026-07-03)
+Blasts are triggered by **thermal vents**, not a hand-held bomb. Fits the world (the cove
+already has seabed vents; the bible's Volcanic Springs biome is all thermal). Shapes:
+- A vent periodically surges (heat/pressure builds — a visible tell, a rising shimmer); a
+  red oil barrel sitting on/near a vent is **cooked until it bursts** on the surge. You
+  position/roll a barrel onto a vent, or clear the path so the surge reaches it.
+- Or the vent surge itself is the blast — time your presence/Bubble to channel it to clear a
+  big oil patch or blow rubble. Cozy: the surge never hurts the axolotl, it's a timed tool.
+- Ties cleanly to a `thermal_vent` component (CoveConfig-driven, like the leak) + `blast_at`.
+
 ## Open questions for the build spec
-- What triggers a blast? Only fixed barrels (spray to detonate)? Carried/placed bombs?
-  Bubble Bomb → barrel chain? A dedicated verb?
+- What triggers a blast? Thermal vents (above) — vent-cooked barrels vs vent-as-blast?
+  Also: Bubble Bomb → barrel chain? A dedicated verb, or purely environmental (vents)?
 - Is rubble-clearing a single-cove feature or does it arrive with multi-cove exploration?
 - Chain reactions (barrel → barrel) — yes/no?
 

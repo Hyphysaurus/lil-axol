@@ -44,7 +44,7 @@ class_name CoveConfig
 ## A leaking valve on the right ledge trickles fresh oil back into the spill near the source
 ## until the player caps it (sustained spray on the valve). Off = today's static spill.
 @export var leak_enabled: bool = true
-@export var leak_pos: Vector2 = Vector2(-160.0, -39.0)  # cove-local, BASE on the sand at the shoreline
+@export var leak_pos: Vector2 = Vector2(-160.0, -32.0)  # cove-local, BASE settled into the grass at the shoreline
 @export var leak_rate: float = 0.20                     # coverage/sec trickled back until capped
 
 @export_group("Win")

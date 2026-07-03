@@ -29,10 +29,14 @@ void fragment() {
 	float gn = clamp(g / max(bh, 0.001), 0.0, 1.0); // 0 base .. 1 tip along this blade
 	float sway = sin(TIME * wind_speed + i * 1.7) * wind * gn * gn * (1.0 - 0.7 * sludge);
 	float bx = cx + sway;
-	float hw = (0.5 / blades) * (0.95 - 0.65 * gn); // taper toward the tip
-	float inside = step(g, bh) * step(abs(UV.x - bx), hw);
-	vec3 c = mix(base_col.rgb, tip_col.rgb, gn);
-	c *= 0.90 + 0.20 * hash(i + 7.0);          // per-blade brightness variance (reads richer)
+	float hw = (0.5 / blades) * (0.95 - 0.7 * gn * gn); // taper (curved) toward the tip
+	// soft anti-aliased blade sides + a rounded, fading tip -> painterly, not spiky
+	float side = smoothstep(hw, hw * 0.5, abs(UV.x - bx));
+	float tip = 1.0 - smoothstep(bh - 0.035, bh + 0.006, g);
+	float inside = side * tip;
+	vec3 c = mix(base_col.rgb, tip_col.rgb, gn * gn);          // colour blooms toward the tip
+	c *= 0.86 + 0.26 * hash(i + 7.0);          // per-blade brightness variance (reads richer)
+	c *= 0.78 + 0.22 * smoothstep(0.0, 0.35, gn);  // slightly darker at the base -> grounded
 	c = mix(c, vec3(0.09, 0.08, 0.05), sludge * 0.85); // matted oil coat while sludged
 	COLOR = vec4(c, inside * reveal);
 }
