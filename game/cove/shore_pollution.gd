@@ -55,7 +55,7 @@ func _spawn_barrels() -> void:
 		s.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		s.scale = Vector2(0.85, 0.85)
 		var x := lerpf(_cfg.water_left + 90.0, _cfg.water_right - 130.0, 0.3 + 0.45 * float(i))
-		s.position = Vector2(x, _cfg.surface_y - 7.0)
+		s.position = Vector2(x, _cfg.surface_y - 1.0)
 		s.z_index = 4
 		add_child(s)
 		_barrels.append({ "spr": s, "x": x, "phase": float(i) * 2.3 })
@@ -90,5 +90,5 @@ func _process(delta: float) -> void:
 	_t += delta
 	for b in _barrels:
 		var s: Sprite2D = b["spr"]
-		s.position.y = _cfg.surface_y - 7.0 + sin(_t * 1.3 + float(b["phase"])) * 3.0
+		s.position.y = _cfg.surface_y - 1.0 + sin(_t * 1.3 + float(b["phase"])) * 3.0
 		s.rotation = sin(_t * 0.9 + float(b["phase"])) * 0.06
