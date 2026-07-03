@@ -33,6 +33,14 @@ const BANK := {
 	"jump": {"streams": [preload("res://assets/audio/sfx/jump.wav")], "pitch": 1.06},
 	"land": {"streams": [preload("res://assets/audio/sfx/land.wav")], "pitch": 1.06},
 	"win": {"streams": [preload("res://assets/audio/sfx/win_stinger.wav")], "pitch": 1.0},
+	"explode": {
+		"streams": [
+			preload("res://assets/audio/sfx/explode_1.ogg"),
+			preload("res://assets/audio/sfx/explode_2.ogg"),
+			preload("res://assets/audio/sfx/explode_3.ogg"),
+		],
+		"pitch": 1.06,
+	},
 }
 
 const LOOPS := {

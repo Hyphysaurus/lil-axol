@@ -83,8 +83,8 @@ func _burst() -> void:
 	_spr.visible = false
 	(_ring as CapRing).progress = 0.0
 	get_tree().call_group("oil_manager", "spray_at", global_position + DRIP, BLAST_CLEAR, 0.9)
-	Sfx.play("splash", 2.0, 0.55)    # a low whumph for the blast
-	Sfx.play("chime", -4.0, 1.1)     # a bright "sealed" sparkle over it
+	Sfx.play("explode", -7.0)        # the magical burst (Helton Yan)
+	Sfx.play("chime", -5.0, 1.1)     # a bright "sealed" sparkle over it
 	_play_explosion()
 
 func _play_explosion() -> void:

@@ -21,3 +21,5 @@ music/wildflowers_by_the_river.ogg  same pack
                           permitted; dev asks pay-what-you-want for commercial projects —
                           toss them a couple bucks if LilAxol ever ships paid.
                           https://pizzadoggy.itch.io/cozy-tunes
+sfx/explode_1-3.ogg          Helton Yan — Pixel Combat Audio ("DSGNImpt_EXPLOSION-Magically")
+                          License: LICENSE.txt in pack (Asset Library copy). The barrel burst.
