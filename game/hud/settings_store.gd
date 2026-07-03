@@ -55,8 +55,11 @@ func set_setting(section: String, key: String, v: Variant) -> void:
 
 # --- audio (stored linear 0..1 per bus) ---
 
+## Softer-than-unity defaults so the mix isn't hot out of the box (user-adjustable in settings).
+const DEFAULT_VOL := {"Master": 0.55, "SFX": 0.85, "Ambience": 0.9, "Music": 0.8}
+
 func bus_volume(bus: String) -> float:
-	return clampf(_cfg.get_value("audio", bus, 1.0), 0.0, 1.0)
+	return clampf(_cfg.get_value("audio", bus, DEFAULT_VOL.get(bus, 1.0)), 0.0, 1.0)
 
 ## save=false lets sliders apply live every tick without hammering the disk;
 ## call flush() once on drag-end.

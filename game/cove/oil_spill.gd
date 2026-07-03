@@ -78,9 +78,10 @@ func _build_mask() -> void:
 				* (1.0 - smoothstep(surf + 52.0, surf + 82.0, ly))
 			# blotchy thickness so the slick isn't a flat slab
 			var blot := 0.5 + 0.5 * sin(lx * 0.07 + ly * 0.05) * cos(lx * 0.03 - ly * 0.11)
-			# thickness ramps toward the source (right): thin sheen at the far edge, thick
-			# sludge near the leak — clear the easy edges, work inward toward the stubborn core
-			var ramp := smoothstep(_cfg.spill_left, _cfg.spill_right, lx)
+			# thickness ramps toward the source (the leaking barrel on the shore, at spill_left):
+			# thick sludge by the source, thinning to sheen at the far edge — clear the easy
+			# edges, work inward toward the stubborn core
+			var ramp := 1.0 - smoothstep(_cfg.spill_left, _cfg.spill_right, lx)
 			var cov := clampf(in_x * in_y * (0.30 + 0.30 * blot + 0.55 * ramp), 0.0, 1.0)
 			if cov < VIS_FLOOR:
 				cov = 0.0                   # don't birth oil nobody can ever see

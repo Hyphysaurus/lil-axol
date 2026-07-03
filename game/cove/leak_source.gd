@@ -11,8 +11,9 @@ const LEAKING := preload("res://assets/props/industrial/barrel_valve_leaking.png
 const CAPPED := preload("res://assets/props/industrial/barrel_oil_valve.png")
 
 const CAP_SECONDS := 2.0        # sustained spray on the valve to seal it
-const CAP_REACH := 30.0         # spray point must land this close to the valve
+const CAP_REACH := 34.0         # spray point must land this close to the valve
 const STAIN_RADIUS := 26.0      # how wide the trickle re-oils near the source
+const DRIP := Vector2(40.0, 58.0)   # from the barrel down-right into the water at the shoreline
 
 var _cfg: CoveConfig
 var _oil: Node
@@ -59,10 +60,9 @@ func spray_at(world_pos: Vector2, _radius: float, delta: float) -> void:
 func _process(delta: float) -> void:
 	if _capped:
 		return
-	# trickle fresh oil back near the source, just under the waterline
+	# trickle fresh oil back into the water at the shoreline, down-right from the barrel
 	if _oil:
-		var drip := Vector2(global_position.x, global_position.y + 18.0)
-		_oil.stain_at(drip, STAIN_RADIUS, _cfg.leak_rate * delta)
+		_oil.stain_at(global_position + DRIP, STAIN_RADIUS, _cfg.leak_rate * delta)
 	# the cap meter drains when you stop spraying the valve (no penalty, just not-yet-sealed)
 	_spray_cd -= delta
 	if _spray_cd <= 0.0:
@@ -82,8 +82,8 @@ func _make_drip() -> CPUParticles2D:
 	var p := CPUParticles2D.new()
 	p.amount = 10
 	p.lifetime = 0.9
-	p.position = Vector2(2.0, 20.0)   # from the valve mouth down into the water
-	p.direction = Vector2(0.1, 1.0)
+	p.position = Vector2(18.0, 26.0)   # the valve spout, lower-right of the barrel
+	p.direction = Vector2(0.6, 1.0)    # oil runs down-right toward the water
 	p.spread = 8.0
 	p.gravity = Vector2(0, 220)
 	p.initial_velocity_min = 20.0
