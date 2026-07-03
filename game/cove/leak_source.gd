@@ -1,19 +1,22 @@
 extends Node2D
-## Cap the Leak — the spill's SOURCE, and the first real use of the industrial prop art.
-## A leaking valve on the right ledge drips fresh oil back into the slick near the source
-## (OilSpill.stain_at, hard-capped so oil never exceeds the level's start — D-0005). Aim a
-## sustained spray at the valve to seal it: the drip stops, the valve swaps to its capped
-## sprite, a clunk lands. No fail state — ignore it and the source stays lively, cap it and
-## the cleaning finally counts. Config-driven (leak_enabled / leak_pos / leak_rate), injected
-## by the Cove composition root; joins the "sprayable" group so the axolotl's spray reaches it.
+## Cap the Leak — the spill's SOURCE. A red oil barrel sits on the sand at the shoreline and
+## trickles fresh oil back into the slick near it (OilSpill.stain_at, hard-capped at the
+## level's start — D-0005). Aim a sustained spray at the barrel to neutralize it: when the
+## meter fills the barrel BURSTS (12-frame explosion) and the blast clears the oil around the
+## source, sealing the leak. No fail state — ignore it and the source just stays lively.
+## Config-driven (leak_enabled / leak_pos / leak_rate), injected by the Cove composition root;
+## joins the "sprayable" group so the axolotl's spray reaches it.
 
-const LEAKING := preload("res://assets/props/industrial/barrel_valve_leaking.png")
-const CAPPED := preload("res://assets/props/industrial/barrel_oil_valve.png")
+const BARREL := preload("res://assets/props/industrial/red_oil_barrel.png")
+const EXPLODE := preload("res://assets/props/industrial/red_oil_barrel_explode.png")
 
-const CAP_SECONDS := 2.0        # sustained spray on the valve to seal it
-const CAP_REACH := 34.0         # spray point must land this close to the valve
-const STAIN_RADIUS := 26.0      # how wide the trickle re-oils near the source
-const DRIP := Vector2(40.0, 58.0)   # from the barrel down-right into the water at the shoreline
+const PROP_SCALE := 1.2         # 32px pixel-art barrel, scaled to a sensible size on the beach
+const EXPLODE_FRAMES := 12      # 384x32 sheet = 12 frames of 32x32
+const CAP_SECONDS := 2.0        # sustained spray on the barrel to neutralize it
+const CAP_REACH := 34.0         # spray point must land this close to the barrel
+const STAIN_RADIUS := 24.0      # how wide the trickle re-oils near the source
+const DRIP := Vector2(26.0, 22.0)   # from the barrel down-right into the water at the shoreline
+const BLAST_CLEAR := 60.0       # the explosion clears this radius of oil at the source
 
 var _cfg: CoveConfig
 var _oil: Node
@@ -22,13 +25,16 @@ var _drip: CPUParticles2D
 var _ring: Node2D
 var _capped := false
 var _cap_t := 0.0
-var _spray_cd := 0.0            # was the valve sprayed very recently? (drives the cap meter)
+var _spray_cd := 0.0            # was the barrel sprayed very recently? (drives the cap meter)
 
 func _ready() -> void:
 	add_to_group("sprayable")
 	z_index = 4                  # over the water/oil, under FX
 	_spr = Sprite2D.new()
-	_spr.texture = LEAKING
+	_spr.texture = BARREL
+	_spr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST   # crisp pixel art
+	_spr.scale = Vector2(PROP_SCALE, PROP_SCALE)
+	_spr.offset = Vector2(0.0, -float(BARREL.get_height()) * 0.5)   # bottom sits on leak_pos
 	add_child(_spr)
 	_drip = _make_drip()
 	add_child(_drip)
@@ -46,7 +52,7 @@ func setup(cfg: CoveConfig) -> void:
 		_oil = mgr
 
 ## The axolotl's spray reaching us (via the "sprayable" group). Sustained close spray on the
-## valve fills the cap meter; anywhere else on the water does nothing here.
+## barrel fills the meter; anywhere else on the water does nothing here.
 func spray_at(world_pos: Vector2, _radius: float, delta: float) -> void:
 	if _capped:
 		return
@@ -55,7 +61,7 @@ func spray_at(world_pos: Vector2, _radius: float, delta: float) -> void:
 	_cap_t = minf(CAP_SECONDS, _cap_t + delta)
 	_spray_cd = 0.15
 	if _cap_t >= CAP_SECONDS:
-		_cap()
+		_burst()
 
 func _process(delta: float) -> void:
 	if _capped:
@@ -63,27 +69,50 @@ func _process(delta: float) -> void:
 	# trickle fresh oil back into the water at the shoreline, down-right from the barrel
 	if _oil:
 		_oil.stain_at(global_position + DRIP, STAIN_RADIUS, _cfg.leak_rate * delta)
-	# the cap meter drains when you stop spraying the valve (no penalty, just not-yet-sealed)
+	# the cap meter drains when you stop spraying the barrel (no penalty, just not-yet-sealed)
 	_spray_cd -= delta
 	if _spray_cd <= 0.0:
 		_cap_t = move_toward(_cap_t, 0.0, delta * 1.5)
 	(_ring as CapRing).progress = _cap_t / CAP_SECONDS
 
-func _cap() -> void:
+## The source is neutralized: the barrel bursts, the blast clears the oil around it, the leak
+## is sealed for good.
+func _burst() -> void:
 	_capped = true
-	_spr.texture = CAPPED
 	_drip.emitting = false
+	_spr.visible = false
 	(_ring as CapRing).progress = 0.0
-	Sfx.play("land", -2.0, 0.7)      # a solid "clunk" (reuses the land thud, pitched down)
-	Sfx.play("chime", -6.0, 1.0)     # a soft "sealed" sparkle
-	_burst()
+	get_tree().call_group("oil_manager", "spray_at", global_position + DRIP, BLAST_CLEAR, 0.9)
+	Sfx.play("splash", 2.0, 0.55)    # a low whumph for the blast
+	Sfx.play("chime", -4.0, 1.1)     # a bright "sealed" sparkle over it
+	_play_explosion()
+
+func _play_explosion() -> void:
+	var sf := SpriteFrames.new()
+	sf.add_animation(&"boom")
+	sf.set_animation_loop(&"boom", false)
+	sf.set_animation_speed(&"boom", 18.0)
+	for i in EXPLODE_FRAMES:
+		var at := AtlasTexture.new()
+		at.atlas = EXPLODE
+		at.region = Rect2(i * 32.0, 0.0, 32.0, 32.0)
+		sf.add_frame(&"boom", at)
+	var boom := AnimatedSprite2D.new()
+	boom.sprite_frames = sf
+	boom.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	boom.scale = Vector2(2.2, 2.2)          # the blast is bigger than the barrel
+	boom.position = Vector2(0.0, -18.0)     # centered on the barrel body
+	boom.z_index = 7
+	add_child(boom)
+	boom.animation_finished.connect(boom.queue_free)
+	boom.play(&"boom")
 
 func _make_drip() -> CPUParticles2D:
 	var p := CPUParticles2D.new()
 	p.amount = 10
 	p.lifetime = 0.9
-	p.position = Vector2(18.0, 26.0)   # the valve spout, lower-right of the barrel
-	p.direction = Vector2(0.6, 1.0)    # oil runs down-right toward the water
+	p.position = Vector2(10.0, -6.0)   # from the barrel's lower-right, down into the water
+	p.direction = Vector2(0.6, 1.0)
 	p.spread = 8.0
 	p.gravity = Vector2(0, 220)
 	p.initial_velocity_min = 20.0
@@ -93,22 +122,7 @@ func _make_drip() -> CPUParticles2D:
 	p.color = Color(0.06, 0.05, 0.08, 0.9)   # dark oil droplets
 	return p
 
-func _burst() -> void:
-	var p := CPUParticles2D.new()
-	p.one_shot = true
-	p.emitting = true
-	p.amount = 12
-	p.lifetime = 0.5
-	p.explosiveness = 1.0
-	p.spread = 180.0
-	p.initial_velocity_min = 30.0
-	p.initial_velocity_max = 70.0
-	p.gravity = Vector2(0, 120)
-	p.color = Color(0.85, 0.92, 0.8, 0.8)
-	add_child(p)
-	p.finished.connect(p.queue_free)
-
-## Small fill-ring over the valve while you spray it, so capping reads as a deliberate action.
+## Small fill-ring over the barrel while you spray it, so neutralizing reads as deliberate.
 class CapRing extends Node2D:
 	var progress := 0.0:
 		set(v):
@@ -119,7 +133,7 @@ class CapRing extends Node2D:
 	func _draw() -> void:
 		if progress <= 0.01:
 			return
-		var c := Vector2(0.0, -26.0)
+		var c := Vector2(0.0, -44.0)
 		draw_arc(c, 12.0, 0.0, TAU, 28, Color(0.9, 0.97, 1.0, 0.25), 2.0, true)
 		draw_arc(c, 12.0, -PI / 2.0, -PI / 2.0 + TAU * progress, 28,
 			Color(0.95, 0.99, 1.0, 0.9), 2.5, true)
