@@ -13,7 +13,10 @@ extends Node
 
 const SEA := preload("res://assets/audio/ambience/sea.ogg")
 const LIFE := preload("res://assets/audio/ambience/grassy_field_loop.wav")
-const MUSIC := preload("res://assets/audio/music/gentle_breeze.ogg")
+# The title theme is two stems that loop at different lengths (45s pad + 57s bells) so they
+# drift and never phase-lock — the same generative feel authored in Ableton.
+const MUSIC_PAD := preload("res://assets/audio/music/mus_base.ogg")
+const MUSIC_BELLS := preload("res://assets/audio/music/mus_alive.ogg")
 
 const MIX_RATE := 0.5              # cleanliness smoothing, matched to the kelp's heal rate
 const CUTOFF_OILY := 700.0
@@ -33,7 +36,8 @@ const FADE_OUT_DB := -50.0         # the spilled cove has lost its song until yo
 var _cfg: CoveConfig
 var _sea: AudioStreamPlayer
 var _life: AudioStreamPlayer
-var _music: AudioStreamPlayer
+var _music: AudioStreamPlayer      # pad bed (mus_base)
+var _music_hi: AudioStreamPlayer   # bells melody (mus_alive)
 var _lpf: AudioEffectLowPassFilter
 var _day_src: Node                 # TimeOfDay (day_night.gd), optional
 var _clean := 0.0
@@ -45,7 +49,8 @@ var _restored := false
 func _ready() -> void:
 	_sea = _make_player(SEA, &"Ambience", SEA_DB, true)
 	_life = _make_player(LIFE, &"Ambience", LIFE_MIN_DB, true)
-	_music = _make_player(MUSIC, &"Music", -30.0, false)
+	_music = _make_player(MUSIC_PAD, &"Music", -30.0, false)
+	_music_hi = _make_player(MUSIC_BELLS, &"Music", -30.0, false)
 	var mgr = get_tree().get_first_node_in_group("oil_manager")
 	if mgr and mgr.has_signal("cleanliness"):
 		mgr.cleanliness.connect(func(v: float) -> void: _clean = v)
@@ -72,7 +77,7 @@ func setup(cfg: CoveConfig) -> void:
 		_life.stream = cfg.life_layer
 		_life.play()
 	if cfg.music:
-		_music.stream = cfg.music
+		_music.stream = cfg.music   # per-cove override swaps the pad bed
 
 func _process(delta: float) -> void:
 	_mix = move_toward(_mix, _clean, delta * MIX_RATE)
@@ -93,8 +98,7 @@ func _process(delta: float) -> void:
 	if not _music_on and _mix >= MUSIC_AT:
 		_start_music()
 	if title_up and not _music.playing:
-		_music.volume_db = -30.0
-		_music.play()
+		_play_music(-30.0)
 	if _music.playing:
 		var target := FADE_OUT_DB
 		if title_up:
@@ -103,9 +107,12 @@ func _process(delta: float) -> void:
 			target = MUSIC_FULL_DB
 		elif _music_on:
 			target = MUSIC_DB
-		_music.volume_db = move_toward(_music.volume_db, target, delta * 6.0)
-		if not title_up and not _music_on and _music.volume_db <= FADE_OUT_DB + 1.0:
+		var v := move_toward(_music.volume_db, target, delta * 6.0)
+		_music.volume_db = v
+		_music_hi.volume_db = v
+		if not title_up and not _music_on and v <= FADE_OUT_DB + 1.0:
 			_music.stop()
+			_music_hi.stop()
 
 func _on_restored() -> void:
 	_restored = true
@@ -115,8 +122,14 @@ func _start_music() -> void:
 	if _music_on:
 		return
 	_music_on = true
-	_music.volume_db = -30.0   # rise from a whisper
-	_music.play()
+	_play_music(-30.0)         # rise from a whisper
+
+## Start both title-theme stems together (idempotent; each loops at its own length so they drift).
+func _play_music(db: float) -> void:
+	for p in [_music, _music_hi]:
+		if not p.playing:
+			p.volume_db = db
+			p.play()
 
 ## 1.0 in full daylight, 0.0 at deep night, smooth ramps around sunrise/sunset.
 func _day_weight() -> float:
