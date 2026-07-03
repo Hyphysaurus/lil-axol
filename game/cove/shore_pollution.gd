@@ -58,7 +58,18 @@ func _spawn_barrels() -> void:
 		s.position = Vector2(x, _cfg.surface_y - 1.0)
 		s.z_index = 4
 		add_child(s)
-		_barrels.append({ "spr": s, "x": x, "phase": float(i) * 2.3 })
+		# a solid body so the axolotl bumps the drifting barrel (default layer = free collision
+		# with the CharacterBody2D axolotl). It lives beside the sprite (not under it) so the
+		# sprite's scale doesn't distort the collision shape; both are bobbed together below.
+		var body := StaticBody2D.new()
+		var col := CollisionShape2D.new()
+		var box := RectangleShape2D.new()
+		box.size = Vector2(BARREL.get_width(), BARREL.get_height()) * 0.85 * 0.8   # derived, no magic size
+		col.shape = box
+		body.add_child(col)
+		body.position = s.position
+		add_child(body)
+		_barrels.append({ "spr": s, "body": body, "x": x, "phase": float(i) * 2.3 })
 
 ## The axolotl's spray reaching us (via the "sprayable" group). Cleans the land splat nearest
 ## the spray point; the water film is handled separately by OilSpill.
@@ -90,5 +101,8 @@ func _process(delta: float) -> void:
 	_t += delta
 	for b in _barrels:
 		var s: Sprite2D = b["spr"]
-		s.position.y = _cfg.surface_y - 1.0 + sin(_t * 1.3 + float(b["phase"])) * 3.0
+		# gentle bob on the surface; the collision body rides along so it stays under the sprite
+		var y := _cfg.surface_y - 1.0 + sin(_t * 1.3 + float(b["phase"])) * 3.0
+		s.position.y = y
 		s.rotation = sin(_t * 0.9 + float(b["phase"])) * 0.06
+		(b["body"] as Node2D).position.y = y

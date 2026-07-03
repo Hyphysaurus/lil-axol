@@ -36,10 +36,26 @@ func _ready() -> void:
 	_spr.scale = Vector2(PROP_SCALE, PROP_SCALE)
 	_spr.offset = Vector2(0.0, -float(BARREL.get_height()) * 0.5)   # bottom sits on leak_pos
 	add_child(_spr)
+	_add_solid()                 # the barrel is solid — the axolotl bumps it, doesn't pass through
 	_drip = _make_drip()
 	add_child(_drip)
 	_ring = CapRing.new()
 	add_child(_ring)
+
+## Give the barrel a physical body so the axolotl collides with it. A StaticBody2D on the
+## DEFAULT collision layer is exactly what the beach and seabed already use, so the axolotl
+## (a CharacterBody2D driven by move_and_slide) bumps into it for free — no code on the axo,
+## no signals, just physics. The box is derived from the texture (no magic numbers) and covers
+## the visible barrel body; the sprite is bottom-anchored, so the box sits above the origin.
+func _add_solid() -> void:
+	var box := RectangleShape2D.new()
+	box.size = Vector2(BARREL.get_width(), BARREL.get_height()) * PROP_SCALE * 0.8
+	var col := CollisionShape2D.new()
+	col.shape = box
+	col.position = Vector2(0.0, -box.size.y * 0.5)
+	var body := StaticBody2D.new()
+	body.add_child(col)
+	add_child(body)
 
 func setup(cfg: CoveConfig) -> void:
 	_cfg = cfg

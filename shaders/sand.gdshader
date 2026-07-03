@@ -1,17 +1,18 @@
 shader_type canvas_item;
-// Sandy bank on the cove's left edge. Warm dry sand up top rolls (via dune undulation) into
-// cooler, damp, shadowed sand lower down, with fine grain, faint tide lines, and an
-// atmospheric haze along the top edge so the bank recedes into the sky instead of ending in
-// a hard flat wall. Drawn on a Sprite2D over the beach rect; lives in the world layer so the
-// Mood CanvasModulate tints it with the day/night cycle.
+// The earthen bank on the cove's left edge. Dry topsoil up top rolls (via dune undulation)
+// into darker, damp, shadowed soil below, textured with mottled clods, grain and pebbles so it
+// reads as real dirt rather than a flat wall. Its top edge tucks into dark topsoil under the
+// grass. When polluted, OIL SEEPS DOWN into the earth from the surface in irregular fingers.
+// Drawn on a Sprite2D over the beach rect; lives in the world layer so the Mood CanvasModulate
+// tints it with the day/night cycle.
 
-uniform vec4 sand_top : source_color = vec4(0.91, 0.85, 0.71, 1.0); // sunlit dry sand
-uniform vec4 sand_low : source_color = vec4(0.52, 0.46, 0.42, 1.0); // cool damp shadowed base
-uniform vec4 sand_mid : source_color = vec4(0.75, 0.64, 0.49, 1.0); // the roll between
-uniform vec4 haze : source_color = vec4(0.80, 0.74, 0.78, 1.0);     // atmospheric top tint
+uniform vec4 sand_top : source_color = vec4(0.78, 0.70, 0.55, 1.0); // dry sunlit topsoil
+uniform vec4 sand_low : source_color = vec4(0.40, 0.35, 0.31, 1.0); // dark damp soil, deep down
+uniform vec4 sand_mid : source_color = vec4(0.60, 0.51, 0.39, 1.0); // the roll between
+uniform vec4 haze : source_color = vec4(0.30, 0.26, 0.22, 1.0);     // dark topsoil under the grass
 uniform float grain : hint_range(0.0, 0.25) = 0.08;
-// oiled state: 1 = spill-washed beach — dimmed sand with dark horizontal oil streaks.
-// Healed toward 0 by ShoreHealth as the cove is cleaned.
+// oiled state: 1 = freshly spilled, 0 = clean. Drives how far crude has soaked into the earth.
+// Eased toward (1 - cleanliness) by ShoreHealth as the cove is restored.
 uniform float sludge : hint_range(0.0, 1.0) = 0.0;
 
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -40,23 +41,32 @@ void fragment() {
 	// across the bank instead of a dead-flat gradient
 	float dune = fbm(vec2(UV.x * 2.6, UV.y * 1.4 + 5.0));
 	float depth = clamp(UV.y + (dune - 0.5) * 0.26, 0.0, 1.0);
-	// dry warm sand near the top -> mid -> cool damp shadow at the base
+	// dry topsoil near the top -> mid -> dark damp soil at the base
 	vec3 c = mix(sand_top.rgb, sand_mid.rgb, smoothstep(0.0, 0.45, depth));
 	c = mix(c, sand_low.rgb, smoothstep(0.4, 1.0, depth));
-	// fine grain + sparse dark speckle
+	// mottled clods: low-frequency dark/light blotches break the gradient so it reads as earth
+	float clod = fbm(UV * vec2(9.0, 7.0) + 3.0);
+	c *= 0.85 + 0.20 * clod;
+	// fine grain + sparse pebbles
 	c += (fbm(UV * vec2(85.0, 110.0)) - 0.5) * grain;
-	c -= step(0.85, fbm(UV * vec2(190.0, 210.0) + 7.0)) * 0.05;
-	// faint tide lines drifting through the upper-mid, where the bank meets the water
-	float tide = sin(depth * 40.0 + fbm(UV * vec2(5.0, 2.0)) * 6.0);
-	c += smoothstep(0.88, 1.0, tide) * 0.045 * (1.0 - smoothstep(0.15, 0.6, UV.y));
-	// warm sun catch along the crest, cool damp sheen deep down
-	c += vec3(0.06, 0.04, 0.01) * (1.0 - smoothstep(0.0, 0.22, depth));
+	c -= step(0.86, fbm(UV * vec2(190.0, 210.0) + 7.0)) * 0.05;
+	// cool damp sheen deep down
 	c += vec3(0.0, 0.02, 0.05) * smoothstep(0.7, 1.0, depth);
-	// atmospheric haze along the very top edge -> the bank recedes into the sky, no hard wall
-	c = mix(c, haze.rgb, (1.0 - smoothstep(0.0, 0.16, UV.y)) * 0.55);
-	// washed-up oil: horizontal streak bands + an overall grime dim, healing with the cove
-	float streak = smoothstep(0.55, 0.85, fbm(UV * vec2(26.0, 9.0) + 3.0));
-	c = mix(c, c * vec3(0.32, 0.30, 0.27), sludge * streak * 0.9);
-	c *= 1.0 - 0.15 * sludge;
+	// tuck the very top edge into dark topsoil so it blends under the grass, not a hard line
+	c = mix(c, haze.rgb, (1.0 - smoothstep(0.0, 0.14, UV.y)) * 0.7);
+
+	// --- OIL SEEP ---------------------------------------------------------------------------
+	// Crude soaks DOWNWARD into the earth from the surface (UV.y = 0). `front` is how deep it
+	// has reached: it grows with `sludge`, and an fbm per column makes the soak line ragged, so
+	// the oil bleeds in irregular fingers instead of a straight band. Above the front the earth
+	// is oil-soaked (near-black, wet, faint glisten); below it the soil is still clean. When the
+	// cove is fully restored (sludge -> 0) `front` -> 0 and no oil shows at all.
+	float finger = fbm(vec2(UV.x * 6.0, 1.7));               // per-column soak depth (0..1)
+	float front = sludge * (0.28 + 0.55 * finger);           // how far down the oil reaches
+	float soak = (1.0 - smoothstep(front - 0.10, front, UV.y)) * sludge;
+	vec3 oil = vec3(0.055, 0.05, 0.062);                     // near-black crude, faintly cool
+	float glisten = smoothstep(0.6, 0.95, fbm(UV * vec2(7.0, 9.0))) * soak * 0.12; // wet sheen
+	c = mix(c, oil, clamp(soak * 0.92, 0.0, 1.0));
+	c += glisten;
 	COLOR = vec4(c, 1.0);
 }
