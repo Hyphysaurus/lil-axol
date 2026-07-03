@@ -41,6 +41,7 @@ var _dash_t := 0.0             # remaining clean-wake dash time (swim only)
 var _dash_cd := 0.0
 var _spray_p: CPUParticles2D
 var _bubbles: CPUParticles2D
+var _bubble: Node = null       # the live Bubble Bomb while its button is held (aim/steer/release)
 
 @onready var _cam: Camera2D = $Camera
 
@@ -153,8 +154,7 @@ func _physics_process(delta: float) -> void:
 	elif not submerged and _in_water:
 		_exit_water()
 	_in_water = submerged
-	if not ui and Input.is_action_just_pressed("bubble"):
-		_fire_bubble(dir)   # works on land too — the bubble drifts down to the water
+	_update_bubble(dir, ui)   # launch / steer / release the aimed Bubble Bomb (works anywhere)
 	if submerged:
 		_swim(delta, dir)
 		_juice(delta)
@@ -371,7 +371,21 @@ func _aim(dir: float) -> Vector2:
 	var v := Vector2(dir, 0.0 if Settings.ui_locked() else Input.get_axis("move_up", "move_down"))
 	return v.normalized() if v != Vector2.ZERO else Vector2(_face, 0.0)
 
-## Bubble Bomb: spend a full Shine charge on a big drifting AOE cleaner (see bubble.gd).
+## Bubble Bomb control: launch on press (spends a Shine charge), HOLD to send it further and
+## steer it, RELEASE to detonate. The axolotl owns the live bubble while the button is held.
+func _update_bubble(dir: float, ui: bool) -> void:
+	if is_instance_valid(_bubble):
+		if ui or not Input.is_action_pressed("bubble"):
+			_bubble.release()          # released -> detonate where it is
+			_bubble = null
+		else:
+			_bubble.steer(_aim(dir))   # held -> steer + keep gliding further
+		return
+	_bubble = null                     # cleared if it auto-detonated at max reach
+	if not ui and Input.is_action_just_pressed("bubble"):
+		_fire_bubble(dir)
+
+## Spend a full Shine charge and launch a steerable AOE bubble (see bubble.gd).
 func _fire_bubble(dir: float) -> void:
 	var keeper = get_tree().get_first_node_in_group("shine")
 	if keeper == null:
@@ -384,6 +398,7 @@ func _fire_bubble(dir: float) -> void:
 	b.position = _cove_local() + aim * 12.0
 	b.setup(aim, _cfg)
 	get_parent().add_child(b)
+	_bubble = b
 	Sfx.play("splash", -10.0, 1.5)
 	_spr.scale = Vector2(0.8, 1.2)   # a little puff of effort
 
