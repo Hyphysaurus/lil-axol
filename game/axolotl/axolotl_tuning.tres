@@ -17,6 +17,6 @@ buoy_max = 42.0
 bob_amp = 5.0
 bob_freq = 2.2
 surface_hop = -300.0
-oil_drag = 0.5
+oil_drag = 0.25
 spray_reach = 40.0
 spray_radius = 36.0

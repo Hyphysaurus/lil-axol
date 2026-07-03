@@ -11,8 +11,8 @@ the reward is the living world revealed underneath.
 - **Data-driven animations** — `character_anim_set.gd` + `animation_controller.gd` + `axolotl_anims.tres`.
 - **Paint-to-clean oil** — `oil_spill.gd` coverage mask + `oil_surface.gdshader`; spray erodes
   coverage; emits `cleanliness` 0..1 signal (group `oil_manager`).
-- **Oil swim debuff** — up to 50% slower swimming in thick oil (`OIL_DRAG` in `axolotl.gd`).
-  ⚠ built but never spec'd — design ruling pending (keep/soften/remove).
+- **Oil swim debuff** — up to 25% slower swimming in thick oil (`oil_drag` in
+  `axolotl_tuning.tres`). Resolved & softened per D-0007 (was 50%); swim-only.
 - **Cove modular architecture** — `CoveConfig` Resource (`cove_a.tres`) injected by `cove.gd`
   composition root into every component. Level-ready: one `.tres` per cove, zero code changes.
 - **Atmosphere** — procedural sky/clouds/sun-moon + day/night (`day_night.gd`, 120s cycle,
@@ -105,7 +105,7 @@ the reward is the living world revealed underneath.
   decor 10). Only `water_clean_seabed.png` is consumed.
 - ~~`dash` never read~~ → now the Clean Wake Dash (swim burst). Layer-2 cap-the-leak will
   need its own `interact` action when built.
-- Day length is 120s (the 20s debug value is gone); confirm as shipping value.
+- Day length is 120s — confirmed as the shipping value (D-0008).
 - Merged branches `feat/win-state-and-hygiene`, `refactor/cove-modular-architecture` not deleted.
 
 ## SHIPPED (2026-07-02)

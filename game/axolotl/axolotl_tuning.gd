@@ -22,8 +22,9 @@ class_name AxolotlTuning
 @export var bob_freq: float = 2.2
 ## Strong enough to clear the beach ledge out of the water.
 @export var surface_hop: float = -300.0
-## Max swim slow-down in thick oil (0 = none .. 1 = stuck). Pending ruling P-3.
-@export var oil_drag: float = 0.5
+## Max swim slow-down in thick oil (0 = none .. 1 = stuck). D-0007: softened to 0.25 —
+## oil has weight without punishing (the "never punishment" pillar).
+@export var oil_drag: float = 0.25
 
 @export_group("Spray")
 ## Px in front of the axo the spray reaches.

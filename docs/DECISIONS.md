@@ -32,13 +32,21 @@ a gate: ignoring it just keeps the spill lively longer.
 Thick sludge near the source needs SUSTAINED close-range spray to break (a held beam that
 "bites in"), not just repeat passes. Tune so it reads as technique, never as a wall.
 
+## D-0007 — Oil slows, never punishes (2026-07-02, Mario — resolves P-3)
+The swim-in-oil debuff stays (the design bible sanctions "oil slows movement"), **softened
+to 25% max slow** (`oil_drag` 0.5 → 0.25 in `axolotl_tuning.tres` + script default). Thick
+oil should have weight you feel, not a wall you fight — the "never punishment" pillar wins the
+magnitude call. Swim-only; land movement is untouched. ⚠ Data-only change; confirm the feel
+in-editor next desktop session.
+
+## D-0008 — Day length is 120s (2026-07-02, Mario)
+The day/night cycle ships at **120 seconds** (the 20s debug value is retired). Long enough to
+sit-and-watch a full cycle without it churning; this is the canonical value for cove #1.
+
 ## PENDING (awaiting Mario's ruling)
 
-- **P-3 Oil swim debuff** — built unspec'd (`OIL_DRAG` 0.5 max slow, swim-only): keep & record,
-  soften (~25%), or remove. Intersects the "never punishment" pillar.
-- **P-4 Next spec priority** — game-loop/post-win vs audio vs straight to implementation.
-  Both specs are now DRAFTED as proposals (game-loop "A New Day", audio "Hear the Cove Come
-  Back") — the remaining call is which to approve/build first. Recommendation: game-loop
-  Phase 1 (closes the void, ~1 day), then audio Phase 1 (verbs make sound, ~1 day).
 - **P-5 Seabed tile style match** — do the `water_clean_*` tiles cohere with the axolotl's
-  pixel style now that they're live? Implicitly testable in-game, never recorded as decided.
+  pixel style now that they're live? **Deferred by Mario (2026-07-02):** ruling parked until
+  he eyeballs the live build (lilaxol.vercel.app) from his phone; then record keep-vs-rework.
+- *(P-3 resolved → D-0007. P-4 resolved: both specs drafted AND built — game-loop Phase 1 and
+  audio Phases 1–3 shipped; no open priority call remains.)*
