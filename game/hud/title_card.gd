@@ -122,6 +122,7 @@ func _button(text: String, on_pressed: Callable) -> Button:
 	b.custom_minimum_size = Vector2(180.0, 40.0)
 	b.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	b.add_theme_font_size_override("font_size", 26)
+	UiTheme.style_button(b)       # shared watery/cozy button look
 	b.pressed.connect(on_pressed)
 	return b
 

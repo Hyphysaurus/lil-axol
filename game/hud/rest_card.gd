@@ -76,13 +76,7 @@ func _build() -> void:
 	panel.custom_minimum_size = Vector2(240.0, 0.0)
 	panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	panel.grow_vertical = Control.GROW_DIRECTION_BOTH
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.05, 0.10, 0.14, 0.94)
-	style.set_corner_radius_all(10)
-	style.set_content_margin_all(18.0)
-	style.border_color = Color(0.70, 0.85, 0.90, 0.25)
-	style.set_border_width_all(1)
-	panel.add_theme_stylebox_override("panel", style)
+	panel.add_theme_stylebox_override("panel", UiTheme.panel())   # shared watery/cozy theme
 	_root.add_child(panel)
 
 	var vb := VBoxContainer.new()
@@ -109,5 +103,6 @@ func _button(text: String, on_pressed: Callable) -> Button:
 	b.text = text
 	b.custom_minimum_size = Vector2(200.0, 36.0)
 	b.add_theme_font_size_override("font_size", 24)
+	UiTheme.style_button(b)       # shared watery/cozy button look
 	b.pressed.connect(on_pressed)
 	return b
