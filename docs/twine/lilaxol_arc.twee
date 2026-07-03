@@ -1,0 +1,297 @@
+:: StoryTitle
+Lil Axolotl: Tidekeeper — The Full Arc
+
+:: StoryData
+{
+	"ifid": "D674C58C-DEFA-4F70-B7A2-27742230C0FC",
+	"format": "Harlowe",
+	"format-version": "3.3.7",
+	"start": "Prologue"
+}
+
+:: Prologue
+Night. Something upriver groans like a tired giant, and by morning the water wears a dark coat. The kelp stops swaying. The fish are just... elsewhere.
+
+You are small. You have a dented Hydro Pack that an older tidekeeper left hanging in the hollow log, and webbed feet, and no idea how big this is going to get.
+
+The pack hisses when you strap it on. It only knows one word so far: //spray//.
+
+[[Wade into Hub Pond->Hub Pond]]
+
+:: Hub Pond
+Home. Or it was. The surface wears an oily film; under it, the pond holds its breath.
+
+The pack's spray peels the film back stripe by stripe, and where you clean, color returns — kelp first, then the little fish, like the pond is remembering itself.
+
+[[Scrub the shallows->Hub - First Clean]]
+[[Investigate the dark shape in the deep corner->Hub - The Sleeper]]
+
+:: Hub - First Clean
+The first patch of clear water is a window. Sun reaches the seabed for the first time in days, and something down there glitters back.
+
+A barrel on the far ledge drips fresh oil into the water — slow, patient, endless.
+
+[[Cap the leak->Hub - Cap the Leak]]
+[[Ignore it and keep scrubbing->Hub - The Long Way]]
+
+:: Hub - The Long Way
+You scrub, and the leak undoes, and you scrub, and it undoes. The pond stays lively with oil no matter how hard you work.
+
+It never gets worse — but it will never get better, either, until the source is stopped. (Cleaning teaches you this without a single word of text.)
+
+[[Fine. Cap the leak->Hub - Cap the Leak]]
+
+:: Hub - Cap the Leak
+You brace your feet against the barrel and lean on the valve until it gives — a satisfying CLUNK the whole pond can feel. The drip stops.
+
+Now the cleaning //counts//.
+
+[[Finish restoring Hub Pond->Hub - The Sleeper]]
+
+:: Hub - The Sleeper
+In the deep corner, matted in oil, a shape you took for a rock is breathing. Another axolotl — wild-type, olive-dark under the black — too heavy with oil to wake.
+
+You spray close and steady, the way you'd rinse a wound. The oil lets go in ribbons.
+
+[[Keep washing until they wake->Hub - The Friend]]
+
+:: Hub - The Friend
+They blink. They chirp — a small rusty *mwip* like a door opening after years.
+
+They have no name you can pronounce underwater, so you think of them as **Olive**. From now on, where you swim, Olive swims — and when you scrub, Olive scrubs beside you, badly and enthusiastically.
+
+[[Restore Hub Pond together->Hub - Restored]]
+
+:: Hub - Restored
+The banner of dawn breaks over clean water. The kelp forest stands back up. Fish stitch silver threads between the stems, and the pond finally exhales.
+
+Downstream, the current tugs at you — the oil came FROM somewhere, and the somewhere is still bleeding.
+
+[[Ride the Drift Current->Drift Current]]
+[[Stay awhile first->Stay Awhile (Hub)]]
+
+:: Stay Awhile (Hub)
+You sit on the warm sand with Olive. The day turns. Fireflies stitch the dusk. Nothing needs you for a moment, and that's the reward.
+
+[[Ride the Drift Current->Drift Current]]
+
+:: Drift Current
+A glowing thread of clean water braids through the murk — the pond's gift, carrying you between places that need you. Each cove along the current is sicker than the last, and each one teaches the pack a new word.
+
+[[Follow it to the Marsh->Marsh]]
+
+:: Marsh
+Reeds like drowned pillars. Lily pads glued flat under sheets of tar. Somewhere a frog choir has gone silent, and the silence has edges.
+
+The pack coughs and learns its second word here: **Mist** — a soft cloud that wakes green things.
+
+[[Mist the buried lily pads->Marsh - Lily Road]]
+[[Follow the dragging tracks in the mud->Marsh - The Tar Turtle]]
+
+:: Marsh - Lily Road
+Misted, the lily pads swell and rise into a road of stepping-stones across water too tarred to swim. Growth as traversal — the marsh teaches you that healing opens paths.
+
+Frogs surface in your wake, one pair of golden eyes at a time.
+
+[[Cross the lily road->Marsh - The Tar Turtle]]
+
+:: Marsh - The Tar Turtle
+It looks like a monster. It is treated like a monster — the frogs croak warnings about the hill of black that drags itself through the reeds, smothering everything it touches.
+
+It is a turtle. An old, enormous turtle, so caked in tar it cannot see, cannot surface, cannot stop.
+
+[[Fight it back from the frog nests->Marsh - The Wrong Way]]
+[[Climb its shell and start scrubbing->Marsh - The Healing]]
+
+:: Marsh - The Wrong Way
+You herd it with spray, and it wheels blindly, crushing more reeds in its panic. Bigger isn't the answer. It was never attacking — it was drowning on land.
+
+[[Climb its shell and scrub->Marsh - The Healing]]
+
+:: Marsh - The Healing
+Boss fights here are cleaning puzzles: brace against the storm of its thrashing, find the eyes first, then the nostrils, then the seams of the shell. Every patch you clear calms it further.
+
+When the last tar cracks off, the turtle is revealed: patient, ancient, embarrassed. The frogs sing for the first time in a season.
+
+[[The turtle opens the way east->Fork in the Current]]
+
+:: Fork in the Current
+The Drift Current splits around a hill. Both branches need you; the order is yours (the map remembers what you've healed).
+
+[[The shaded branch: Forest Creek->Forest Creek]]
+[[The stone branch: Ancient Aqueduct->Aqueduct]]
+
+:: Forest Creek
+Cold clean-looking water — but wrong. Upstream trash dams have starved it thin, and the otters that kept it stirred are gone. Their empty holts line the bank like unmade beds.
+
+At dusk, a tall shadow stalks the shallows on stilt legs.
+
+[[Watch the shadow->Creek - The Crane]]
+[[Break the trash dams with Jet->Creek - Jet Lessons]]
+
+:: Creek - Jet Lessons
+The pack's third word: **Jet** — water with its shoulder behind it. It shoves the dams apart, hovers you over the log jams, and (you will discover) can spin any wheel built by anyone, ever.
+
+The creek remembers how to run. An otter periscopes up from somewhere, scandalized and delighted.
+
+[[Now, about that shadow->Creek - The Crane]]
+
+:: Creek - The Crane
+A crane — hunting the few fish your cleaning has coaxed back. Your first instinct is to drive it off.
+
+[[Shoo it with spray->Creek - Shooed]]
+[[Watch it a while longer->Creek - Watched]]
+
+:: Creek - Shooed
+It flaps off, gaunt and unhurried, and lands fifty feet on. It will be back tonight, and tomorrow. You can spend the whole game shooing this bird.
+
+Olive watches it go, then watches you, and does not chirp.
+
+[[Watch it instead->Creek - Watched]]
+
+:: Creek - Watched
+Up close the crane is ribs and feathers. It isn't a villain; it's a neighbor with nothing left to eat. The fish it hunted all its life vanished with the spill, and it stayed anyway.
+
+The creek can't feed everyone until it's whole.
+
+[[Restore the creek's fish runs->Creek - Restored]]
+
+:: Creek - Restored
+With dams gone and water clean, the fish return in ridiculous, generous numbers. The crane eats. The otters eat. Everyone politely ignores who used to hunt whom.
+
+From then on, the crane follows the Drift Current above you — a tall grey lookout that calls once, sharply, whenever it spots oil you've missed. //The predator you fed became your best scout.//
+
+[[Back to the fork->Fork in the Current]]
+
+:: Aqueduct
+Older than any of the animals' stories: dry stone channels striding across the valley, built to carry water and abandoned to carry dust.
+
+At its heart, a great water wheel is seized solid with oil sludge — and the wheel, the otters insist, used to sing.
+
+[[Study the wheel->Aqueduct - The Corrupted Wheel]]
+
+:: Aqueduct - The Corrupted Wheel
+A boss that is a machine, sick the same way the turtle was. Sludge chokes each paddle; counterweights hang wrong; three sluice gates upstream are jammed with debris.
+
+Clean the paddles (sustained spray — the sludge fights back), Jet the gates open, and give the wheel its first push in a hundred years.
+
+[[Turn the wheel->Aqueduct - Waters Rise]]
+
+:: Aqueduct - Waters Rise
+The wheel sings. It is exactly as advertised.
+
+Clean water climbs the old channels and walks across the valley on stone stilts, feeding every cove behind you a steady pulse of health. (Restored places STAY restored — the aqueduct is the reason.)
+
+[[Follow the highest channel->Mangrove]]
+
+:: Mangrove
+Trees standing knee-deep in the sea, roots woven like held hands. Oil rides the tide in here twice a day, so nothing you clean stays clean — yet.
+
+The pack's fourth word: **Bubble** — a shimmering sphere that lifts, carries, and shields.
+
+[[Bubble the mangrove seeds upstream->Mangrove - Seeds]]
+[[Shield the fish nurseries from the tide->Mangrove - Nurseries]]
+
+:: Mangrove - Seeds
+Seeds ride your bubbles like lanterns, up to the high mud where the tide can't drown them in oil. New mangroves take root — living breakwaters that comb the incoming tide clean.
+
+[[Shield the nurseries->Mangrove - Nurseries]]
+
+:: Mangrove - Nurseries
+Turtle hatchlings and fish fry shelter in root-cages. When the black tide comes in, you dome them in bubbles and hold, and Olive holds, and the crane screams the timing from above.
+
+When the tide retreats, everyone is still there. The mangrove decides you can stay.
+
+[[The turtles show you the sea cave->Underground River]]
+
+:: Underground River
+The current dives under the mountain and takes all the light with it. Down here your skin remembers something old, and glows — soft rose-light on black water.
+
+Oil moves in the dark like something alive. Maybe it is. It has had a long time down here to practice.
+
+[[Follow your own glow->Underground - The Grotto]]
+[[Push straight through the dark->Underground - The Throat]]
+
+:: Underground - The Grotto
+A side pocket the oil never found: blind white fish, glass shrimp, stars of some mineral in the ceiling. Nothing here needs saving. It's just beautiful, and secret, and now it's yours and Olive's.
+
+(Optional places that ask nothing of you are how a game says //thank you for being curious//.)
+
+[[Back to the dark->Underground - The Throat]]
+
+:: Underground - The Throat
+The river narrows. The oil is thickest here, pushed by pressure from above — you are close to the wound itself. Bubbles become diving bells; the glow becomes courage.
+
+At the end of the throat: a ladder of rusted iron, going up into noise.
+
+[[Climb->Refinery]]
+
+:: Refinery
+The source. A rig of pipes and tanks squatting over the water, long abandoned by whoever built it — still bleeding from a dozen rusted seams, all day, every day, for years.
+
+And the spilled oil around it has gathered into something with reach and patience: the **Oil Kraken** — arms of slick that regrow as long as the rig keeps feeding them.
+
+[[Face the Kraken->Refinery - The Kraken]]
+
+:: Refinery - The Kraken
+The final cleaning puzzle, and everything you know is required: Mist to raise barriers of green, Jet to power the rig's dead pumps against it, Bubbles to shield the friends who insisted on coming, spray to carve its arms — and the truth from Hub Pond, learned on day one:
+
+//You cannot outclean the source. Cap the leaks.//
+
+Twelve valves. Every one you seal shrinks it. The last valve is inside the rig's flooded heart, in the dark, where only something small and glowing could ever fit.
+
+[[Seal the last valve->Refinery - Still]]
+
+:: Refinery - Still
+The rig goes quiet. The Kraken sags, thins, and comes apart into ordinary oil — just a spill again, just work, and you know how to do work.
+
+Behind the rig, hot water trickles from cracked stone: the springs above are wounded too.
+
+[[Climb to the Volcanic Springs->Springs]]
+
+:: Springs
+Steam and minerals and heat — water so alive it hums, poisoned at its birthplace by the refinery's runoff channels.
+
+The pack's last word, saved for the place that needs it: **Stream Redirect** — the power to move water itself: bend rivers, fill dead pools, put waterfalls back where waterfalls go.
+
+[[Redirect the runoff->Springs - The Unpoisoning]]
+
+:: Springs - The Unpoisoning
+You bend the poisoned channels away from the springheads and walk clean water back into its old beds, pool by pool, like tucking someone in.
+
+The springs run clear, then hot, then HOLY — the whole mountain's plumbing coming back online. Downstream, every cove you healed feels it arrive.
+
+[[Ride the newborn river down->Sacred Wetlands]]
+
+:: Sacred Wetlands
+Where all water ends up, and the oldest place: the wetlands that filter the world. They were dying slowly enough that everyone had agreed not to look.
+
+There is no boss here. There is just everything you've learned, all at once, and every friend you've made arriving to help — frogs seeding the shallows, otters running supply, turtles hauling debris, the crane directing traffic from the tallest snag, Olive at your side where Olive has been since the pond.
+
+[[The last clean->Ending - The Cove Remembers]]
+
+:: Ending - The Cove Remembers
+The film peels off the sacred water like night lifting. The wetlands take one enormous breath.
+
+And the music — the one from the very beginning, from the title screen, from before everything — comes back, because it was the water's song the whole time and the water remembers it.
+
+**THE COVE REMEMBERS.**
+
+[[If every friend was rescued and every cove fully healed…->Ending - The Tidekeeper]]
+[[Stay awhile->Ending - Stay Awhile]]
+
+:: Ending - The Tidekeeper
+The elder tidekeeper's Hydro Pack finally stops hissing — nothing left to fix. In the hollow log where you found it, you hang it back up.
+
+By morning it's gone. Somewhere upstream, something small has strapped it on.
+
+**THE TIDEKEEPER.** //(100%: all friends rescued, all coves fully restored, every hidden place found.)//
+
+[[Stay awhile->Ending - Stay Awhile]]
+
+:: Ending - Stay Awhile
+No credits yet. The day turns. The fireflies come out over the sacred water, and Olive falls asleep mid-float the way Olive does.
+
+Hold R whenever you're ready. There will be a new day.
+
+**~ stay awhile ~**
