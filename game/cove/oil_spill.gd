@@ -154,7 +154,8 @@ func spray_at(world_pos: Vector2, radius: float, delta: float) -> void:
 			_milestone += 1                     # escalating burst as the cove recovers
 			_fx.pop(p)
 			if _milestone <= CHIME_STEPS.size():
-				Sfx.play("chime", 0.0, CHIME_STEPS[_milestone - 1])
+				# whimsy chimes rising one pentatonic step per milestone (cohesive reward palette)
+				Sfx.play("whimsy", -2.0, CHIME_STEPS[_milestone - 1])
 
 ## Fresh oil trickling back from an uncapped leak. Adds coverage toward each cell's ORIGINAL
 ## value — a hard cap, so oil resists but never grows past the level's start (D-0005). Gentle

@@ -41,6 +41,32 @@ const BANK := {
 		],
 		"pitch": 1.06,
 	},
+	# Cohesive Helton Yan family: whimsy chimes for milestones, coin whoosh for Shine
+	# pickups/bonuses, swish for the dash. One tonal palette instead of mixed-pack sounds.
+	"whimsy": {
+		"streams": [
+			preload("res://assets/audio/sfx/whimsy_1.ogg"),
+			preload("res://assets/audio/sfx/whimsy_2.ogg"),
+			preload("res://assets/audio/sfx/whimsy_3.ogg"),
+		],
+		"pitch": 1.04,
+	},
+	"coin": {
+		"streams": [
+			preload("res://assets/audio/sfx/coin_1.ogg"),
+			preload("res://assets/audio/sfx/coin_2.ogg"),
+			preload("res://assets/audio/sfx/coin_3.ogg"),
+		],
+		"pitch": 1.08,
+	},
+	"swish": {
+		"streams": [
+			preload("res://assets/audio/sfx/swish_1.ogg"),
+			preload("res://assets/audio/sfx/swish_2.ogg"),
+			preload("res://assets/audio/sfx/swish_3.ogg"),
+		],
+		"pitch": 1.1,
+	},
 }
 
 const LOOPS := {

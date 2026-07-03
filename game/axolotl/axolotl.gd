@@ -171,7 +171,7 @@ func _physics_process(delta: float) -> void:
 		_spr.scale = Vector2(1.3, 0.75)
 		if is_on_floor():
 			_dust()
-		Sfx.play("jump", -4.0, 1.3)
+		Sfx.play("swish", -4.0)   # the dash whoosh (cohesive with the water wake dash)
 	if _dash_t > 0.0:
 		velocity.x = _face * tuning.dash_speed   # the dash owns X; gravity still applies
 	else:
@@ -227,7 +227,8 @@ func _swim(delta: float, dir: float) -> void:
 		_hop_grace = 0.25                # a surface-ward dash may crest the waterline
 		_spr.scale = Vector2(1.3, 0.75)  # long and lean into the burst
 		_dash_burst(dd.normalized())
-		Sfx.play("splash", -6.0, 1.3)
+		Sfx.play("swish", -5.0)          # the wake-dash whoosh (same as the land dash)
+		Sfx.play("splash", -12.0, 1.3)   # a faint water burst under it
 	# oil debuff: thick oil sludges both top speed and how fast you accelerate (0 oil => no change)
 	var oil: float = _oil_mgr.oil_at(global_position) if _oil_mgr else 0.0
 	var slow := 1.0 - tuning.oil_drag * oil

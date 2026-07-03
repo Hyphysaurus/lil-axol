@@ -4,6 +4,7 @@
 [ext_resource type="Script" path="res://game/hud/title_card.gd" id="2_title"]
 [ext_resource type="Script" path="res://game/hud/rest_card.gd" id="3_rest"]
 [ext_resource type="Script" path="res://game/hud/settings_menu.gd" id="4_settings"]
+[ext_resource type="Script" path="res://game/hud/credits_card.gd" id="5_credits"]
 
 [node name="Main" type="Node2D" unique_id=1125150980]
 
@@ -18,3 +19,6 @@ script = ExtResource("3_rest")
 
 [node name="SettingsMenu" type="CanvasLayer" parent="."]
 script = ExtResource("4_settings")
+
+[node name="CreditsCard" type="CanvasLayer" parent="."]
+script = ExtResource("5_credits")

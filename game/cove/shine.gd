@@ -69,6 +69,7 @@ func bonus(points: float, at: Vector2) -> void:
 	_award(points, 0.0)
 	_pop_acc += points
 	_pop_at = at
+	Sfx.play("coin", -5.0)   # a little pickup whoosh for any one-off award (rescues, land splats)
 
 ## Called by the axolotl when the bubble action fires. False = not charged yet.
 func spend_bubble() -> bool:

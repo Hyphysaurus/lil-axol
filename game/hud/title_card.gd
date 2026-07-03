@@ -52,6 +52,11 @@ func _open_settings() -> void:
 	if menu:
 		menu.open()
 
+func _open_credits() -> void:
+	var c := get_node_or_null("../CreditsCard")
+	if c:
+		c.open()
+
 func _build() -> void:
 	_root = Control.new()
 	_root.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -96,6 +101,8 @@ func _build() -> void:
 	begin.grab_focus.call_deferred()   # pad/keyboard can navigate from here
 	vb.add_child(_spacer(4.0))
 	vb.add_child(_button("settings", _open_settings))
+	vb.add_child(_spacer(4.0))
+	vb.add_child(_button("credits", _open_credits))
 	vb.add_child(_spacer(22.0))
 
 	var hint := Label.new()

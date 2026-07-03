@@ -47,6 +47,11 @@ func _open_settings() -> void:
 	if menu:
 		menu.open()
 
+func _open_credits() -> void:
+	var c := get_node_or_null("../CreditsCard")
+	if c:
+		c.open()
+
 func _new_day() -> void:
 	_toggle(false)                      # unpause first so the fade can run
 	var nd := get_tree().get_first_node_in_group("new_day")
@@ -94,6 +99,7 @@ func _build() -> void:
 	_first_btn = _button("resume", _resume)
 	vb.add_child(_first_btn)
 	vb.add_child(_button("settings", _open_settings))
+	vb.add_child(_button("credits", _open_credits))
 	vb.add_child(_button("new day", _new_day))
 	if not OS.has_feature("web"):
 		vb.add_child(_button("quit", _quit))

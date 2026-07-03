@@ -23,3 +23,7 @@ music/wildflowers_by_the_river.ogg  same pack
                           https://pizzadoggy.itch.io/cozy-tunes
 sfx/explode_1-3.ogg          Helton Yan — Pixel Combat Audio ("DSGNImpt_EXPLOSION-Magically")
                           License: LICENSE.txt in pack (Asset Library copy). The barrel burst.
+sfx/whimsy_1-3.ogg           Helton Yan — Pixel Combat ("Whimsy Chimes") — milestone rewards
+sfx/coin_1-3.ogg              Helton Yan — Pixel Combat ("Coin Whoosh") — Shine pickups/bonuses
+sfx/swish_1-3.ogg             Helton Yan — Pixel Combat ("Swish Clap") — the dash
+                          License: LICENSE.txt in the Helton Yan pack (Asset Library copy).
