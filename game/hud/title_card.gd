@@ -86,6 +86,10 @@ func _build() -> void:
 	title.add_theme_color_override("font_color", Color(0.95, 0.99, 1.0))
 	title.add_theme_color_override("font_shadow_color", Color(0.03, 0.10, 0.16, 0.85))
 	title.add_theme_constant_override("shadow_offset_y", 3)
+	# the wordmark burns against the sky — a fire shader recolours the glyphs (see burning_text)
+	var fire := ShaderMaterial.new()
+	fire.shader = preload("res://shaders/burning_text.gdshader")
+	title.material = fire
 	vb.add_child(title)
 
 	var sub := Label.new()
