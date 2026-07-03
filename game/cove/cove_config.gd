@@ -40,6 +40,13 @@ class_name CoveConfig
 @export var life_layer: AudioStream
 @export var music: AudioStream
 
+@export_group("Leak")
+## A leaking valve on the right ledge trickles fresh oil back into the spill near the source
+## until the player caps it (sustained spray on the valve). Off = today's static spill.
+@export var leak_enabled: bool = true
+@export var leak_pos: Vector2 = Vector2(432.0, -46.0)   # cove-local, right edge at the waterline
+@export var leak_rate: float = 0.20                     # coverage/sec trickled back until capped
+
 @export_group("Win")
 ## Cleanliness (0..1) at which the cove counts as restored. The banner and any future
 ## gate (cove exit, afterglow content) all read this one value so they can never desync.

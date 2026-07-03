@@ -1,7 +1,15 @@
 # Cleaning Depth & Feel — Design Proposal
 
 **Date:** 2026-07-01
-**Status:** PROPOSAL — for Mario's review (drafted while paint-to-clean is being playtested)
+**Status:** BUILT (2026-07-03) — all three layers shipped, verified by headless sim.
+Layer 1: thickness ramps toward the source (`_build_mask`), sludge sheds ~55% slower than
+sheen (`spray_at` resist — D-0006), thick oil reads dark/matte vs bright sheen
+(`oil_surface.gdshader`). Layer 2: `game/cove/leak_source.gd` — a leaking valve
+(`barrel_valve_leaking.png`) trickles oil back near the source (`OilSpill.stain_at`,
+hard-capped at start — D-0005); sustained spray on the valve caps it (~2s), swaps to
+`barrel_oil_valve.png`, clunk. First use of the industrial prop library. Layer 3 landed
+earlier (localized ecosystem reveal + caustics×cleanliness); only "hidden critters" delight
+moments remain open. Feel-tuning left: `leak_rate` (0.20) and the sludge resist strength.
 **Context:** Paint-to-clean fixed "tacked-on" + "no reward." This addresses the remaining
 half of the feedback: *"cleaning is very simple and easy."* Goal is **engagement/texture,
 not difficulty** — LilAxol is cozy; depth here means variety, a light objective, and a

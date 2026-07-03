@@ -29,6 +29,8 @@ var _mask: Image                      # 8-bit view for the shader ONLY — never
 var _cov: PackedFloat32Array          # source of truth: float coverage per cell (no
                                       # quantization drift — 8-bit truncation was silently
                                       # leaking ~4% of progress and capping cleanliness)
+var _cov0: PackedFloat32Array         # the level's starting coverage — a hard cap the leak
+                                      # can re-oil toward but never exceed (D-0005)
 var _mask_tex: ImageTexture
 var _surface: Sprite2D
 var _origin := Vector2.ZERO   # water rect top-left (cove-local)
@@ -76,7 +78,10 @@ func _build_mask() -> void:
 				* (1.0 - smoothstep(surf + 52.0, surf + 82.0, ly))
 			# blotchy thickness so the slick isn't a flat slab
 			var blot := 0.5 + 0.5 * sin(lx * 0.07 + ly * 0.05) * cos(lx * 0.03 - ly * 0.11)
-			var cov := clampf(in_x * in_y * (0.62 + 0.38 * blot), 0.0, 1.0)
+			# thickness ramps toward the source (right): thin sheen at the far edge, thick
+			# sludge near the leak — clear the easy edges, work inward toward the stubborn core
+			var ramp := smoothstep(_cfg.spill_left, _cfg.spill_right, lx)
+			var cov := clampf(in_x * in_y * (0.30 + 0.30 * blot + 0.55 * ramp), 0.0, 1.0)
 			if cov < VIS_FLOOR:
 				cov = 0.0                   # don't birth oil nobody can ever see
 			_cov[my * MASK_W + mx] = cov
@@ -84,6 +89,7 @@ func _build_mask() -> void:
 			_total += _vis(cov)
 	_total = maxf(_total, 0.001)
 	_remaining = _total
+	_cov0 = _cov.duplicate()             # remember the start as the leak's re-oil ceiling
 	_mask_tex = ImageTexture.create_from_image(_mask)
 
 func _build_surface() -> void:
@@ -121,7 +127,10 @@ func spray_at(world_pos: Vector2, radius: float, delta: float) -> void:
 			var old := _cov[my * MASK_W + mx]
 			if old <= 0.0:
 				continue
-			var nr := maxf(0.0, old - strength * (1.0 - d / rpx))   # soft brush falloff
+			# thick sludge sheds slower than thin sheen — the dark core needs sustained,
+			# close-range spray to break, not just repeat passes (D-0006: sludge = skill)
+			var resist := 1.0 - 0.55 * smoothstep(0.55, 0.95, old)
+			var nr := maxf(0.0, old - strength * (1.0 - d / rpx) * resist)   # soft brush falloff
 			if nr < VIS_FLOOR:
 				nr = 0.0                    # sub-visible residue snaps clean (renders as nothing)
 			removed += _vis(old) - _vis(nr)
@@ -145,6 +154,42 @@ func spray_at(world_pos: Vector2, radius: float, delta: float) -> void:
 			_fx.pop(p)
 			if _milestone <= CHIME_STEPS.size():
 				Sfx.play("chime", 0.0, CHIME_STEPS[_milestone - 1])
+
+## Fresh oil trickling back from an uncapped leak. Adds coverage toward each cell's ORIGINAL
+## value — a hard cap, so oil resists but never grows past the level's start (D-0005). Gentle
+## by design: ignore the leak and the spill just stays lively near the source a bit longer.
+func stain_at(world_pos: Vector2, radius: float, amount: float) -> void:
+	if _mask == null:
+		return
+	var p := to_local(world_pos)
+	var cx := (p.x - _origin.x) / _size.x * float(MASK_W)
+	var cy := (p.y - _origin.y) / _size.y * float(MASK_H)
+	var rpx := maxf(3.0, radius / _size.x * float(MASK_W))
+	var added := 0.0
+	var x0 := int(maxf(0.0, floor(cx - rpx)))
+	var x1 := int(minf(float(MASK_W - 1), ceil(cx + rpx)))
+	var y0 := int(maxf(0.0, floor(cy - rpx)))
+	var y1 := int(minf(float(MASK_H - 1), ceil(cy + rpx)))
+	for my in range(y0, y1 + 1):
+		for mx in range(x0, x1 + 1):
+			var i := my * MASK_W + mx
+			var cap := _cov0[i]
+			if cap <= 0.0:
+				continue                    # never oil where the level had none
+			var d := Vector2(float(mx) - cx, float(my) - cy).length()
+			if d > rpx:
+				continue
+			var old := _cov[i]
+			if old >= cap:
+				continue
+			var nr := minf(cap, old + amount * (1.0 - d / rpx))
+			added += _vis(nr) - _vis(old)
+			_cov[i] = nr
+			_mask.set_pixel(mx, my, Color(nr, 0.0, 0.0, 1.0))
+	if added > 0.0:
+		_mask_tex.update(_mask)
+		_remaining = minf(_total, _remaining + added)
+		_set_clean()
 
 ## Oil coverage (0..1) at a world position — used by the axolotl to sludge its movement in oil.
 func oil_at(world_pos: Vector2) -> float:

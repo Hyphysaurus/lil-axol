@@ -26,6 +26,7 @@
 [ext_resource type="Script" path="res://game/hud/high_scores.gd" id="24_scores"]
 [ext_resource type="Script" path="res://game/cove/cove_audio.gd" id="25_audio"]
 [ext_resource type="Script" path="res://game/companion/companion.gd" id="26_friend"]
+[ext_resource type="Script" path="res://game/cove/leak_source.gd" id="27_leak"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_sn0t7"]
 size = Vector2(255, 280)
@@ -264,3 +265,6 @@ script = ExtResource("25_audio")
 
 [node name="Friend" type="Node2D" parent="."]
 script = ExtResource("26_friend")
+
+[node name="LeakSource" type="Node2D" parent="."]
+script = ExtResource("27_leak")

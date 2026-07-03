@@ -48,6 +48,10 @@ void fragment() {
 		vec3 c = mix(oil_dark.rgb, irid, edge * sheen + 0.10);
 		// faint glossy sway highlight
 		c += 0.10 * smoothstep(0.6, 1.0, fbm(UV * 3.0 + vec2(t * 0.5)));
+		// thick SLUDGE near the source reads dark & matte — the rainbow drains out of the
+		// clotted core, so thin sheen (bright) vs thick sludge (dark) is legible at a glance
+		float sludge_k = smoothstep(0.6, 0.95, cov);
+		c = mix(c, oil_dark.rgb * 0.5, sludge_k * 0.75);
 		COLOR = vec4(c, film * 0.94);
 	}
 }
