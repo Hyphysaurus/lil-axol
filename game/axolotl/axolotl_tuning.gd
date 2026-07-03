@@ -18,6 +18,10 @@ class_name AxolotlTuning
 @export var rest_depth: float = 5.0
 @export var buoy_spring: float = 5.5
 @export var buoy_max: float = 42.0
+## Subnautica-style hover: buoyancy holds you to the surface within this depth band, then
+## fades to zero below it, so idle underwater you keep your depth (and aim) instead of always
+## floating up. Higher = the cove pulls you up from deeper; lower = free-hover almost anywhere.
+@export var surface_band: float = 22.0
 @export var bob_amp: float = 5.0
 @export var bob_freq: float = 2.2
 ## Strong enough to clear the beach ledge out of the water.

@@ -233,12 +233,14 @@ func _swim(delta: float, dir: float) -> void:
 	var slow := 1.0 - tuning.oil_drag * oil
 	var tv := Vector2(dir * tuning.swim_h * slow, vin * tuning.swim_v * slow)
 
-	# no vertical input -> buoyancy spring toward rest_depth + a gentle surface bob
-	# (suspended during a hop's grace window so it can't drag the leap back down)
+	# no vertical input -> buoyancy holds you near the surface, but FADES to neutral hover with
+	# depth (Subnautica mobility): idle underwater you keep your depth and aim instead of always
+	# floating up. (Suspended during a hop's grace window so it can't drag the leap back down.)
 	if vin == 0.0 and _hop_grace <= 0.0:
 		var spring := clampf((tuning.rest_depth - depth) * tuning.buoy_spring, -tuning.buoy_max, tuning.buoy_max)
 		var near_surface := clampf(1.0 - absf(depth - tuning.rest_depth) / 24.0, 0.0, 1.0)
-		tv.y = spring + sin(_t * tuning.bob_freq) * tuning.bob_amp * near_surface
+		var surf_pull := clampf(1.0 - (depth - tuning.rest_depth) / tuning.surface_band, 0.0, 1.0)
+		tv.y = (spring + sin(_t * tuning.bob_freq) * tuning.bob_amp * near_surface) * surf_pull
 
 	velocity = velocity.lerp(tv, clampf(tuning.swim_lerp * slow * delta, 0.0, 1.0))
 

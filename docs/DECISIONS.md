@@ -50,3 +50,12 @@ sit-and-watch a full cycle without it churning; this is the canonical value for 
   he eyeballs the live build (lilaxol.vercel.app) from his phone; then record keep-vs-rework.
 - *(P-3 resolved → D-0007. P-4 resolved: both specs drafted AND built — game-loop Phase 1 and
   audio Phases 1–3 shipped; no open priority call remains.)*
+
+## D-0009 — Swim allows deep hover (Subnautica mobility) (2026-07-03, Mario)
+The buoyancy spring no longer always floats the axolotl to the surface. It holds you near the
+surface (top ~27px: `rest_depth` + `surface_band` 22) then **fades to neutral hover** with
+depth, so idle underwater you keep your depth AND your aim instead of drifting up. Fixes the
+"can't aim, keeps bringing me up" feel now that spray/bubble need free positioning. Supersedes
+the always-surface half of D-0003; the frozen speed/hop/spray numbers are otherwise unchanged.
+`surface_band` is a new AxolotlTuning export (higher = pulled up from deeper). Verified: buoyancy
+target = 0 below 27px depth, pulls up near the surface. Feel-confirm in a desktop playtest.
