@@ -56,6 +56,7 @@ func _pop() -> void:
 	set_physics_process(false)
 	var radius := POP_RADIUS + POP_GROW * _t
 	get_tree().call_group("oil_manager", "spray_at", global_position, radius, POP_STRENGTH)
+	get_tree().call_group("blastable", "blast", global_position, radius)   # bubble bombs carve rock too
 	Sfx.play("chime", -2.0, 1.4)
 	Sfx.play("splash", -4.0, 0.9)
 	var p := CPUParticles2D.new()

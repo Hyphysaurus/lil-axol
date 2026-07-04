@@ -28,6 +28,7 @@
 [ext_resource type="Script" path="res://game/companion/companion.gd" id="26_friend"]
 [ext_resource type="Script" path="res://game/cove/leak_source.gd" id="27_leak"]
 [ext_resource type="Script" path="res://game/cove/shore_pollution.gd" id="28_shorepol"]
+[ext_resource type="Script" path="res://game/cove/destructible_rock.gd" id="29_rock"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_sn0t7"]
 size = Vector2(255, 280)
@@ -269,6 +270,10 @@ script = ExtResource("26_friend")
 
 [node name="LeakSource" type="Node2D" parent="."]
 script = ExtResource("27_leak")
+
+[node name="DebrisRock" type="Node2D" parent="."]
+position = Vector2(72, 94)
+script = ExtResource("29_rock")
 
 [node name="ShorePollution" type="Node2D" parent="."]
 script = ExtResource("28_shorepol")

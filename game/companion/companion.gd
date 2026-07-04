@@ -1,13 +1,13 @@
 extends Node2D
-## The Rescued Friend — an oil-matted wild-type axolotl asleep in the cove's far corner.
-## Spray them close and sustained (D-0006's skill verb) and the oil washes off: they wake,
-## chirp, award Shine, and follow the tidekeeper for the rest of the day, helping scrub.
-## The rig is data-driven: swap `frames`/`anims`/tints to make this a Lil Otter or Frog
+## The Rescued Friend — an oil-matted little TURTLE asleep in the cove's far corner (SeethingSwarm,
+## same artist as the axolotl). Spray them close and sustained (D-0006's skill verb) and the oil
+## washes off: they wake, chirp, award Shine, and follow the tidekeeper for the rest of the day,
+## helping scrub. The rig is data-driven: swap `frames`/`anims`/tints to make this a Frog or Otter
 ## companion with zero code changes. New Day resets the rescue — that's part of the loop.
 
-@export var frames: SpriteFrames = preload("res://game/axolotl/axolotl_frames.tres")
-@export var anims: CharacterAnimSet = preload("res://game/axolotl/axolotl_anims.tres")
-@export var clean_tint := Color(0.62, 0.72, 0.55)   # wild-type olive, distinct from the player
+@export var frames: SpriteFrames = preload("res://game/companion/turtle_frames.tres")
+@export var anims: CharacterAnimSet = preload("res://game/companion/turtle_anims.tres")
+@export var clean_tint := Color(1.0, 1.0, 1.0)      # the turtle's own colours once washed (no tint)
 @export var oiled_tint := Color(0.30, 0.28, 0.24)   # matted in oil, waiting
 
 const RESCUE_SECONDS := 2.5    # cumulative close-spray time to wash them awake
