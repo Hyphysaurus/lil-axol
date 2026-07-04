@@ -84,7 +84,7 @@ func _build() -> void:
 	panel.add_child(vb)
 
 	var head := Label.new()
-	head.text = "resting…"
+	head.text = "resting..."
 	head.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	head.add_theme_font_size_override("font_size", 30)
 	head.add_theme_color_override("font_color", Color(0.95, 0.99, 1.0))

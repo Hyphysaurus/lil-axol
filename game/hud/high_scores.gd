@@ -45,7 +45,7 @@ func _submit() -> void:
 	var player := _input.text.strip_edges().to_upper()
 	if player.is_empty():
 		player = "AXO"
-	_status.text = "sending…"
+	_status.text = "sending..."
 	Sfx.play("scrub", -12.0, 1.4)
 	var ok: bool = await Leaderboard.submit(player, _score)
 	if not ok:
@@ -56,19 +56,19 @@ func _show_board() -> void:
 	_entry.visible = false
 	_board.visible = true
 	if _status.text.is_empty():
-		_status.text = "reading the tide…"
+		_status.text = "reading the tide..."
 	var rows: Array = await Leaderboard.fetch_top(10)
 	for c in _list.get_children():
 		c.queue_free()
 	if rows.is_empty():
-		if _status.text == "reading the tide…":
+		if _status.text == "reading the tide...":
 			_status.text = "the tide board is out of reach"
 	else:
 		_status.text = ""
 		var rank := 1
 		for row in rows:
 			var l := Label.new()
-			l.text = "%d.  %s — %d" % [rank, str(row.get("name", "?")), int(row.get("score", 0))]
+			l.text = "%d.  %s - %d" % [rank, str(row.get("name", "?")), int(row.get("score", 0))]
 			l.add_theme_font_size_override("font_size", 20)
 			l.add_theme_color_override("font_color",
 				Color(1.0, 0.87, 0.55) if rank == 1 else Color(0.85, 0.93, 0.96))

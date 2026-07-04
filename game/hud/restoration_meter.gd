@@ -38,7 +38,7 @@ func _process(delta: float) -> void:
 	_shown = move_toward(_shown, _clean, delta * 0.5)   # glide at the world's heal rate
 	_pulse = maxf(0.0, _pulse - delta * 0.8)
 	_gauge.set_state(_shown, _pulse, _pulse_at)
-	_label.text = "%d%%" % int(round(_shown * 100.0))
+	_label.text = "%d%% restored" % int(round(_shown * 100.0))
 
 func _build() -> void:
 	var root := Control.new()
@@ -58,7 +58,7 @@ func _build() -> void:
 	row.add_child(_gauge)
 
 	_label = Label.new()
-	_label.text = "0%"
+	_label.text = "0% restored"
 	_label.add_theme_font_size_override("font_size", 20)
 	_label.add_theme_color_override("font_color", Color(0.92, 0.97, 1.0, 0.85))
 	_label.add_theme_color_override("font_shadow_color", Color(0.03, 0.08, 0.12, 0.8))

@@ -16,23 +16,23 @@ Godot 4.7
 
 
 [color=#9fd8e0]ART[/color]
-Axolotl — SeethingSwarm
-Fish — Smolque (Pixel Fish Pack)
-World, water & sky — procedural shaders
-Red oil barrel — pixel practice
+Axolotl - SeethingSwarm
+Fish - Smolque (Pixel Fish Pack)
+World, water & sky - procedural shaders
+Red oil barrel - pixel practice
 
 
 [color=#9fd8e0]AUDIO[/color]
-Theme — synthesized for LilAxol
-SFX — Helton Yan · TomMusic · SwishSwoosh
-Typeface — “Axolotl”
+Theme - synthesized for LilAxol
+SFX - Helton Yan · TomMusic · SwishSwoosh
+Typeface - 'Axolotl'
 
 
 [color=#9fd8e0]BUILT WITH[/color]
 Claude Code
 
 
-for my friends  🌊[/center]"
+for my friends[/center]"
 
 var _root: Control
 

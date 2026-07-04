@@ -30,6 +30,7 @@ var _spray_cd := 0.0            # was the barrel sprayed very recently? (drives 
 
 func _ready() -> void:
 	add_to_group("sprayable")
+	add_to_group("leak")         # so the hint system can nudge the player toward capping it
 	z_index = 4                  # over the water/oil, under FX
 	_spr = Sprite2D.new()
 	_spr.texture = BARREL

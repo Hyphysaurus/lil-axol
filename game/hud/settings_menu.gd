@@ -68,7 +68,7 @@ func _start_capture(action: String, pad: bool, btn: Button) -> void:
 	_capture_btn = btn
 	_capture_action = action
 	_capture_pad = pad
-	btn.text = "press…"
+	btn.text = "press..."
 
 func _cancel_capture() -> void:
 	if _capture_btn:
@@ -109,10 +109,10 @@ func _binding_text(action: String, pad: bool) -> String:
 			if e is InputEventJoypadButton:
 				return "pad %d" % e.button_index
 			if e is InputEventJoypadMotion:
-				return "axis %d %s" % [e.axis, "+" if e.axis_value > 0.0 else "−"]
+				return "axis %d %s" % [e.axis, "+" if e.axis_value > 0.0 else "-"]
 		elif e is InputEventKey:
 			return e.as_text().trim_suffix(" (Physical)")
-	return "—"
+	return "-"
 
 func _reset_bindings() -> void:
 	_cancel_capture()

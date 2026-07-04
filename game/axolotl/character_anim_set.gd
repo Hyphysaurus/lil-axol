@@ -38,3 +38,8 @@ class_name CharacterAnimSet
 @export var sneak: StringName = &"sneak"
 @export var wall_grab: StringName = &"wallgrab"
 @export var wall_climb: StringName = &"wallclimb"
+
+## Shell tuck/emerge for the turtle companion's demolition ram. Empty for characters with no shell.
+@export_group("Shell")
+@export var shell_tuck: StringName = &"hide"
+@export var shell_emerge: StringName = &"unhide"

@@ -26,7 +26,7 @@ func _on_score(score: int, mult: int) -> void:
 	_score = score
 	if mult != _mult:
 		_mult = mult
-		_combo.text = "×%d" % mult
+		_combo.text = "x%d" % mult   # ASCII x — the pixel font has no reliable multiplication glyph
 		_combo.visible = mult > 1
 		var warm := clampf(float(mult - 1) / 3.0, 0.0, 1.0)
 		_combo.add_theme_color_override("font_color",

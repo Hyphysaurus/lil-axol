@@ -15,6 +15,7 @@ const SEABED_SHADER := preload("res://shaders/seabed.gdshader")
 var _cfg: CoveConfig
 var _clean := 0.0
 var _life := 0.0
+var _floor: Node2D            # the dark Seabed floor polygon — kept healing in step with the reef
 
 func _ready() -> void:
 	modulate = murky      # dim until cleaned (also correct before setup runs)
@@ -23,6 +24,10 @@ func _ready() -> void:
 func setup(cfg: CoveConfig) -> void:
 	_cfg = cfg
 	_tile()
+	# the flat floor polygon shares the reef's depth_tint colour, but sat OUTSIDE this node's
+	# heal modulate — so it read as a lighter seam under the murky reef. Drive it in step so the
+	# reef bottom and the floor are always the same tone (the gap disappears).
+	_floor = get_node_or_null("../Seabed/Polygon2D")
 	var mgr = get_tree().get_first_node_in_group("oil_manager")   # untyped: dynamic access
 	if mgr:
 		if mgr.has_signal("cleanliness"):
@@ -36,6 +41,8 @@ func _on_clean(v: float) -> void:
 func _process(delta: float) -> void:
 	_life = move_toward(_life, _clean, delta * 0.5)   # smooth reveal, in step with CoveLife
 	modulate = murky.lerp(vivid, _life)
+	if _floor:
+		_floor.modulate = modulate                    # floor heals with the reef -> no seam
 
 const EDGE_OVERLAP := 0.16    # must match seabed.gdshader `edge_fade` so faded edges crossfade
 

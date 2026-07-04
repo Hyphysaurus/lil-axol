@@ -85,6 +85,26 @@ const BANK := {
 		"pitch": 1.05,
 	},
 	"ui_open": {"streams": [preload("res://assets/audio/sfx/ui_open.wav")], "pitch": 1.03},
+	# heavy stone smash when the turtle rams rubble apart (Helton Yan bass hit) — a physical
+	# crunch, distinct from the barrel's magical "explode".
+	"break": {
+		"streams": [
+			preload("res://assets/audio/sfx/break_1.ogg"),
+			preload("res://assets/audio/sfx/break_2.ogg"),
+			preload("res://assets/audio/sfx/break_3.ogg"),
+		],
+		"pitch": 1.07,
+	},
+	# GameBurp 2000 SFX: a cute vocal chirp when the turtle wakes, a warm sparkle when a vent opens
+	"chirp": {
+		"streams": [
+			preload("res://assets/audio/sfx/chirp_1.ogg"),
+			preload("res://assets/audio/sfx/chirp_2.ogg"),
+			preload("res://assets/audio/sfx/chirp_3.ogg"),
+		],
+		"pitch": 1.06,
+	},
+	"vent_open": {"streams": [preload("res://assets/audio/sfx/vent_open.ogg")], "pitch": 1.0},
 }
 
 const LOOPS := {

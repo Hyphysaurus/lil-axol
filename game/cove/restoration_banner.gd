@@ -148,7 +148,7 @@ func _build() -> void:
 	stack.add_child(glyph)
 
 	_subline = Label.new()
-	_subline.text = "stay awhile — hold R for a new day"
+	_subline.text = "stay awhile - hold R for a new day"
 	_subline.size_flags_horizontal = Control.SIZE_SHRINK_END
 	_subline.add_theme_font_size_override("font_size", 22)
 	_subline.add_theme_color_override("font_color", Color(0.85, 0.93, 0.96, 0.9))
