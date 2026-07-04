@@ -1,9 +1,12 @@
 shader_type canvas_item;
+#include "res://shaders/sweetie16.gdshaderinc"
 // Burning-text effect for a Label/RichTextLabel. It keeps the glyph SHAPE (from the font
 // texture's alpha) but recolours it with a live fire gradient — hot at the base, cooling to
 // yellow-white up top — and adds rising flame noise + a flicker, so the wordmark reads as if
 // it's ablaze against the sky. Put a ShaderMaterial with this shader on the Label's `material`.
 // `TEXTURE` is the font glyph, so we only paint where the letters are (t.a).
+// The blaze palette is the shared sw_fire() ramp (rose->coral->gold->foam) so the wordmark burns
+// in Sweetie 16 colours, matching the rest of the game.
 
 uniform float speed = 1.0;        // how fast the flames lick upward
 uniform float intensity = 1.0;    // 0 = tame embers, 1 = full blaze
@@ -26,10 +29,8 @@ void fragment() {
 	float n = fbm(UV * vec2(7.0, 11.0) + vec2(0.0, -TIME * speed * 1.6));
 	// heat rises: hotter toward the bottom of each glyph (UV.y = 1), plus the noise
 	float heat = clamp((UV.y * 1.3) + n * 0.55 - 0.25, 0.0, 1.0) * intensity;
-	// fire palette: deep ember red -> orange -> yellow -> near-white core
-	vec3 fire = mix(vec3(0.55, 0.06, 0.02), vec3(1.0, 0.45, 0.05), smoothstep(0.15, 0.5, heat));
-	fire = mix(fire, vec3(1.0, 0.85, 0.30), smoothstep(0.5, 0.78, heat));
-	fire = mix(fire, vec3(1.0, 0.97, 0.85), smoothstep(0.82, 1.0, heat));
+	// Sweetie 16 fire ramp: rose -> coral -> gold -> foam (see sw_fire in the palette include)
+	vec3 fire = sw_fire(heat);
 	// candle-like flicker so it never sits still
 	fire *= 0.86 + 0.14 * sin(TIME * 11.0 + UV.x * 24.0);
 	COLOR = vec4(fire, t.a) * COLOR;

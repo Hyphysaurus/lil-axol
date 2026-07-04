@@ -38,6 +38,7 @@ func _on_restored() -> void:
 	Settings.push_ui_lock()
 	_score_line().text = "your shine: %d" % _score
 	_root.visible = true
+	Sfx.play("ui_open", -6.0)
 	_input.grab_focus()
 
 func _submit() -> void:

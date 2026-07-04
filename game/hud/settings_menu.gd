@@ -33,7 +33,7 @@ func open() -> void:
 		return
 	visible = true
 	Settings.push_ui_lock()
-	Sfx.play("scrub", -12.0, 1.4)
+	Sfx.play("ui_open", -6.0)
 	_refresh_all()
 	if _sliders.has("Master"):
 		_sliders["Master"].grab_focus.call_deferred()   # pad/keyboard entry point
@@ -216,8 +216,9 @@ func _build_controls_tab() -> Control:
 	_touch_mode = OptionButton.new()
 	for opt in ["auto", "always on", "off"]:
 		_touch_mode.add_item(opt)
-	_touch_mode.item_selected.connect(
-		func(i: int) -> void: Settings.set_setting("controls", "touch_mode", i))
+	_touch_mode.item_selected.connect(func(i: int) -> void:
+		Settings.set_setting("controls", "touch_mode", i)
+		Sfx.play("ui_toggle", -8.0))
 	touch_row.add_child(_touch_mode)
 
 	box.add_child(HSeparator.new())
@@ -261,7 +262,9 @@ func _build_visual_tab() -> Control:
 		var key: String = entry[0]
 		var check := CheckButton.new()
 		check.text = entry[1]
-		check.toggled.connect(func(on: bool) -> void: Settings.set_setting("visual", key, on))
+		check.toggled.connect(func(on: bool) -> void:
+			Settings.set_setting("visual", key, on)
+			Sfx.play("ui_toggle", -8.0))
 		box.add_child(check)
 		_checks[key] = check
 	return box

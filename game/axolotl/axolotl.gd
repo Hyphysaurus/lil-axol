@@ -85,7 +85,7 @@ func _ready() -> void:
 	_spray_p.gravity = Vector2(0, 260)
 	_spray_p.scale_amount_min = 0.6
 	_spray_p.scale_amount_max = 1.5
-	_spray_p.color = Color(0.72, 0.9, 1.0, 0.9)
+	_spray_p.color = Color(Palette.CYAN, 0.9)   # spray mist, on-palette
 	_spray_p.z_index = 7
 	add_child(_spray_p)
 
@@ -102,7 +102,7 @@ func _ready() -> void:
 	_bubbles.gravity = Vector2(0, -26)   # bubbles drift up
 	_bubbles.scale_amount_min = 0.4
 	_bubbles.scale_amount_max = 1.1
-	_bubbles.color = Color(0.8, 0.94, 1.0, 0.55)
+	_bubbles.color = Color(Palette.CYAN, 0.55)   # swim bubble trail
 	_bubbles.z_index = 6
 	add_child(_bubbles)
 
@@ -364,7 +364,7 @@ func _splash(amt: float) -> void:
 	p.gravity = Vector2(0, 320)
 	p.scale_amount_min = 1.0
 	p.scale_amount_max = 2.0
-	p.color = Color(0.85, 0.95, 1.0, 0.9)
+	p.color = Color(Palette.FOAM, 0.9)   # bright water-entry splash
 	p.z_index = 8
 	get_parent().add_child(p)   # add to the cove (world coords) so the splash stays at the surface
 	p.finished.connect(p.queue_free)
@@ -424,7 +424,7 @@ func _dash_burst(dd: Vector2) -> void:
 	p.gravity = Vector2(0, -30)      # spent droplets drift up as bubbles
 	p.scale_amount_min = 0.6
 	p.scale_amount_max = 1.5
-	p.color = Color(0.75, 0.93, 1.0, 0.8)
+	p.color = Color(Palette.CYAN, 0.8)   # dash droplet burst
 	p.z_index = 7
 	get_parent().add_child(p)
 	p.finished.connect(p.queue_free)
@@ -444,7 +444,7 @@ func _dust() -> void:
 	p.gravity = Vector2(0, 140)
 	p.scale_amount_min = 0.8
 	p.scale_amount_max = 1.6
-	p.color = Color(0.87, 0.8, 0.62, 0.7)   # dry-sand puff
+	p.color = Color(Palette.GOLD.lerp(Palette.MIST, 0.35), 0.7)   # dusty dry-sand puff
 	p.z_index = 5
 	get_parent().add_child(p)
 	p.finished.connect(p.queue_free)

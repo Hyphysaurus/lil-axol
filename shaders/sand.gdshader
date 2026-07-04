@@ -47,13 +47,20 @@ void fragment() {
 	// mottled clods: low-frequency dark/light blotches break the gradient so it reads as earth
 	float clod = fbm(UV * vec2(9.0, 7.0) + 3.0);
 	c *= 0.85 + 0.20 * clod;
-	// fine grain + sparse pebbles
+	// broad loam patches (very low frequency) layer earthy tonal richness under the clods
+	float loam = fbm(UV * vec2(3.4, 2.6) + 11.0);
+	c *= 0.90 + 0.16 * loam;
+	// fine grain + sparse dark pebbles + a few pale grit flecks that catch the light
 	c += (fbm(UV * vec2(85.0, 110.0)) - 0.5) * grain;
 	c -= step(0.86, fbm(UV * vec2(190.0, 210.0) + 7.0)) * 0.05;
+	c += step(0.90, fbm(UV * vec2(150.0, 175.0) + 21.0)) * 0.045;
 	// cool damp sheen deep down
 	c += vec3(0.0, 0.02, 0.05) * smoothstep(0.7, 1.0, depth);
 	// tuck the very top edge into dark topsoil so it blends under the grass, not a hard line
 	c = mix(c, haze.rgb, (1.0 - smoothstep(0.0, 0.14, UV.y)) * 0.7);
+	// a damp mossy band right beneath the grass line so the bank reads rooted & lush, not cut off
+	vec3 moss = vec3(0.17, 0.26, 0.15);
+	c = mix(c, moss, (1.0 - smoothstep(0.0, 0.09, UV.y)) * 0.4);
 
 	// --- OIL SEEP ---------------------------------------------------------------------------
 	// Crude soaks DOWNWARD into the earth from the surface (UV.y = 0). `front` is how deep it

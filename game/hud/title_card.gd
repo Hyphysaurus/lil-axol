@@ -83,8 +83,9 @@ func _build() -> void:
 	title.text = "Lil Axolotl"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 76)
-	title.add_theme_color_override("font_color", Color(0.95, 0.99, 1.0))
-	title.add_theme_color_override("font_shadow_color", Color(0.03, 0.10, 0.16, 0.85))
+	# the burning shader multiplies by this, so FOAM (near-white) lets the Sweetie 16 fire read true
+	title.add_theme_color_override("font_color", Palette.FOAM)
+	title.add_theme_color_override("font_shadow_color", Color(Palette.INK, 0.85))
 	title.add_theme_constant_override("shadow_offset_y", 3)
 	# the wordmark burns against the sky — a fire shader recolours the glyphs (see burning_text)
 	var fire := ShaderMaterial.new()
@@ -96,7 +97,7 @@ func _build() -> void:
 	sub.text = "~ tidekeeper ~"
 	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	sub.add_theme_font_size_override("font_size", 28)
-	sub.add_theme_color_override("font_color", Color(1.0, 0.87, 0.55, 0.95))
+	sub.add_theme_color_override("font_color", Color(Palette.GOLD, 0.95))
 	vb.add_child(sub)
 
 	vb.add_child(_spacer(26.0))
@@ -113,7 +114,7 @@ func _build() -> void:
 	hint.text = "move WASD/stick · jump Space/A · spray C/X · run Shift/B"
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hint.add_theme_font_size_override("font_size", 18)
-	hint.add_theme_color_override("font_color", Color(0.70, 0.85, 0.90, 0.85))
+	hint.add_theme_color_override("font_color", Color(Palette.MIST, 0.85))
 	vb.add_child(hint)
 
 func _button(text: String, on_pressed: Callable) -> Button:

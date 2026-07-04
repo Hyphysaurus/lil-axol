@@ -16,7 +16,8 @@ Godot 4.7
 
 
 [color=#9fd8e0]ART[/color]
-Axolotl & critters — SeethingSwarm
+Axolotl — SeethingSwarm
+Fish — Smolque (Pixel Fish Pack)
 World, water & sky — procedural shaders
 Red oil barrel — pixel practice
 
@@ -46,7 +47,7 @@ func open() -> void:
 		return
 	visible = true
 	Settings.push_ui_lock()
-	Sfx.play("whimsy", -8.0, 1.1)
+	Sfx.play("ui_open", -6.0)
 
 func close() -> void:
 	if not visible:

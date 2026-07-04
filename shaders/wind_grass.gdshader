@@ -24,7 +24,10 @@ void fragment() {
 	float i = floor(UV.x * blades);
 	float r = hash(i + 1.0);
 	float cx = (i + 0.5) / blades;            // this blade's base x
-	float bh = height * (0.55 + 0.45 * r) * (1.0 - 0.35 * sludge); // oiled blades droop
+	// clumping: neighbouring blades (grouped by threes) share a height boost, so the grass grows
+	// in natural tufts instead of a uniform comb — reads lusher and more organic.
+	float clump = 0.68 + 0.36 * hash(floor(i / 3.0) + 13.0);
+	float bh = height * (0.5 + 0.45 * r) * clump * (1.0 - 0.35 * sludge); // oiled blades droop
 	float g = 1.0 - UV.y;                      // 0 at ground .. 1 at strip top
 	float gn = clamp(g / max(bh, 0.001), 0.0, 1.0); // 0 base .. 1 tip along this blade
 	float sway = sin(TIME * wind_speed + i * 1.7) * wind * gn * gn * (1.0 - 0.7 * sludge);

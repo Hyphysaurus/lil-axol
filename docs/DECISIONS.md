@@ -59,3 +59,16 @@ depth, so idle underwater you keep your depth AND your aim instead of drifting u
 the always-surface half of D-0003; the frozen speed/hop/spray numbers are otherwise unchanged.
 `surface_band` is a new AxolotlTuning export (higher = pulled up from deeper). Verified: buoyancy
 target = 0 below 27px depth, pulls up near the surface. Feel-confirm in a desktop playtest.
+
+## D-0010 — Sweetie 16 is the master palette (2026-07-03, Mario)
+Every procedural / generated visual draws from the **Sweetie 16** palette (GrafxKid), held in ONE
+place per side: `shaders/sweetie16.gdshaderinc` (const `SW_*` vec3s + `sw_petrol()` / `sw_fire()`
+ramps, `#include`d by the shaders) and `game/palette.gd` (`class_name Palette`, the same 16 as
+`Color` consts for GDScript particles/tints/UI). Applied this pass: the burning title now blazes on
+the `sw_fire` ramp (rose→coral→gold→foam); the oil slick's full-spectrum HSV rainbow is replaced by
+`sw_petrol` (an on-palette petrol shimmer through the cool tones) in `oil.gdshader` +
+`oil_surface.gdshader`; fish/kelp/bubbles/sparkles/spray/dash/drip tints all point at `Palette.*`.
+Edit a colour in the two source files and everything updates. Bug fixed alongside: the leak
+barrel's `StaticBody2D` is now freed on burst, so the axolotl no longer stands on an invisible box
+where the barrel was. Verified: 4.7 import + GL boot compile clean (no shader/script errors);
+shipped to lilaxol.vercel.app. Feel/eyeball-confirm the sheen + fire intensity on the live build.

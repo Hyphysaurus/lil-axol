@@ -42,3 +42,6 @@ static func style_button(b: Button) -> void:
 	b.add_theme_color_override("font_color", INK)
 	b.add_theme_color_override("font_hover_color", GOLD)
 	b.add_theme_color_override("font_focus_color", GOLD)
+	# every themed button gets a soft cozy click (SwishSwoosh "Cute UI"). Wiring it here — the one
+	# place every card routes through — means the ENTIRE UI gets tactile press feedback for free.
+	b.pressed.connect(func() -> void: Sfx.play("ui_tap", -7.0))

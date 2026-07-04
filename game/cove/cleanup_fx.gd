@@ -24,7 +24,7 @@ func pop(pos: Vector2) -> void:
 	burst.gravity = Vector2(0, 130.0)
 	burst.scale_amount_min = 0.6
 	burst.scale_amount_max = 1.9
-	burst.color = Color(0.85, 0.97, 1.0, 0.95)
+	burst.color = Color(Palette.FOAM, 0.95)   # bright clear-water sparkle
 	burst.z_index = 7
 	add_child(burst)
 	burst.finished.connect(burst.queue_free)
@@ -59,7 +59,7 @@ func spark(pos: Vector2) -> void:
 	s.gravity = Vector2(0, 90.0)
 	s.scale_amount_min = 0.5
 	s.scale_amount_max = 1.2
-	s.color = Color(0.9, 0.98, 1.0, 0.85)
+	s.color = Color(Palette.CYAN, 0.85)   # spray-point sparkle trail
 	s.z_index = 7
 	add_child(s)
 	s.finished.connect(s.queue_free)

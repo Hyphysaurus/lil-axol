@@ -23,6 +23,7 @@ var _oil: Node
 var _spr: Sprite2D
 var _drip: CPUParticles2D
 var _ring: Node2D
+var _body: StaticBody2D          # the barrel's physical collider — freed when it bursts
 var _capped := false
 var _cap_t := 0.0
 var _spray_cd := 0.0            # was the barrel sprayed very recently? (drives the cap meter)
@@ -53,9 +54,9 @@ func _add_solid() -> void:
 	var col := CollisionShape2D.new()
 	col.shape = box
 	col.position = Vector2(0.0, -box.size.y * 0.5)
-	var body := StaticBody2D.new()
-	body.add_child(col)
-	add_child(body)
+	_body = StaticBody2D.new()
+	_body.add_child(col)
+	add_child(_body)
 
 func setup(cfg: CoveConfig) -> void:
 	_cfg = cfg
@@ -97,6 +98,9 @@ func _burst() -> void:
 	_capped = true
 	_drip.emitting = false
 	_spr.visible = false
+	if is_instance_valid(_body):
+		_body.queue_free()           # the barrel's gone — drop its collider so the axo doesn't
+		_body = null                 # stand on an invisible box where the barrel used to be
 	(_ring as CapRing).progress = 0.0
 	get_tree().call_group("oil_manager", "spray_at", global_position + DRIP, BLAST_CLEAR, 0.9)
 	Sfx.play("explode", -7.0)        # the magical burst (Helton Yan)
@@ -135,7 +139,7 @@ func _make_drip() -> CPUParticles2D:
 	p.initial_velocity_max = 45.0
 	p.scale_amount_min = 0.8
 	p.scale_amount_max = 1.6
-	p.color = Color(0.06, 0.05, 0.08, 0.9)   # dark oil droplets
+	p.color = Color(Palette.INK, 0.9)   # dark oil droplets (on-palette darkest navy)
 	return p
 
 ## Small fill-ring over the barrel while you spray it, so neutralizing reads as deliberate.

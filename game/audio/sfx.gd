@@ -67,6 +67,24 @@ const BANK := {
 		],
 		"pitch": 1.1,
 	},
+	# Cozy UI family (SwishSwoosh "Cute UI"): a soft click for every button, a switch for toggles,
+	# a light swoosh when an overlay appears. Menus were reusing gameplay sounds before this.
+	"ui_tap": {
+		"streams": [
+			preload("res://assets/audio/sfx/ui_tap_1.wav"),
+			preload("res://assets/audio/sfx/ui_tap_2.wav"),
+			preload("res://assets/audio/sfx/ui_tap_3.wav"),
+		],
+		"pitch": 1.06,
+	},
+	"ui_toggle": {
+		"streams": [
+			preload("res://assets/audio/sfx/ui_toggle_1.wav"),
+			preload("res://assets/audio/sfx/ui_toggle_2.wav"),
+		],
+		"pitch": 1.05,
+	},
+	"ui_open": {"streams": [preload("res://assets/audio/sfx/ui_open.wav")], "pitch": 1.03},
 }
 
 const LOOPS := {

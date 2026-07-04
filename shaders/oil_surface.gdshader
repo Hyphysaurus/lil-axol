@@ -1,13 +1,15 @@
 shader_type canvas_item;
+#include "res://shaders/sweetie16.gdshaderinc"
 // Oil FILM on the water surface, driven by a coverage mask the player scrubs clean. Where the
 // mask's red channel is high the surface is an iridescent oily slick; where you've sprayed it
 // away it fades to transparent, revealing the clean water + sky reflection beneath. Drifting
 // fbm gives the slick a lobed, slowly-swirling edge so it reads as part of the water surface,
-// not a sprite sitting on top of it.
+// not a sprite sitting on top of it. The sheen uses the shared sw_petrol() ramp so the slick
+// shimmers in on-palette Sweetie 16 tones instead of a full neon rainbow.
 
 uniform sampler2D coverage : filter_linear;   // r = oil amount 0..1 across the water rect
-uniform vec4 oil_dark : source_color = vec4(0.03, 0.02, 0.05, 1.0);
-uniform float sheen : hint_range(0.0, 1.0) = 0.7;   // iridescent rainbow strength
+uniform vec4 oil_dark : source_color = vec4(0.102, 0.110, 0.173, 1.0);   // SW_INK — on-palette core
+uniform float sheen : hint_range(0.0, 1.0) = 0.7;   // iridescent sheen strength
 uniform float swirl_speed = 0.12;
 
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -27,11 +29,6 @@ float fbm(vec2 p) {
 	return v;
 }
 
-vec3 hsv(float h, float s, float v) {
-	vec3 k = clamp(abs(mod(h * 6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0);
-	return v * mix(vec3(1.0), k, s);
-}
-
 void fragment() {
 	float cov = texture(coverage, UV).r;
 	float t = TIME * swirl_speed;
@@ -41,10 +38,10 @@ void fragment() {
 	if (film < 0.004) {
 		COLOR = vec4(0.0);
 	} else {
-		// iridescent thin-film sheen, strongest toward the thinning (rim) of the slick
+		// iridescent thin-film petrol sheen, strongest toward the thinning (rim) of the slick
 		float edge = 1.0 - smoothstep(0.35, 0.9, cov);
-		float irid_h = fract(fbm(UV * 5.0 + vec2(-t, t)) * 2.2 + cov * 1.4);
-		vec3 irid = hsv(irid_h, 0.8, 1.0);
+		float irid_h = fbm(UV * 5.0 + vec2(-t, t)) * 2.2 + cov * 1.4;
+		vec3 irid = sw_petrol(irid_h);
 		vec3 c = mix(oil_dark.rgb, irid, edge * sheen + 0.10);
 		// faint glossy sway highlight
 		c += 0.10 * smoothstep(0.6, 1.0, fbm(UV * 3.0 + vec2(t * 0.5)));

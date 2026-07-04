@@ -73,13 +73,13 @@ func _pop() -> void:
 	p.gravity = Vector2(0, -24)
 	p.scale_amount_min = 0.7
 	p.scale_amount_max = 1.6
-	p.color = Color(0.8, 0.95, 1.0, 0.85)
+	p.color = Color(Palette.CYAN, 0.85)   # droplet burst, on-palette
 	p.z_index = 7
 	get_parent().add_child(p)
 	p.finished.connect(p.queue_free)
 	queue_free()
 
 func _draw() -> void:
-	draw_circle(Vector2.ZERO, R, Color(0.8, 0.95, 1.0, 0.10))
-	draw_arc(Vector2.ZERO, R, 0.0, TAU, 32, Color(0.9, 0.98, 1.0, 0.8), 1.5, true)
-	draw_arc(Vector2.ZERO, R - 4.0, -2.2, -1.1, 10, Color(1.0, 1.0, 1.0, 0.7), 1.5, true)
+	draw_circle(Vector2.ZERO, R, Color(Palette.CYAN, 0.10))                       # soft fill
+	draw_arc(Vector2.ZERO, R, 0.0, TAU, 32, Color(Palette.CYAN, 0.8), 1.5, true)  # bubble rim
+	draw_arc(Vector2.ZERO, R - 4.0, -2.2, -1.1, 10, Color(Palette.FOAM, 0.7), 1.5, true)  # glint

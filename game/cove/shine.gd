@@ -108,7 +108,7 @@ func _spawn_pop(amount: int, at: Vector2) -> void:
 	l.add_theme_font_size_override("font_size", 16)
 	var warm := clampf(float(mult - 1) / 3.0, 0.0, 1.0)
 	l.add_theme_color_override("font_color",
-		Color(0.95, 0.98, 1.0).lerp(Color(1.0, 0.84, 0.45), warm))
+		Palette.FOAM.lerp(Palette.GOLD, warm))   # cool at x1, warms toward gold with combo
 	l.add_theme_color_override("font_shadow_color", Color(0.02, 0.06, 0.10, 0.7))
 	l.z_index = 8
 	l.position = cove.to_local(at) + Vector2(-10.0, -14.0)

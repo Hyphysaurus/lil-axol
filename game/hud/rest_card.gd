@@ -34,7 +34,7 @@ func _toggle(on: bool) -> void:
 	if on:
 		Settings.push_ui_lock()
 		Sfx.loop("spray", false)        # physics can't release a held loop once frozen
-		Sfx.play("scrub", -12.0, 1.3)
+		Sfx.play("ui_open", -6.0)
 		_first_btn.grab_focus()         # pad/keyboard can navigate from here
 	else:
 		Settings.pop_ui_lock()

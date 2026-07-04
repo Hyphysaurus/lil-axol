@@ -45,21 +45,21 @@ size = Vector2(599, 75)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_grs"]
 shader = ExtResource("8_grs")
-shader_parameter/base_col = Color(0.16, 0.4, 0.18, 1)
-shader_parameter/tip_col = Color(0.48, 0.74, 0.34, 1)
-shader_parameter/blades = 64.0
+shader_parameter/base_col = Color(0.13, 0.36, 0.19, 1)
+shader_parameter/tip_col = Color(0.6, 0.86, 0.44, 1)
+shader_parameter/blades = 104.0
 shader_parameter/wind = 0.05
 shader_parameter/wind_speed = 1.4
-shader_parameter/height = 0.9
+shader_parameter/height = 1.0
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_grsF"]
 shader = ExtResource("8_grs")
-shader_parameter/base_col = Color(0.1, 0.26, 0.12, 1)
-shader_parameter/tip_col = Color(0.32, 0.54, 0.24, 1)
-shader_parameter/blades = 48.0
+shader_parameter/base_col = Color(0.09, 0.23, 0.12, 1)
+shader_parameter/tip_col = Color(0.36, 0.6, 0.28, 1)
+shader_parameter/blades = 80.0
 shader_parameter/wind = 0.06
 shader_parameter/wind_speed = 1.65
-shader_parameter/height = 0.9
+shader_parameter/height = 1.0
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_fnfnh"]
 shader = ExtResource("2_6pnl8")
