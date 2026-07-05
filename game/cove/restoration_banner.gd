@@ -9,6 +9,12 @@ extends CanvasLayer
 
 signal restored
 
+## The win payoff is OFF for now. Oil cleanliness alone is NOT a full restoration — that also
+## needs the rescued turtle awake and the thermal vents broken open. Firing "Cove Restored" (and
+## its downstream Tide Board prompt) on cleanliness alone declared victory too early. Flip this back
+## on — ideally after gating _on_clean on the turtle + vents too — once that loop is dialled in.
+const WIN_ENABLED := false
+
 const HOLD_SECONDS := 2.5
 const FADE_SPEED := 1.2
 const SUBLINE_SECONDS := 6.0
@@ -45,6 +51,8 @@ func _win_threshold() -> float:
 	return _cfg.win_threshold if _cfg else 0.999
 
 func _on_clean(v: float) -> void:
+	if not WIN_ENABLED:
+		return                     # premature win disabled — see WIN_ENABLED above
 	if not is_restored and v >= _win_threshold():
 		is_restored = true         # one-shot: only celebrate the first full restoration
 		_target = 1.0

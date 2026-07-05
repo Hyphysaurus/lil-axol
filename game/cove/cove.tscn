@@ -30,6 +30,8 @@
 [ext_resource type="Script" path="res://game/cove/shore_pollution.gd" id="28_shorepol"]
 [ext_resource type="Script" path="res://game/cove/thermal_vent.gd" id="29_vent"]
 [ext_resource type="Script" path="res://game/hud/hints.gd" id="30_hints"]
+[ext_resource type="Script" path="res://game/cove/block_land.gd" id="31_land"]
+[ext_resource type="Script" path="res://game/cove/land_nook.gd" id="32_nook"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_sn0t7"]
 size = Vector2(255, 280)
@@ -136,6 +138,7 @@ scale = Vector2(0.9877633, 1)
 shape = SubResource("RectangleShape2D_sn0t7")
 
 [node name="Sand" type="Sprite2D" parent="Beach" unique_id=307852546]
+visible = false
 material = SubResource("ShaderMaterial_sand")
 position = Vector2(-394, -39)
 scale = Vector2(252, 280)
@@ -153,6 +156,7 @@ color = Color(0.11, 0.16, 0.23, 1)
 polygon = PackedVector2Array(-142, 150, 457, 150, 457, 241, -142, 241)
 
 [node name="Grass" type="Sprite2D" parent="." unique_id=771000001]
+visible = false
 z_index = 1
 material = SubResource("ShaderMaterial_grs")
 position = Vector2(-394, -66)
@@ -161,12 +165,26 @@ texture = ExtResource("2_xbt28")
 centered = false
 
 [node name="GrassFront" type="Sprite2D" parent="." unique_id=771000006]
+visible = false
 z_index = 3
 material = SubResource("ShaderMaterial_grsF")
 position = Vector2(-394, -52)
 scale = Vector2(252, 14)
 texture = ExtResource("2_xbt28")
 centered = false
+
+[node name="BlockLand" type="Node2D" parent="."]
+position = Vector2(-394, -39)
+script = ExtResource("31_land")
+cols = 32
+
+[node name="LandNook1" type="Node2D" parent="."]
+position = Vector2(-336, -44)
+script = ExtResource("32_nook")
+
+[node name="LandNook2" type="Node2D" parent="."]
+position = Vector2(-192, -44)
+script = ExtResource("32_nook")
 
 [node name="Water" type="Sprite2D" parent="." unique_id=575328831]
 z_index = 5

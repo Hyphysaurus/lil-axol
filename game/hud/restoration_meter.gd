@@ -7,6 +7,7 @@ extends CanvasLayer
 ## oil_manager group; hides while any menu is up. Purely visual.
 
 const MILESTONES := [0.25, 0.5, 0.75, 1.0]
+const DISPLAY_FONT := preload("res://assets/fonts/LilitaOne.ttf")   # matches the Shine score font
 
 var _clean := 0.0
 var _shown := 0.0              # smoothed display value, so the bar glides
@@ -59,6 +60,7 @@ func _build() -> void:
 
 	_label = Label.new()
 	_label.text = "0% restored"
+	_label.add_theme_font_override("font", DISPLAY_FONT)
 	_label.add_theme_font_size_override("font_size", 20)
 	_label.add_theme_color_override("font_color", Color(0.92, 0.97, 1.0, 0.85))
 	_label.add_theme_color_override("font_shadow_color", Color(0.03, 0.08, 0.12, 0.8))

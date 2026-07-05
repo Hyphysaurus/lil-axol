@@ -1,6 +1,6 @@
 shader_type canvas_item;
 render_mode blend_add;
-#include "res://shaders/sweetie16.gdshaderinc"
+#include "res://shaders/apollo.gdshaderinc"
 // Soft god-rays raking down through the water column. Additive (blend_add) so they brighten the
 // water rather than paint over it; brightest just under the surface and fading with depth, drifting
 // slowly sideways. A few overlapping sine bands at different frequencies make the shafts irregular

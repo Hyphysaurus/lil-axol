@@ -1,5 +1,5 @@
 shader_type canvas_item;
-#include "res://shaders/sweetie16.gdshaderinc"
+#include "res://shaders/apollo.gdshaderinc"
 // Tiny procedural fish: ellipse body + triangular tail + eye. Faces +x (flip_h for -x).
 // Drawn on a small white Sprite2D; per-fish colour via the body_col / fin_col uniforms
 // (cove_life sets these from the shared palette). Defaults + the eye are on-palette too.

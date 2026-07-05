@@ -19,9 +19,12 @@ func _ready() -> void:
 	layer = 94                  # under the banner's corner sun (95), over the meters (92)
 	_build()
 	_root.visible = false
-	var banner = get_tree().get_first_node_in_group("restoration")
-	if banner and banner.has_signal("restored"):
-		banner.restored.connect(_on_restored)
+	# The Tide Board auto-popup is OFF for now — it locked the player behind an initials modal
+	# before the cove was truly restored (turtle + vents still pending). Re-enable by reconnecting
+	# to the banner's `restored` signal here once the full-restoration win is back on.
+	#var banner = get_tree().get_first_node_in_group("restoration")
+	#if banner and banner.has_signal("restored"):
+	#	banner.restored.connect(_on_restored)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if _root.visible and (event.is_action_pressed("ui_cancel") or event.is_action_pressed("menu")):

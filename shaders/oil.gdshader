@@ -1,5 +1,5 @@
 shader_type canvas_item;
-#include "res://shaders/sweetie16.gdshaderinc"
+#include "res://shaders/apollo.gdshaderinc"
 // Oil slick floating on water: an organic lobed blob with a dark core, an iridescent thin-film
 // sheen toward the rim, and a glossy highlight. The sheen slowly swirls. `amount` 1 = full slick,
 // 0 = cleaned (the blob shrinks + fades out). The iridescence is the shared sw_petrol() ramp —

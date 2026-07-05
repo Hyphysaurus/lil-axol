@@ -40,6 +40,8 @@ class_name CharacterAnimSet
 @export var wall_climb: StringName = &"wallclimb"
 
 ## Shell tuck/emerge for the turtle companion's demolition ram. Empty for characters with no shell.
+## The SHIELD BASH keeps the turtle in its shell (shell_tuck / hide) and lunges into the rock — the
+## forward jab + debris sell each hit, so no separate attack pose is used.
 @export_group("Shell")
 @export var shell_tuck: StringName = &"hide"
 @export var shell_emerge: StringName = &"unhide"

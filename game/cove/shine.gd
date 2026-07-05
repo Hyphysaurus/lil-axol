@@ -11,6 +11,7 @@ signal score_changed(score: int, mult: int)
 signal charge_changed(frac: float)
 signal bubble_ready
 
+const DISPLAY_FONT := preload("res://assets/fonts/LilitaOne.ttf")   # chunky rounded font for the "+N" pops
 const BASE := 10000.0          # Shine for scrubbing the whole spill at x1
 const CHARGE_COST := 1500.0    # unmultiplied base-Shine per Bubble Bomb
 const CHARGE_EVENT_CAP := 60.0 # max charge from any single scrub event: a bubble pop is ONE
@@ -49,10 +50,14 @@ func _on_scrubbed(frac: float, at: Vector2) -> void:
 	_pop_at = at
 
 func _on_clean(v: float) -> void:
-	# escalating milestone bonuses alongside the chimes (score only, no charge)
+	# escalating MILESTONE bonuses at 25/50/75% — a real reward (2.5k/5k/7.5k) with a celebratory
+	# chime + a big "+N" pop, so hitting a quarter reads as an event, not a rounding error.
 	while _milestone < 3 and v >= [0.25, 0.5, 0.75][_milestone]:
 		_milestone += 1
-		_award(250.0 * float(_milestone), 0.0)
+		var reward := 2500.0 * float(_milestone)
+		_award(reward, 0.0)
+		_pop_acc += reward                      # show it as a fat "+N" at the last scrub spot
+		Sfx.play("whimsy", -3.0, 1.1 + 0.12 * float(_milestone))   # rising celebratory sparkle
 
 func _award(score_pts: float, charge_pts: float) -> void:
 	score += score_pts
@@ -86,6 +91,8 @@ func _process(delta: float) -> void:
 		_sustain += delta
 		var target := mini(1 + int(_sustain / COMBO_STEP), MAX_MULT)
 		if target != mult:
+			if target > mult:
+				Sfx.play("whimsy", -8.0, 1.0 + 0.16 * float(target))   # rising pitch each combo tier up
 			mult = target
 			score_changed.emit(int(score), mult)
 	elif mult != 1 or _sustain > 0.0:
@@ -98,23 +105,28 @@ func _process(delta: float) -> void:
 		_spawn_pop(int(round(_pop_acc)), _pop_at)
 		_pop_acc = 0.0
 
-## A small "+N" that rises from the scrub spot and melts away. Warmer with higher combo.
+## A "+N" that BOUNCES up from the scrub spot and melts away — bigger, warmer, and bouncier the
+## higher your combo. On the chunky Lilita One font so the numbers feel good.
 func _spawn_pop(amount: int, at: Vector2) -> void:
 	var cove := get_parent() as Node2D
 	if cove == null:
 		return
+	var warm := clampf(float(mult - 1) / 3.0, 0.0, 1.0)
 	var l := Label.new()
 	l.text = "+%d" % amount
-	l.add_theme_font_size_override("font_size", 16)
-	var warm := clampf(float(mult - 1) / 3.0, 0.0, 1.0)
-	l.add_theme_color_override("font_color",
-		Palette.FOAM.lerp(Palette.GOLD, warm))   # cool at x1, warms toward gold with combo
-	l.add_theme_color_override("font_shadow_color", Color(0.02, 0.06, 0.10, 0.7))
+	l.add_theme_font_override("font", DISPLAY_FONT)
+	l.add_theme_font_size_override("font_size", 18 + int(12.0 * warm))   # bigger with combo
+	l.add_theme_color_override("font_color", Palette.FOAM.lerp(Palette.GOLD, warm))
+	l.add_theme_color_override("font_shadow_color", Color(0.02, 0.06, 0.10, 0.75))
+	l.add_theme_constant_override("shadow_offset_x", 1)
+	l.add_theme_constant_override("shadow_offset_y", 2)
 	l.z_index = 8
 	l.position = cove.to_local(at) + Vector2(-10.0, -14.0)
+	l.pivot_offset = Vector2(12.0, 10.0)
+	l.scale = Vector2(1.5, 1.5)
 	cove.add_child(l)
-	var tw := l.create_tween()
-	tw.set_parallel(true)
-	tw.tween_property(l, "position:y", l.position.y - 22.0, 0.8).set_ease(Tween.EASE_OUT)
-	tw.tween_property(l, "modulate:a", 0.0, 0.8).set_ease(Tween.EASE_IN)
+	var tw := l.create_tween().set_parallel(true)
+	tw.tween_property(l, "scale", Vector2.ONE, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(l, "position:y", l.position.y - 26.0, 0.85).set_ease(Tween.EASE_OUT)
+	tw.tween_property(l, "modulate:a", 0.0, 0.4).set_delay(0.5)
 	tw.chain().tween_callback(l.queue_free)

@@ -23,10 +23,14 @@ const FOLLOW_GAP := 30.0       # stops this far from the player
 const FOLLOW_SPEED := 3.2      # lerp rate toward the follow point
 const HELP_EVERY := 3.5        # seconds between helper scrubs
 const HELP_RADIUS := 14.0
-const DEMOLISH_RADIUS := 34.0  # its demolition reach once it arrives at the marked rubble
-const COMMAND_SPEED := 5.0     # swims to a click-marked spot faster than it follows (on a mission)
-const COMMAND_ARRIVE := 26.0   # within this of the mark counts as "there" — then it rams
-const CHARGE_DIST := 60.0      # tucks into its shell and charges the last stretch — a shell-ram
+const DEMOLISH_RADIUS := 40.0  # its demolition reach once it arrives at the marked rubble
+const BASH_INTERVAL := 0.32    # one shell-swing carves this often — paced so the ram READS as
+                               # repeated bashing (not an instant vaporise)
+const LUNGE_REACH := 8.0       # how far the shell jabs forward on the swing that connects
+const MAX_COMMAND_TIME := 8.0  # a demolition run always ends by here (anti-stuck safety net)
+const CHARGE_SPEED := 220.0    # px/s shelled dash to the mark — it shells up the INSTANT you command it
+const COMMAND_ARRIVE := 10.0   # dashes right onto the tapped spot before it rams (so it clears a
+                               # nook-sized cluster in one command, not leaving a sliver)
 const BOB_AMP := 2.5
 const BONUS := 500.0
 
@@ -40,8 +44,11 @@ var _progress := 0.0
 var _help_t := 0.0
 var _commanding := false
 var _command_local := Vector2.ZERO
-var _ramming := false              # shelled + smashing (vs swimming) during a command
-var _ram_fx_t := 0.0
+var _bash_t := 0.0                 # counts down to the next shell-swing while demolishing
+var _lunge := 0.0                  # 1 on a swing, decays -> the shell's forward jab offset
+var _tucked := false               # true once it's tucked into its shell for this run
+var _bashing := false              # false = swimming to the mark, true = grinding the rubble
+var _cmd_t := 0.0                  # elapsed command time (drives the anti-stuck timeout)
 var _zzz: CPUParticles2D           # sleepy oil bubbles that draw the eye to the matted friend
 var _oil_a := 1.0                  # alpha of the dark oil stain drawn under the friend (washed to 0)
 var _t := 0.0
@@ -111,20 +118,27 @@ func _process(delta: float) -> void:
 	var axo := get_tree().get_first_node_in_group("player") as Node2D
 	if axo == null:
 		return
-	# follow point: near the player, but a water creature won't beach itself — if the
-	# tidekeeper walks ashore, wait at the water's edge (it reads as loyalty)
+	# follow the tidekeeper anywhere — this little turtle has legs, so it climbs up OUT of the water
+	# onto land to keep up (swims below the surface, hops/walks above it)
 	var target := (get_parent() as Node2D).to_local(axo.global_position) + Vector2(0.0, -6.0)
-	target.x = clampf(target.x, _cfg.water_left + 14.0, _cfg.water_right - 14.0)
-	target.y = maxf(target.y, _cfg.surface_y + 10.0)
+	target.x = clampf(target.x, _cfg.water_left + 8.0, _cfg.water_right - 8.0)
+	target.y = minf(target.y, _cfg.seabed_y)          # never sink through the floor; free to rise ashore
 	var gap := target - position
+	var in_water := position.y > _cfg.surface_y + 4.0
 	if gap.length() > FOLLOW_GAP:
 		position += gap * clampf(FOLLOW_SPEED * delta, 0.0, 1.0)
 		if absf(gap.x) > 4.0:
 			_face = signf(gap.x)
-		_anims.play(anims.swim, _face)
+		if in_water:
+			_anims.play(anims.swim, _face)            # paddling through the water
+		elif gap.y < -18.0:
+			_anims.play(anims.jump, _face)            # hopping up out of the water / onto a ledge
+		else:
+			_anims.play(anims.run if gap.length() > 70.0 else anims.walk, _face)   # trotting on land
 	else:
-		_anims.play(anims.swim_idle, _face)
-	position.y += sin(_t * 2.4) * BOB_AMP * delta
+		_anims.play(anims.swim_idle if in_water else anims.idle, _face)
+	if in_water:
+		position.y += sin(_t * 2.4) * BOB_AMP * delta   # a gentle float, only while submerged
 	# a little helper, not a replacement: scrub a small patch when there's film above us
 	_help_t -= delta
 	if _help_t <= 0.0:
@@ -159,46 +173,75 @@ func command_to(world: Vector2) -> void:
 		return
 	_command_local = (get_parent() as Node2D).to_local(world)
 	_commanding = true
+	_bashing = false
+	_cmd_t = 0.0
+	_bash_t = BASH_INTERVAL          # wind up once before the first swing lands
+	_lunge = 0.0
+	_spr.position.x = 0.0
+	if absf(_command_local.x - position.x) > 4.0:
+		_face = signf(_command_local.x - position.x)   # face the target before shelling
+	_tucked = false
+	_tuck()                          # shell up the INSTANT you command it (foam-masked), then dash
 	_ping(_command_local)
 
-## Swim to the marked spot (kept inside the water), then ram any rubble there until it's clear.
+## A demolition run: swim to the tapped mark, then GRIND through the whole rubble cluster there —
+## drifting to reach every remaining cell — bashing on a beat until nothing's left, then emerge and
+## rejoin. Shelled the whole time (tucked exactly once, with a foam mask). A timeout guarantees the
+## run can never hang.
 func _run_command(delta: float) -> void:
-	var tgt := _command_local
-	tgt.x = clampf(tgt.x, _cfg.water_left + 14.0, _cfg.water_right - 14.0)
-	tgt.y = clampf(tgt.y, _cfg.surface_y + 10.0, _cfg.seabed_y)
-	var gap := tgt - position
-	var dist := gap.length()
-	if dist > COMMAND_ARRIVE:
-		# tuck into the shell and CHARGE the last stretch — the classic turtle shell-ram
-		if dist < CHARGE_DIST:
-			if not _ramming:
-				_anims.play(anims.shell_tuck, _face)   # tuck (plays once, holds on the shell frame)
-				_ramming = true
-		else:
-			_ramming = false
-			_anims.play(anims.swim, _face)
-		if absf(gap.x) > 4.0:
-			_face = signf(gap.x)
-		position += gap * clampf(COMMAND_SPEED * delta, 0.0, 1.0)
-		position.y += sin(_t * 2.4) * BOB_AMP * delta
+	_cmd_t += delta
+	if _cmd_t > MAX_COMMAND_TIME:          # anti-stuck safety net
+		_end_command()
 		return
-	# arrived — smash the rubble (already shelled from the charge)
-	if not _ramming:
-		_anims.play(anims.shell_tuck, _face)
-		_ramming = true
+	# --- CHARGE: already shelled (tucked on command) — dash to the mark at a constant, punchy speed ---
+	if not _bashing:
+		# reach the WHOLE cove — the water AND up onto the beach (it has legs) — so you can send it at
+		# a land nook, not just a submerged vent. Bounds relax ~a beach-width left + above the waterline.
+		var mark := _command_local
+		mark.x = clampf(mark.x, _cfg.water_left - 260.0, _cfg.water_right - 14.0)
+		mark.y = clampf(mark.y, _cfg.surface_y - 70.0, _cfg.seabed_y)
+		var gap := mark - position
+		if gap.length() > COMMAND_ARRIVE:
+			if absf(gap.x) > 4.0:
+				_face = signf(gap.x)
+			position += gap.normalized() * minf(CHARGE_SPEED * delta, gap.length())
+			return
+		_bashing = true                    # reached the mark -> start smashing
+	# --- BASH: shelled, bash EXACTLY where you sent it until that spot's rubble is gone (it stays
+	# put — no auto-hunting for other rubble; you direct each strike) ---
+	_tuck()                                # ensure shelled (covers a very close tap)
+	_lunge = move_toward(_lunge, 0.0, delta * 7.0)
+	_spr.position.x = _face * _lunge * LUNGE_REACH
+	_bash_t -= delta
+	if _bash_t > 0.0:
+		return                             # winding up / recoiling between swings
+	_bash_t = BASH_INTERVAL
 	var hit := 0
 	for b in get_tree().get_nodes_in_group("blastable"):
 		if b.has_method("blast"):
 			hit += b.blast(global_position, DEMOLISH_RADIUS)
 	if hit > 0:
-		_ram_fx_t -= delta
-		if _ram_fx_t <= 0.0:              # throttle the spray burst so it doesn't machine-gun
-			_ram_fx_t = 0.14
-			_ram_fx()
-	else:                                 # nothing left to break -> emerge and rejoin you
-		_anims.play(anims.shell_emerge, _face)
-		_ramming = false
-		_commanding = false
+		_lunge = 1.0                       # snap the shell forward on the swing that connects
+		_ram_fx()
+	else:                                  # the tapped spot is clear -> emerge and rejoin you
+		_end_command()
+
+## Tuck into the shell exactly once per run — a foam burst masks the transform so the tuck frames
+## never read as janky.
+func _tuck() -> void:
+	if _tucked:
+		return
+	_tucked = true
+	_anims.play(anims.shell_tuck, _face)
+	_shell_puff(18, 120.0, 3.2, Color(Palette.FOAM, 0.92))
+	Sfx.play("splash", -8.0, 1.2)
+
+## Pop out of the shell and hand back to following — a smaller foam pop marks the final impact.
+func _end_command() -> void:
+	_spr.position.x = 0.0
+	_shell_puff(11, 85.0, 2.3, Color(Palette.FOAM, 0.85))
+	_anims.play(anims.shell_emerge, _face)
+	_commanding = false
 
 ## A soft "go here" ring where you clicked, so the command reads.
 func _ping(local: Vector2) -> void:
@@ -243,6 +286,30 @@ func _draw() -> void:
 	draw_circle(Vector2(-8.0, 6.0), 15.0, Color(Palette.INK, a))
 	draw_circle(Vector2(11.0, 7.0), 12.0, Color(Palette.INK, a))
 	draw_circle(Vector2(1.0, 9.0), 19.0, Color(Palette.INK, a * 0.9))
+
+## A quick foam burst that MASKS a shell transition — the turtle vanishes into the splash and comes
+## out in its new stance, so the transition frames never read as awkward. Used big for the tuck-in on
+## the charge, and as a smaller pop on the emerge so the final impact reads. `amount`/`vmax`/`scale`
+## scale the puff.
+func _shell_puff(amount: int, vmax: float, scale_max: float, tint: Color) -> void:
+	var p := CPUParticles2D.new()
+	p.one_shot = true
+	p.emitting = true
+	p.amount = amount
+	p.lifetime = 0.5
+	p.explosiveness = 0.95
+	p.spread = 180.0
+	p.initial_velocity_min = vmax * 0.4
+	p.initial_velocity_max = vmax
+	p.gravity = Vector2(0.0, 70.0)
+	p.damping_min = 30.0
+	p.damping_max = 80.0
+	p.scale_amount_min = 1.0
+	p.scale_amount_max = scale_max
+	p.color = tint
+	p.z_index = 12                        # over the turtle sprite (z 9), masking the transition
+	add_child(p)
+	p.finished.connect(p.queue_free)
 
 ## A burst of water wake + spray thrown forward as the shell grinds into the rock.
 func _ram_fx() -> void:

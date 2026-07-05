@@ -14,23 +14,23 @@ class_name DestructibleRock
 signal cleared     # fires ONCE when the last cell is demolished (a thermal vent cap listens for this)
 
 const CELL := 8.0                 # px per rock cell — smaller = smoother carve, more cells
-const CHIP_EVERY := 0.10          # sustained close spray chips the rock every this many seconds
-const CHIP_RADIUS := 7.0          # the jet carves a small spot; demolition blasts are far bigger
 
 @export var cols := 12
 @export var rows := 9
 @export var edge := 0.92          # <1 rounds/erodes the outline into an irregular lump
+## Per-cell fill lerps tone_a -> tone_b. Default = cool stone (vent caps); set to LOAM/CLAY for the
+## warm earthen rubble of the block-land's breakable nooks.
+@export var tone_a: Color = Palette.SLATE
+@export var tone_b: Color = Palette.STEEL
 
 var _present: Array = []          # rows×cols of bool — is this cell still solid?
 var _shapes: Array = []           # rows×cols of CollisionShape2D (null where eroded at spawn)
 var _body: StaticBody2D           # one body owns every cell's collision shape
-var _chip_acc := 0.0              # accumulates close-spray time toward the next chip
 var _remaining := 0              # solid cells still standing; when it hits 0, `cleared` fires
 var _emptied := false
 
 func _ready() -> void:
-	add_to_group("blastable")
-	add_to_group("sprayable")      # sustained spray also chips it (slow hand-mining)
+	add_to_group("blastable")      # ONLY the turtle's ram + the bubble bomb break rubble (not spray)
 	z_index = 2
 	_body = StaticBody2D.new()     # default collision layer = the axolotl bumps it for free
 	add_child(_body)
@@ -72,33 +72,17 @@ func _draw() -> void:
 			if not _present[r][c]:
 				continue
 			var p := _center(c, r) - Vector2(CELL, CELL) * 0.5
-			# on-palette rock with per-cell tonal variation, plus a dark grid edge for a chunky read
-			var tone := Palette.SLATE.lerp(Palette.STEEL, 0.25 + 0.55 * _hash(c, r))
+			# per-cell tonal variation (tone_a->tone_b), plus a dark grid edge for a chunky read
+			var tone := tone_a.lerp(tone_b, 0.25 + 0.55 * _hash(c, r))
 			draw_rect(Rect2(p, Vector2(CELL, CELL)), tone)
 			draw_rect(Rect2(p, Vector2(CELL, CELL)), Color(Palette.INK, 0.5), false, 1.0)
 
-## Carve every solid cell within `radius` of a world point. Called via the "blastable" group by
-## blast sources (bubble bomb pop today; turtle demolition tomorrow). `_power` reserved for later
+## Carve every solid cell within `radius` of a world point, returning the count removed (0 = nothing
+## there, so a blast source knows whether it connected). Called via the "blastable" group by the two
+## things that break rubble — the turtle's shell-ram and the bubble bomb. `_power` reserved for later
 ## (multi-hit rubble that cracks before it clears).
 func blast(world_pos: Vector2, radius: float, _power := 1.0) -> int:
-	return _carve(to_local(world_pos), radius, true)
-
-## Sustained close spray slowly CHIPS the rock (hand-mining) — a friction-free way to break it,
-## far slower than a demolition blast. Reaches us via the "sprayable" group like the oil does.
-func spray_at(world_pos: Vector2, _radius: float, delta: float) -> void:
 	var local := to_local(world_pos)
-	if _nearest_solid_dist(local) > CHIP_RADIUS + CELL:   # the jet isn't on the rock
-		_chip_acc = 0.0
-		return
-	_chip_acc += delta
-	if _chip_acc >= CHIP_EVERY:
-		_chip_acc = 0.0
-		_carve(local, CHIP_RADIUS, false)
-
-## Remove every solid cell within `radius` of a rock-local point. Returns the count removed (0 =
-## nothing there) so a blast source (the turtle) knows whether it connected. `is_blast` picks the
-## demolition boom vs the softer chip scrape.
-func _carve(local: Vector2, radius: float, is_blast: bool) -> int:
 	var removed := 0
 	var center := Vector2.ZERO
 	for r in rows:
@@ -118,19 +102,8 @@ func _carve(local: Vector2, radius: float, is_blast: bool) -> int:
 		cleared.emit()             # the cap is fully gone -> the vent beneath can open
 	queue_redraw()
 	_shatter(position + center / float(removed), removed)
-	if is_blast:
-		Sfx.play("break", -7.0)            # heavy stone smash (turtle ram / bubble bomb)
-	else:
-		Sfx.play("scrub", -12.0, 0.7)      # a rocky scrape as the jet chips
+	Sfx.play("break", -7.0)        # heavy stone smash (turtle ram / bubble bomb)
 	return removed
-
-func _nearest_solid_dist(local: Vector2) -> float:
-	var best := INF
-	for r in rows:
-		for c in cols:
-			if _present[r][c]:
-				best = minf(best, _center(c, r).distance_to(local))
-	return best
 
 ## Chunky rock bits fly out of the carve, scaled to how much was removed.
 func _shatter(cove_pos: Vector2, amount: int) -> void:

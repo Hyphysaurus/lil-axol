@@ -7,6 +7,7 @@ extends Node2D
 ## fish once the water is partway healed). Geometry + counts come from the injected CoveConfig.
 
 const WHITE := preload("res://assets/white.png")
+const BUBBLE_TEX := preload("res://assets/fx/bubble.png")   # Mario's hand-drawn bubble (Pixquare)
 const KELP_SHADER := preload("res://shaders/wind_grass.gdshader")   # reused, tinted as kelp
 # the fish school is real sprite art now (Smolque Pixel Fish Pack — 32x32, single pose each).
 # cove_life just darts + flips them and fades them in as the water heals; the old procedural
@@ -172,9 +173,11 @@ func _spawn_bubbles() -> void:
 	p.gravity = Vector2(0, -14.0)
 	p.initial_velocity_min = 8.0
 	p.initial_velocity_max = 20.0
-	p.scale_amount_min = 0.6
-	p.scale_amount_max = 1.6
-	p.color = Color(Palette.CYAN, 0.5)   # rising vent bubbles, on-palette
+	p.texture = BUBBLE_TEX               # Mario's hand-drawn bubble sprite
+	p.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST   # crisp pixels
+	p.scale_amount_min = 0.28            # 32px sprite -> ~9..24px rising bubbles
+	p.scale_amount_max = 0.72
+	p.color = Color(1.0, 1.0, 1.0, 0.85) # white so the bubble's own teal/highlight colours show
 	p.z_index = 4
 	p.modulate.a = 0.0            # vents wake with the global heal, not per-spot
 	add_child(p)

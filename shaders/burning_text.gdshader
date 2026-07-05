@@ -1,5 +1,5 @@
 shader_type canvas_item;
-#include "res://shaders/sweetie16.gdshaderinc"
+#include "res://shaders/apollo.gdshaderinc"
 // Burning-text effect for a Label/RichTextLabel. It keeps the glyph SHAPE (from the font
 // texture's alpha) but recolours it with a live fire gradient — hot at the base, cooling to
 // yellow-white up top — and adds rising flame noise + a flicker, so the wordmark reads as if

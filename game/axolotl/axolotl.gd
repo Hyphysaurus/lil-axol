@@ -100,9 +100,11 @@ func _ready() -> void:
 	_bubbles.initial_velocity_min = 8.0
 	_bubbles.initial_velocity_max = 18.0
 	_bubbles.gravity = Vector2(0, -26)   # bubbles drift up
-	_bubbles.scale_amount_min = 0.4
-	_bubbles.scale_amount_max = 1.1
-	_bubbles.color = Color(Palette.CYAN, 0.55)   # swim bubble trail
+	_bubbles.texture = preload("res://assets/fx/bubble.png")   # Mario's hand-drawn bubble sprite
+	_bubbles.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_bubbles.scale_amount_min = 0.12     # small swim-trail bubbles (~4..11px)
+	_bubbles.scale_amount_max = 0.34
+	_bubbles.color = Color(1.0, 1.0, 1.0, 0.7)   # white so the bubble's own colours show
 	_bubbles.z_index = 6
 	add_child(_bubbles)
 

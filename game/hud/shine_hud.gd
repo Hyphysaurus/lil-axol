@@ -4,6 +4,8 @@ extends CanvasLayer
 ## Sits below the banner's corner-sun spot; hides while any menu is up. Pure view over
 ## the "shine" group's signals.
 
+const DISPLAY_FONT := preload("res://assets/fonts/LilitaOne.ttf")   # chunky rounded score/combo font
+
 var _score := 0
 var _shown := 0.0              # rolling display value
 var _mult := 1
@@ -25,12 +27,21 @@ func _ready() -> void:
 func _on_score(score: int, mult: int) -> void:
 	_score = score
 	if mult != _mult:
+		var climbed := mult > _mult
 		_mult = mult
-		_combo.text = "x%d" % mult   # ASCII x — the pixel font has no reliable multiplication glyph
+		_combo.text = "x%d" % mult
 		_combo.visible = mult > 1
 		var warm := clampf(float(mult - 1) / 3.0, 0.0, 1.0)
 		_combo.add_theme_color_override("font_color",
 			Color(0.95, 0.98, 1.0).lerp(Color(1.0, 0.78, 0.35), warm))
+		if climbed and mult > 1:
+			_pop_combo()
+
+## A satisfying scale-pop on the combo badge each time the multiplier climbs a tier.
+func _pop_combo() -> void:
+	_combo.scale = Vector2(1.7, 1.7)
+	_combo.create_tween().tween_property(_combo, "scale", Vector2.ONE, 0.35) \
+		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 func _process(delta: float) -> void:
 	if _shown < float(_score):
@@ -56,21 +67,28 @@ func _build() -> void:
 
 	_combo = Label.new()
 	_combo.visible = false
-	_combo.add_theme_font_size_override("font_size", 24)
+	_combo.add_theme_font_override("font", DISPLAY_FONT)
+	_combo.add_theme_font_size_override("font_size", 28)
+	_combo.pivot_offset = Vector2(15.0, 15.0)   # scale-pop from ~centre
 	row.add_child(_combo)
 
 	_label = Label.new()
 	_label.text = "0"
-	_label.add_theme_font_size_override("font_size", 24)
-	_label.add_theme_color_override("font_color", Color(0.92, 0.97, 1.0, 0.9))
-	_label.add_theme_color_override("font_shadow_color", Color(0.03, 0.08, 0.12, 0.8))
+	_label.add_theme_font_override("font", DISPLAY_FONT)
+	_label.add_theme_font_size_override("font_size", 28)
+	_label.add_theme_color_override("font_color", Color(0.92, 0.97, 1.0, 0.95))
+	_label.add_theme_color_override("font_shadow_color", Color(0.03, 0.08, 0.12, 0.85))
+	_label.add_theme_constant_override("shadow_offset_x", 1)
+	_label.add_theme_constant_override("shadow_offset_y", 2)
 	row.add_child(_label)
 
 	_orb = ChargeOrb.new()
 	row.add_child(_orb)
 
-## The Bubble Bomb charge: a small orb that fills bottom-up and shimmers when full.
+## The Bubble Bomb charge, drawn as Mario's bubble sprite: it fades + swells in as it fills, shimmers
+## when full, and a ring swells off it when it's ready to pop.
 class ChargeOrb extends Control:
+	const BUB := preload("res://assets/fx/bubble.png")
 	var charge := 0.0:
 		set(v):
 			charge = v
@@ -79,26 +97,26 @@ class ChargeOrb extends Control:
 	var _t := 0.0
 
 	func _init() -> void:
-		custom_minimum_size = Vector2(22.0, 22.0)
+		custom_minimum_size = Vector2(26.0, 26.0)
 		mouse_filter = Control.MOUSE_FILTER_IGNORE
+		texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 
 	func tick(delta: float) -> void:
 		_t += delta
 		pulse = maxf(0.0, pulse - delta * 0.6)
-		if charge >= 1.0 or pulse > 0.0:
+		if charge > 0.0 or pulse > 0.0:
 			queue_redraw()
 
 	func _draw() -> void:
 		var c := size / 2.0
-		var r := 9.0
-		draw_arc(c, r, 0.0, TAU, 28, Color(0.9, 0.97, 1.0, 0.35), 1.5, true)
-		if charge > 0.0:
-			# fill rises bottom-up inside the ring
-			var full := charge >= 1.0
-			var col := Color(0.55, 0.9, 1.0, 0.75) if not full \
-				else Color(0.75, 0.97, 1.0, 0.85 + 0.15 * sin(_t * 6.0))
-			var h := (r * 2.0 - 3.0) * clampf(charge, 0.0, 1.0)
-			draw_rect(Rect2(c.x - r + 1.5, c.y + r - 1.5 - h, r * 2.0 - 3.0, h), col)
+		var f := clampf(charge, 0.0, 1.0)
+		var full := charge >= 1.0
+		# the bubble grows + brightens as it charges; a faint one always marks the empty orb
+		var a := 0.22 + 0.78 * f
+		var sc := (0.55 + 0.45 * f) * (1.0 + 0.12 * pulse)
+		var tint := Color(1.0, 1.0, 1.0, 0.85 + 0.15 * sin(_t * 6.0)) if full else Color(1.0, 1.0, 1.0, a)
+		var sz := Vector2(24.0, 24.0) * sc
+		draw_texture_rect(BUB, Rect2(c - sz * 0.5, sz), false, tint)
 		if pulse > 0.0:   # ready! ring swells off the orb
-			draw_arc(c, r + 8.0 * (1.0 - pulse), 0.0, TAU, 28,
+			draw_arc(c, 13.0 + 8.0 * (1.0 - pulse), 0.0, TAU, 28,
 				Color(0.95, 0.99, 1.0, 0.8 * pulse), 2.0, true)

@@ -1,5 +1,5 @@
 shader_type canvas_item;
-#include "res://shaders/sweetie16.gdshaderinc"
+#include "res://shaders/apollo.gdshaderinc"
 // Oil FILM on the water surface, driven by a coverage mask the player scrubs clean. Where the
 // mask's red channel is high the surface is an iridescent oily slick; where you've sprayed it
 // away it fades to transparent, revealing the clean water + sky reflection beneath. Drifting

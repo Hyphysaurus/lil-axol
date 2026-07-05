@@ -5,6 +5,7 @@ extends CanvasLayer
 ## the session flag on the Settings autoload. Holds a UI lock so gameplay input stays neutral.
 
 const FADE_SPEED := 1.6
+const DISPLAY_FONT := preload("res://assets/fonts/LilitaOne.ttf")   # chunky rounded wordmark font
 
 var _root: Control
 var _fade := 1.0
@@ -82,6 +83,7 @@ func _build() -> void:
 	var title := Label.new()
 	title.text = "Lil Axolotl"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_override("font", DISPLAY_FONT)   # chunky rounded wordmark, burned by the shader
 	title.add_theme_font_size_override("font_size", 76)
 	# the burning shader multiplies by this, so FOAM (near-white) lets the Sweetie 16 fire read true
 	title.add_theme_color_override("font_color", Palette.FOAM)
@@ -96,6 +98,7 @@ func _build() -> void:
 	var sub := Label.new()
 	sub.text = "~ tidekeeper ~"
 	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	sub.add_theme_font_override("font", DISPLAY_FONT)
 	sub.add_theme_font_size_override("font_size", 28)
 	sub.add_theme_color_override("font_color", Color(Palette.GOLD, 0.95))
 	vb.add_child(sub)
