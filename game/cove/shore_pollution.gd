@@ -69,7 +69,23 @@ func _spawn_barrels() -> void:
 		body.add_child(col)
 		body.position = s.position
 		add_child(body)
-		_barrels.append({ "spr": s, "body": body, "x": x, "phase": float(i) * 2.3 })
+		# an OIL SHEEN SLICK spreading onto the water under the drifting barrel (its water interaction)
+		var slick_mat := ShaderMaterial.new()
+		slick_mat.shader = OIL_SHADER
+		slick_mat.set_shader_parameter("amount", 0.8)
+		slick_mat.set_shader_parameter("sheen", 0.6)
+		var slick := Sprite2D.new()
+		slick.texture = WHITE
+		slick.material = slick_mat
+		slick.scale = Vector2(50.0, 15.0)          # a flat oily oval on the surface
+		slick.position = Vector2(x, _cfg.surface_y + 4.0)
+		slick.z_index = 3                          # on the water, under the barrel (z 4)
+		add_child(slick)
+		# oil dripping off the barrel into the water
+		var drip := _barrel_drip()
+		drip.position = Vector2(x + 7.0, _cfg.surface_y - 5.0)
+		add_child(drip)
+		_barrels.append({ "spr": s, "body": body, "slick": slick, "drip": drip, "x": x, "phase": float(i) * 2.3 })
 
 ## The axolotl's spray reaching us (via the "sprayable" group). Cleans the land splat nearest
 ## the spray point; the water film is handled separately by OilSpill.
@@ -97,6 +113,22 @@ func spray_at(world_pos: Vector2, radius: float, delta: float) -> void:
 			_scrub_cd = 0.12
 			Sfx.play("scrub", -2.0, 1.0)
 
+## Dark oil droplets dribbling off a drifting barrel into the water.
+func _barrel_drip() -> CPUParticles2D:
+	var p := CPUParticles2D.new()
+	p.amount = 6
+	p.lifetime = 0.8
+	p.direction = Vector2(0.2, 1.0)
+	p.spread = 10.0
+	p.gravity = Vector2(0.0, 180.0)
+	p.initial_velocity_min = 10.0
+	p.initial_velocity_max = 26.0
+	p.scale_amount_min = 0.6
+	p.scale_amount_max = 1.3
+	p.color = Color(Palette.INK, 0.85)   # dark oil, on-palette darkest navy
+	p.z_index = 3
+	return p
+
 func _process(delta: float) -> void:
 	_t += delta
 	for b in _barrels:
@@ -106,3 +138,6 @@ func _process(delta: float) -> void:
 		s.position.y = y
 		s.rotation = sin(_t * 0.9 + float(b["phase"])) * 0.06
 		(b["body"] as Node2D).position.y = y
+		# the slick sways gently on the surface; the drips ride the barrel
+		(b["slick"] as Node2D).position.y = _cfg.surface_y + 4.0 + sin(_t * 1.3 + float(b["phase"])) * 1.2
+		(b["drip"] as Node2D).position.y = y + 3.0

@@ -43,6 +43,7 @@ func _ready() -> void:
 	add_child(_drip)
 	_ring = CapRing.new()
 	add_child(_ring)
+	queue_redraw()               # draw the oil pool stained into the ground at the barrel's base
 
 ## Give the barrel a physical body so the axolotl collides with it. A StaticBody2D on the
 ## DEFAULT collision layer is exactly what the beach and seabed already use, so the axolotl
@@ -99,6 +100,7 @@ func _burst() -> void:
 	_capped = true
 	_drip.emitting = false
 	_spr.visible = false
+	queue_redraw()               # the oil pool clears now that the leak is sealed
 	if is_instance_valid(_body):
 		_body.queue_free()           # the barrel's gone — drop its collider so the axo doesn't
 		_body = null                 # stand on an invisible box where the barrel used to be
@@ -127,6 +129,14 @@ func _play_explosion() -> void:
 	add_child(boom)
 	boom.animation_finished.connect(boom.queue_free)
 	boom.play(&"boom")
+
+## An oil pool stained into the ground around the barrel's base — the leak's mark on the land.
+func _draw() -> void:
+	if _capped:
+		return
+	draw_circle(Vector2(4.0, -3.0), 20.0, Color(Palette.INK, 0.42))
+	draw_circle(Vector2(-7.0, 0.0), 14.0, Color(Palette.INK, 0.36))
+	draw_circle(Vector2(16.0, 1.0), 12.0, Color(Palette.INK, 0.30))
 
 func _make_drip() -> CPUParticles2D:
 	var p := CPUParticles2D.new()

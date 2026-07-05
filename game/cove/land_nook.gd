@@ -20,6 +20,7 @@ func _ready() -> void:
 	var rock = RockScript.new()
 	rock.cols = cols
 	rock.rows = rows
+	rock.turtle_only = true         # only the turtle's ram opens a nook — not a stray bubble bomb
 	rock.tone_a = Palette.SOIL      # a darker, denser earth than the surrounding block-land, so the
 	rock.tone_b = Palette.LOAM      # mound reads as distinct breakable rubble (not cool stone either)
 	rock.position = Vector2(-float(cols) * DestructibleRock.CELL * 0.5, -float(rows) * DestructibleRock.CELL * 0.5)

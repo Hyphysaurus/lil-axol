@@ -22,6 +22,9 @@ const CELL := 8.0                 # px per rock cell — smaller = smoother carv
 ## warm earthen rubble of the block-land's breakable nooks.
 @export var tone_a: Color = Palette.SLATE
 @export var tone_b: Color = Palette.STEEL
+## true = ONLY the turtle's shell-ram can break it (the bubble bomb can't) — the land nooks use this
+## so smashing them stays the turtle's job, not a stray bomb.
+@export var turtle_only := false
 
 var _present: Array = []          # rows×cols of bool — is this cell still solid?
 var _shapes: Array = []           # rows×cols of CollisionShape2D (null where eroded at spawn)
@@ -30,7 +33,8 @@ var _remaining := 0              # solid cells still standing; when it hits 0, `
 var _emptied := false
 
 func _ready() -> void:
-	add_to_group("blastable")      # ONLY the turtle's ram + the bubble bomb break rubble (not spray)
+	# turtle-only nooks join a private group the bubble bomb doesn't call; everything else is "blastable"
+	add_to_group("turtle_blastable" if turtle_only else "blastable")   # not "sprayable" — spray never breaks rubble
 	z_index = 2
 	_body = StaticBody2D.new()     # default collision layer = the axolotl bumps it for free
 	add_child(_body)

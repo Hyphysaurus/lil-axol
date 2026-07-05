@@ -54,8 +54,9 @@ func _check_triggers() -> void:
 	var leak := get_tree().get_first_node_in_group("leak") as Node2D
 	if leak and here.distance_to(leak.global_position) < NEAR:
 		nudge("leak", "That red barrel keeps leaking oil. Spray it to cap the leak for good.")
-	# Turtle awake + rubble around — teach the point-and-click demolish.
-	if friend and _following(friend) and not get_tree().get_nodes_in_group("blastable").is_empty():
+	# Turtle awake + rubble around (shared caps OR its own land nooks) — teach the point-and-click demolish.
+	var has_rubble := not (get_tree().get_nodes_in_group("blastable").is_empty() and get_tree().get_nodes_in_group("turtle_blastable").is_empty())
+	if friend and _following(friend) and has_rubble:
 		var how := "[color=#ffcd75][b]Tap[/b][/color] the open water" if _touch() else "[color=#ffcd75][b]Click[/b][/color] a spot"
 		nudge("command", "Your turtle can smash rubble! %s to send it there." % how)
 

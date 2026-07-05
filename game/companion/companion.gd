@@ -121,7 +121,7 @@ func _process(delta: float) -> void:
 	# follow the tidekeeper anywhere — this little turtle has legs, so it climbs up OUT of the water
 	# onto land to keep up (swims below the surface, hops/walks above it)
 	var target := (get_parent() as Node2D).to_local(axo.global_position) + Vector2(0.0, -6.0)
-	target.x = clampf(target.x, _cfg.water_left + 8.0, _cfg.water_right - 8.0)
+	target.x = clampf(target.x, _cfg.water_left - 260.0, _cfg.water_right - 8.0)   # onto the BEACH too, not just the water's edge
 	target.y = minf(target.y, _cfg.seabed_y)          # never sink through the floor; free to rise ashore
 	var gap := target - position
 	var in_water := position.y > _cfg.surface_y + 4.0
@@ -217,7 +217,8 @@ func _run_command(delta: float) -> void:
 		return                             # winding up / recoiling between swings
 	_bash_t = BASH_INTERVAL
 	var hit := 0
-	for b in get_tree().get_nodes_in_group("blastable"):
+	# the turtle breaks BOTH the shared rubble (vent caps) AND its own turtle-only land nooks
+	for b in get_tree().get_nodes_in_group("blastable") + get_tree().get_nodes_in_group("turtle_blastable"):
 		if b.has_method("blast"):
 			hit += b.blast(global_position, DEMOLISH_RADIUS)
 	if hit > 0:
