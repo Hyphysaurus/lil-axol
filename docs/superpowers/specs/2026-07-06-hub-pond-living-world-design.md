@@ -1,7 +1,14 @@
 # Hub Pond & the Living World — Design
 
+> **⚠️ SUPERSEDED 2026-07-07** by
+> [`2026-07-07-living-watershed-master-design.md`](2026-07-07-living-watershed-master-design.md).
+> The hub-and-spoke world, WorldState persistence + Echo runs, frog surface pivot, and marsh
+> estuary all carry forward; the master spec re-frames everything around real Xochimilco ecology
+> and a Terra Nil-style variable/recipe restoration system. Read that one.
+
 **Date:** 2026-07-06
-**Status:** Approved direction (Maram), spec for review
+**Status:** Superseded — see banner above
+**Original status:** Approved direction (Maram), spec for review
 **Decides:** world structure, persistence, frog/estuary rework, companion roadmap
 **Supersedes:** the open "modular world / which-companion-first" question in the review backlog
 
