@@ -125,9 +125,16 @@ returning fauna *reads the state of the water*. Flagship recipes:
 ### 3.5 The invasive fish — central antagonist, cozily handled
 
 Tilapia + carp are the pollution's living face and the reason the axolotl is dying.
-- **Art:** the owned **PIXEL_1992 Sea Creatures** pack (577 black-outline creatures, matches
-  the axolotl outline) supplies a carp-ish and tilapia-ish silhouette; murky tint + a simple
-  school. Zero budget, style-consistent. (Resolves the ecology review's #1 production risk.)
+- **Art (verified 2026-07-07 sweep):** the best *confirmed* owned stand-in is the **Smolque
+  goldfish** (`2D/ocean assets/Pixel_FishPack_smolque.zip`) — a goldfish is a domesticated
+  carp, clean black outline closest to the axolotl; recolor murky brown/olive for the carp,
+  and the Gnome-Fishing freshwater **bass** silhouette for the tilapia. **Caveat:** all owned
+  fish are **static single-frame** → animate schools with a shader wiggle (cheap) or a small
+  swim-cycle commission. **PIXEL_1992 Sea Creatures** (577 outlined creatures) is a strong
+  *potential* source but is RAR5-locked and could not be verified this session (no extractor
+  resolved) — install 7-Zip and eyeball `See Creatures/Black Outline/…` before committing to
+  it. Zero-budget path holds; see Appendix A. (Softens, not fully resolves, the ecology
+  review's #1 production risk — a proper swim cycle may still want a commission.)
 - **Mechanic:** the **otter herds** dense schools into a **refugio** (a mesh-filter channel
   the player restores) — mirroring the real UNAM chinampa-refugio conservation fix. Fish are
   **relocated, never killed** (cozy contract). Carp presence keeps a reach turbid (Clarity
@@ -326,3 +333,88 @@ Ordered to fix-what's-live, then build the system, then expand. Each slice is it
   slice (2) lands, or biomes get authored against a meter we're replacing.
 - **Bible caveat carried forward:** series doc says "KayKit environments" (3D); the 2D tileset
   reality remains the accepted deviation.
+
+---
+
+## Appendix A — Asset sourcing (owned-first, verified 2026-07-07)
+
+Five parallel library sweeps (props, backdrops, roster, audio, VFX) against the Living
+Watershed. Path-verified. **Headline: nearly the whole game is buildable from owned assets;
+the only real spend is ~5 SeethingSwarm creature packs, and the only true gaps are the
+signature Xochimilco props (trajinera, refugio net) that want bespoke art.**
+
+### A.1 Corrections to earlier memory/spec
+
+- **MossyCavern is NOT crisp pixel** — it's 4096² HD painterly/vector; it clashes with the
+  Apollo outlined-pixel look. **Drop the "MossyCavern = grotto" reservation** (two independent
+  sweeps confirmed). Use the unTied Games grotto tileset instead (below).
+- **Audio lives under `Asset Library/SFX/`** (subfolders `Music/ SFX/ Vocals/`), not `Audio/`.
+- **Invasive-fish art** reality corrected in §3.5 (Smolque goldfish, static → shader wiggle).
+
+### A.2 Biggest wins (owned, purpose-fit)
+
+1. **`Asset Library/oilset.png` (+`oilsetalpha.png`, 1536×1024) — a BESPOKE "LIL AXOLOTL
+   TILESET"** already in the library, exact target style + Apollo bar baked in: oil slicks,
+   barrels, DANGER-OIL signage, a full **derelict oil rig** (crates, ladders, chains, lantern),
+   underwater coral/rock ledges, bubbles, land/sand/waterfall. **Covers the entire pollution
+   pillar.** Action: audit what's already sliced into the project — the oil-rig / oil-slick
+   sections look untapped.
+2. **unTied Games "Pixel Art Tileset Collection"** (`2D/Tilesets/Pixel & Dungeon/
+   pixelarttilesetcollection/…GDM/`, crisp 8/16px side-view, day/night variants) — one source
+   covers most reaches: **`dagogum_cavern`** (spring-grotto: dark cave + glowing blue water =
+   the grotto, replaces MossyCavern), **`forest_of_whispers`** (forest-creek: mist + waterline
+   + underwater-slope tiles), **`mayclover_meadow`** (canal hub / reed marsh, full day→night),
+   **`seaside_cave`**, and **`hydro_plant` + `_toxic`** (a polluted canal-lock "before" state).
+   Recolor saturated blues/purples → Apollo. License: unTied royalty-free commercial, credit.
+3. **Water/underwater fully covered by owned crisp packs:** Tiny Ocean Complete (37 seaweeds +
+   coral parallax + bubbles), Nature Pixel Pack – Ocean (seagrass/shells/stones), and **The
+   Myth of Pixel – Water Temple** (Aztec stone waterworks + an animated **pouring-jar statue
+   fountain** — a Xochimilco-flavored grotto centerpiece AND a ready leak-source prop).
+4. **VFX — Super Pixel Effects Gigapack** (`2D/Super Pixel Effects Gigapack v2.5.0/…`, crisp
+   pixel strips): `round_sparkle_burst` (drop-in upgrade to `cleanup_fx.gd`), `round_light_burst`
+   (grotto glow / dark-room reveal), bubble bursts, `directional_particle_burst` (pollen/motes
+   as water heals), splatters, `symbol_success` (feat-banner pops). Binbun **TransitionKit** is
+   the only 2D-safe scene-wipe shader. (Binbun GODOT VFX + loose `.gdshader` = 3D/GPU, skip.)
+5. **Restoration-feedback + water SFX — `SFX/SFX/2000_Game_SFX_Collection.zip`** (WATER-BUBBLES-
+   SPLASHES, SUCCESS-CHIMES, POPS-BURSTS, VOCAL-CUTE) + **TomMusic Free Fantasy SFX** (River/
+   Stream/Waterfall loops, water footsteps, BGS Forest/Cave beds — OGG-ready) + SwishSwoosh
+   (pitched UI-fillup for the restoration meter, bubble pops).
+
+### A.3 Per-reach ambient music beds (owned)
+
+- **Canal hub:** Cozy Tunes *Gentle Breeze* / *Evening Harmony* over Abstraction CC0 pad.
+- **Reed marsh:** Cozy Tunes *Wildflowers By The River* + TomMusic *Forest Day* BGS (birds/insects).
+- **Forest creek:** Cozy Tunes *Sunlight Through Leaves* + TomMusic *River Stream* loop.
+- **Spring-grotto:** JDSherbert *Underwater City* + TomMusic *Cave* BGS (drips) — strongest pairing.
+- **Xochimilco music nod:** none owned fit (owned Latin = Brazilian bossa/Spanish flamenco/Cuban,
+  wrong region + clichéd). Right answer = *son jarocho* (nylon guitar/jarana) or soft marimba —
+  source a CC0 loop or commission; don't force the owned tracks.
+
+### A.4 Roster — owned vs buy (SeethingSwarm, ~$12 each, guaranteed style match)
+
+- **Owned:** turtle ✅, frog ✅. Dragonfly = owned loose sheet (`2D/Dragonfly Sprite Sheet.png`,
+  ~24px thinner outline — MVP-ok) or buy Dragonflypack for cohesion. Gray fox & bee also owned
+  as loose sheets.
+- **Must-buy partners (~$24):** **Lil Otter**, **Batpack** — no owned option, core to the roster.
+- **Citizen packs (buy as their reach lands, ~$84):** Raccoon, Deer, Owl, Bunny, Mouse, Crow, Dog
+  (Xolo recolor); **Crane → repurpose as the egret** (recolor white/shorten). Duck pack existence
+  unconfirmed.
+- **Recommended spend:** ~$120 core (partners + citizens), ~$156 fully polished (Dragonfly/Fox).
+  Zero-budget MVP ships on owned art + the two must-buy partners staggered by slice.
+
+### A.5 True gaps → bespoke / commission (the signature Xochimilco items)
+
+- **Trajinera** (the iconic painted canal boat) — nothing owned; a hand-drawn trajinera would be
+  a signature hero prop worth authoring.
+- **Refugio netting/mesh** (the conservation-fix centerpiece) & **tires** — not in library.
+- **True egret/heron** (only a crane to repurpose), **duck**, **garter snake**, **butterflies**,
+  **tadpoles**, and **animated carp/tilapia swim cycles** — commission or trivial hand-sprite.
+- **grotto living-glow:** MossyCavern `BlueFlower1/2` glow-plants exist but are hi-res (downscale);
+  or author simple glow-moss on the Gigapack `round_light_burst`.
+
+### A.6 Rejected (for the record)
+
+Themed-Packs Swamp/Forest (vector `.ai/.eps`, not pixel), Free_Pond_Kit (3D FBX), Underwater
+World platform tileset (HD painterly), all Top-Down/Isometric tilesets (wrong projection),
+Binbun GODOT VFX + loose Synty `.gdshader` (3D/GPU), Helton-Yan combat SFX + Human Vocals
+(wrong tone).
