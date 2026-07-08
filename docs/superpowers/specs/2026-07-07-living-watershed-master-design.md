@@ -26,8 +26,13 @@ told as a systemic restoration game.
 
 ## 1. Pillars
 
-1. **Cozy, no-fail, no-death.** Every system below obeys this. "Dark," "invasive," and
-   "antagonist" mean *mystery* and *mess to tidy*, never danger or violence.
+1. **Cozy with stakes — the world can fail, the player cannot.** No player death, no
+   game-over, no punishment of the player; "dark," "invasive," and "antagonist" mean *mystery*
+   and *mess to tidy*, never danger or violence. **But the world carries real, recoverable
+   stakes:** reaches can backslide, stall, or dead-end (§3.7). Failure is diegetic ecological
+   consequence you can always answer — never a loss screen. *(This re-rules the bible's older
+   "no-fail" / D-0007 "never-punishment" stance — see §12; the punishment line held, the
+   no-consequence line is lifted.)*
 2. **Ecological truth.** Wild *Ambystoma mexicanum* lives in exactly one place on Earth —
    the **Xochimilco** canal wetlands of Mexico City (~2240m, temperate freshwater),
    critically endangered (≈6,000/km² in 1998 → ≈35 in 2020) from pollution, urban runoff,
@@ -84,7 +89,7 @@ reading specific variables.
 | Frog | **Consume** | algae mats & mosquito larvae ↓ → Oxygen ↑ | leopard frog eats pests |
 | Dragonfly | **Survey** | *reveals hidden sources*; its presence *reads* Oxygen | odonate bioindicator |
 | Otter | **Herd** | Invasive ↓ → Clarity ↑ (herds carp/tilapia to the refugio) | the real fisher-sweep fix |
-| Otter | **Haul** | relocates heavy sunken debris to sockets → restores Flow | river otter |
+| Otter | **Haul / Build** | relocates heavy debris → Flow; seats **cleaned material** into build sockets → structures (§3.6) | river otter (ecosystem engineer) |
 | Bat | **Echosong** | reveals hidden things in the dark grotto; wakes glow-moss | echolocation |
 
 **Vegetation is not a verb** — it's a *recipe outcome*: eelgrass grows where
@@ -139,6 +144,48 @@ Tilapia + carp are the pollution's living face and the reason the axolotl is dyi
   the player restores) — mirroring the real UNAM chinampa-refugio conservation fix. Fish are
   **relocated, never killed** (cozy contract). Carp presence keeps a reach turbid (Clarity
   capped) until herded; tilapia caps Invasive ratio, gating the axolotl-egg recipe.
+
+### 3.6 Pollution as material — the barrel economy (Terra Nil's build loop)
+
+Cleaned pollution is **repurposed, not deleted** — the game's reverse-city-builder resource
+loop, and the strongest restoration statement in the design: *you build the healing out of the
+very waste you removed.*
+
+- **Barrel lifecycle:** **empty → dilute → clean (spray) → becomes build MATERIAL.** (Replaces
+  the current "spray → barrel just dissolves." Diegetically, the Tidekeeper's spray neutralizes
+  and reclaims — cozy, on-theme.) Material is a small per-reach currency.
+- **Build = the otter's Haul, extended** (§3.2): cleaned material is hauled/seated into **build
+  sockets** to raise **persistent structures** — the **mesh refugio** (invasive filter), **weirs**
+  (flow/waterline control), reed frames, nest platforms. This is the **additive/build verb the
+  roster lost** when dragonfly pollination was retired — reborn as *recycling*, and ecologically
+  native: the otter is a real ecosystem engineer. **Beaver damming is mechanic inspiration only —
+  no beaver companion** (ecology pillar; beavers aren't native to the Valley of Mexico).
+- **Move & process (the "launch + pop" flourish):** a companion can **launch** a barrel across a
+  gap to a build/processing station (Kirby-style co-op timing), and an optional **bubble-pop**
+  mid-air is quick-disposal for *surplus* barrels you don't need as material. Non-violent — you
+  pop a barrel, never a creature. So the skeet idea survives as flavor without becoming combat.
+- **Ties the win together:** the self-sustaining refugio (§7) is literally **built** from
+  repurposed pollution — material is the bridge from "remove the harm" to "the reach sustains
+  itself," and the thing a dead-end can run short of (§3.7).
+
+### 3.7 Fail & dead-ends — the world can fail, the player cannot
+
+Re-ruling Pillar 1. **No player death, no game-over, no punishment.** The world carries stakes,
+all **recoverable** — failure is ecological consequence you can answer, never a wall:
+
+- **Backslide (pressure):** ignored spills spread, invasives multiply, oxygen falls — a reach
+  drifts backward until you return (extends the shipped pest re-oil, capped per D-0005).
+- **Dead-end (gated, with teeth):** a reach can't be finished with your current roster / verbs /
+  material — it visibly **stalls** (not "unstarted," but "started and stuck") until you come back
+  with the missing piece. This is the metroidvania teased-lock made consequential.
+- **Material stall (soft resource fail):** dispose or mis-spend the cleaned material a required
+  structure needs and you must **gather/clean more**. Reaches are authored with sufficient
+  material + a regenerating leak trickle, so you can **never permanently soft-lock** — only be
+  set back. (This is the honest, non-arbitrary fail vector the barrel economy makes possible.)
+- **Recoverable, always.** Nothing is lost forever. The persistent world saves a backslid/stalled
+  reach in that state until you heal it — setbacks persist exactly like wins. *(Permanent
+  ecological loss — real local extinction — stays a possible future opt-in "stakes mode," not the
+  default; see §12.)*
 
 ## 4. The roster
 
@@ -239,9 +286,12 @@ mascot is wanted), chicken (livestock — farm set-dressing only, never a citize
   back up to `.bad`, start fresh, never crash. Fresh profile → today's behavior.
 - **The win is a recipe, not a %** (§3.4): when the axolotl-young recipe holds AND stays
   stable, **eggs appear**, natives breed, and the reach is **self-sustaining** — you *leave*
-  and the persistent world keeps it alive. That is our cozy **leave-no-trace**: nothing to
-  dismantle (your tools are living creatures), you remove yourself by moving on. Emotionally
-  Terra Nil's "it thrives without me"; ecologically the real chinampa **refugio**.
+  and the persistent world keeps it alive. The refugio and weirs that hold the recipe are
+  **built from repurposed pollution** (§3.6), so the win is *constructed*, not just cleaned —
+  and a reach can **dead-end short of it** if you lack the roster or material (§3.7). That is our
+  cozy **leave-no-trace**: nothing artificial to dismantle (your structures are living
+  infrastructure made from the waste you reclaimed), you remove yourself by moving on.
+  Emotionally Terra Nil's "it thrives without me"; ecologically the real chinampa **refugio**.
 - **Echo runs** (from v1): a restored reach can be replayed as a scored, transient run
   (re-oiled from config; feats/flow/leaderboard live; world state untouched) — the arcade
   layer's home in a persistent world. Tide Board re-enables on Echo-run completion.
@@ -283,16 +333,19 @@ Ordered to fix-what's-live, then build the system, then expand. Each slice is it
 2. **Slice 2 — The restoration system** *(the Terra Nil core)*
    Convert cleanliness → the **variable/recipe engine** (§3): reach-state variables, threshold
    chains, habitat recipes, verbs re-mapped to variables. Retune the hub + marsh onto it.
-   Wire the **invasive fish** (PIXEL_1992 art) as a Clarity/Invasive antagonist even before the
-   otter (start as ambient turbidity schools). This is the pillar; it deserves its own spec.
+   Wire the **invasive fish** (Smolque-goldfish stand-in, §3.5) as a Clarity/Invasive antagonist
+   even before the otter (start as ambient turbidity schools). Add the **barrel→material
+   lifecycle** (§3.6) and the **recoverable fail vectors** — backslide + dead-end/stall (§3.7);
+   the build half lands with the otter (Slice 6). This is the pillar; it deserves its own spec.
 3. **Slice 3 — Art unification** *(640×360 pixel pipeline + Apollo-quantized shaders)*. Can
    run parallel to 2; do before adding new biomes so they're authored native-pixel.
 4. **Slice 4 — Dragonfly + open-canal survey** (recruit flow, Survey verb, flying-follow
    plane, reveal-registry). Buy Dragonflypack (owned).
 5. **Slice 5 — Metroidvania terrain** (carvable block-land cell mask + secret pockets +
    teased-lock authoring pass across existing reaches).
-6. **Slice 6 — Otter + creek + the refugio** (Herd/Haul, invasive relocation to the mesh
-   refugio, flow-gate waterline, Clarity system payoff). Buy Lil Otter.
+6. **Slice 6 — Otter + creek + the refugio + BUILD** (Herd/Haul/**Build**, invasive relocation
+   to the mesh refugio, seating cleaned material into build sockets → structures §3.6, flow-gate
+   waterline, Clarity system payoff). Buy Lil Otter.
 7. **Slice 7 — Bat + spring-grotto** (Echosong reveal, dark-biome lighting, the watershed
    source). Buy Batpack.
 8. **Ongoing — Citizens & conservation log** sprinkled as reaches restore (egret/heron
@@ -316,6 +369,20 @@ Ordered to fix-what's-live, then build the system, then expand. Each slice is it
 
 ## 12. Open items & honest tension flags
 
+- **Bible re-ruling needed (Pillar 1):** LilAxol moves from "cozy no-fail" to **"cozy with
+  recoverable stakes — world can fail, player cannot"** (§3.7). The **no-player-punishment** line
+  from D-0007 holds; the **no-consequence** framing is lifted. Update the Lil Series Bible to
+  match, and confirm this doesn't leak into the sibling games' identities. **Permanent
+  ecological loss** (real local extinction) is deliberately parked as a possible opt-in "stakes
+  mode," NOT the default — revisit only if the recoverable model proves too soft in playtest.
+- **Fail tuning is the delicate part:** backslide rate, dead-end legibility ("stuck, come back"
+  must never read as "broken"), and material sufficiency all need playtest tuning so stakes feel
+  like *care*, not *chore*. The material economy must be authored so a reach can never
+  *permanently* soft-lock (regenerating leak trickle guarantees recovery).
+- **Barrel rework supersedes the 2026-07-05 "barrels purify/dissolve" behavior** and the
+  2026-07-03 explosion-direction spec: barrels now **clean → become build material** (§3.6), with
+  launch-to-station + bubble-pop disposal as the flourish. The old dissolve VFX can become the
+  "reclaim" VFX.
 - **Turtle restyle is a pillar-blocker**, not polish — the shipped slider is an invasive
   species; slice 1 fixes it.
 - **Two "perceive" partners** (dragonfly survey + bat echosong) are justified only by hard
