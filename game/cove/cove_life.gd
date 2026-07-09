@@ -85,6 +85,7 @@ func _process(delta: float) -> void:
 	_life = move_toward(_life, _clean, delta * 0.5)   # smooth global heal
 	if _bubbles:
 		_bubbles.modulate.a = _life
+		_bubbles.emitting = _life > 0.08   # don't integrate particles while they're invisible (dirty cove)
 	var kelp_env := smoothstep(0.0, 0.35, _life)      # kelp leads the recovery
 	var species_n := maxi(FISH_TEX.size() - 1, 1)
 	for k in _kelp:
@@ -163,7 +164,7 @@ func _spawn_fish() -> void:
 
 func _spawn_bubbles() -> void:
 	var p := CPUParticles2D.new()
-	p.amount = 26
+	p.amount = 16                    # rising vent bubbles (was 26) — trimmed for the web main thread
 	p.lifetime = 4.5
 	p.position = Vector2((_cfg.water_left + _cfg.water_right) * 0.5, _cfg.seabed_y)
 	p.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
@@ -272,12 +273,16 @@ func _update_ambient(delta: float) -> void:
 		var ct: float = (1.0 - _oil_above(_crab.position.x)) * smoothstep(0.1, 0.45, _life)
 		_crab.modulate.a = move_toward(_crab.modulate.a, ct, delta * 0.4)
 	if _shafts:
-		# drive brightness from the heal via the shader uniform (a ColorRect+shader that writes
-		# COLOR ignores modulate, so we set intensity directly). _life is already smoothed; cap a
-		# touch below full so the rays stay a soft glow over the whole scene, not a wash.
-		(_shafts.material as ShaderMaterial).set_shader_parameter("intensity", _life * 0.5)
+		# Hide the fullscreen god-rays pass while it's effectively invisible (the whole dirty-cove
+		# opening, where _life≈0) — otherwise it shades the entire viewport every frame just to
+		# multiply by ~0. When it IS visible, drive brightness from the heal via the shader uniform
+		# (a ColorRect+shader that writes COLOR ignores modulate, so we set intensity directly).
+		_shafts.visible = _life > 0.02
+		if _shafts.visible:
+			(_shafts.material as ShaderMaterial).set_shader_parameter("intensity", _life * 0.5)
 	if _motes:
 		_motes.modulate.a = _life * 0.9        # marine snow only shows in cleared, sunlit water
+		_motes.emitting = _life > 0.12         # and only integrates once it's actually becoming visible
 
 func _spawn_coral() -> void:
 	# a few coral/seaweed props rising from the seabed floor — reef life the cleanup restores. They
@@ -305,8 +310,8 @@ func _spawn_motes() -> void:
 	# faint marine snow drifting in the water column — tiny motes that catch the god-ray light and
 	# give the water body real depth. Slow, sparse, on-palette; fades in with the heal.
 	var p := CPUParticles2D.new()
-	p.amount = 40
-	p.lifetime = 8.0
+	p.amount = 22                    # marine snow (was 40) — CPUParticles integrate on the main thread
+	p.lifetime = 8.0                 # on the single-threaded web build; 22 still reads as a full column
 	p.preprocess = 8.0               # pre-populate the column so it isn't empty at spawn
 	p.position = Vector2((_cfg.water_left + _cfg.water_right) * 0.5, (_cfg.surface_y + _cfg.seabed_y) * 0.5)
 	p.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
@@ -337,4 +342,5 @@ func _update_fish(f: Dictionary, delta: float) -> void:
 	pos.y = clampf(pos.y, _cfg.surface_y + 14.0, _cfg.seabed_y - 14.0)
 	s.position = pos
 	s.flip_h = vel.x > 0.0        # pack fish face -x by default; flip when swimming right
+	s.skew = sin(float(f["phase"]) * 8.0) * 0.12   # a swimming body waggle (offset-transform juice)
 	f["vel"] = vel

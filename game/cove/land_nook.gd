@@ -6,7 +6,7 @@ class_name LandNook
 ## `cleared`, exactly like the thermal vents do for their caps. Drop as many along the beach as you like.
 
 const RockScript := preload("res://game/cove/destructible_rock.gd")
-const CACHE_SHINE := 1800.0    # the hidden cache's Shine payout on opening
+# The cache's Shine payout lives in the "trove" feat (shine.FEATS) — opening one is a celebrated feat.
 
 @export var cols := 5
 @export var rows := 4
@@ -21,8 +21,10 @@ func _ready() -> void:
 	rock.cols = cols
 	rock.rows = rows
 	rock.turtle_only = true         # only the turtle's ram opens a nook — not a stray bubble bomb
-	rock.tone_a = Palette.SOIL      # a darker, denser earth than the surrounding block-land, so the
-	rock.tone_b = Palette.LOAM      # mound reads as distinct breakable rubble (not cool stone either)
+	# warm brown in the block-land's OWN earth family (SOIL read too red/pink); a touch darker than the
+	# surrounding topsoil so the mound reads as distinct denser earth, not a foreign block
+	rock.tone_a = Palette.LOAM
+	rock.tone_b = Palette.CLAY
 	rock.position = Vector2(-float(cols) * DestructibleRock.CELL * 0.5, -float(rows) * DestructibleRock.CELL * 0.5)
 	add_child(rock)
 	rock.cleared.connect(_open)
@@ -33,8 +35,8 @@ func _open() -> void:
 		return
 	_opened = true
 	var keeper = get_tree().get_first_node_in_group("shine")
-	if keeper and keeper.has_method("bonus"):
-		keeper.bonus(CACHE_SHINE, global_position)   # the cache pays out (fat "+N" pop + coin sound)
+	if keeper and keeper.has_method("feat"):
+		keeper.feat(&"trove", global_position)   # "Trove" feat: callout + Flow + Shine
 	_sparkle()
 	create_tween().tween_property(self, "_glow", 1.0, 0.6)
 

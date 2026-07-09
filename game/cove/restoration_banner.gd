@@ -9,17 +9,19 @@ extends CanvasLayer
 
 signal restored
 
-## The win payoff is OFF for now. Oil cleanliness alone is NOT a full restoration — that also
-## needs the rescued turtle awake and the thermal vents broken open. Firing "Cove Restored" (and
-## its downstream Tide Board prompt) on cleanliness alone declared victory too early. Flip this back
-## on — ideally after gating _on_clean on the turtle + vents too — once that loop is dialled in.
-const WIN_ENABLED := false
+## Master kill-switch for the win payoff. Oil cleanliness ALONE is not a full restoration, so the
+## win now gates on three things together (see _check_restored): cleanliness >= win_threshold, the
+## rescued turtle awake, and every thermal vent broken open. The check is event-driven — it re-runs
+## on each cleanliness tick AND whenever the turtle wakes or a vent opens (they call notify_progress).
+const WIN_ENABLED := true
 
 const HOLD_SECONDS := 2.5
 const FADE_SPEED := 1.2
 const SUBLINE_SECONDS := 6.0
+const DISPLAY_FONT := preload("res://assets/fonts/LilitaOne.ttf")   # the game's chunky display face
 
 var is_restored := false           # one-shot latch; afterglow content may read this
+var _last_clean := 0.0             # latest cleanliness, so wake/vent re-checks have the current value
 
 var _cfg: CoveConfig
 var _root: Control
@@ -51,18 +53,39 @@ func _win_threshold() -> float:
 	return _cfg.win_threshold if _cfg else 0.999
 
 func _on_clean(v: float) -> void:
-	if not WIN_ENABLED:
-		return                     # premature win disabled — see WIN_ENABLED above
-	if not is_restored and v >= _win_threshold():
-		is_restored = true         # one-shot: only celebrate the first full restoration
-		_target = 1.0
-		_hold = HOLD_SECONDS
-		Sfx.play("win")
-		var keeper = get_tree().get_first_node_in_group("shine")
-		if keeper and "score" in keeper:
-			_tally.text = "shine  %d" % int(keeper.score)
-			_tally.visible = true
-		restored.emit()
+	_last_clean = v
+	_check_restored()
+
+## Poked by the turtle (on wake) and the vents (on open) via the "restoration" group, so the win can
+## complete on the LAST of the three conditions even when that isn't a cleanliness change.
+func notify_progress() -> void:
+	_check_restored()
+
+## The full-restoration gate: clean water AND the rescued friend awake AND every vent broken open.
+## Empty groups pass (a cove with no friend/vents just needs to be clean), so this stays data-driven.
+func _check_restored() -> void:
+	if not WIN_ENABLED or is_restored:
+		return
+	if _last_clean < _win_threshold():
+		return
+	for c in get_tree().get_nodes_in_group("companion"):
+		if c.has_method("is_awake") and not c.is_awake():
+			return                 # a friend is still asleep in its corner
+	for vent in get_tree().get_nodes_in_group("thermal_vent"):
+		if vent.has_method("is_vent_open") and not vent.is_vent_open():
+			return                 # a vent is still capped
+	_celebrate()
+
+func _celebrate() -> void:
+	is_restored = true             # one-shot: only celebrate the first full restoration
+	_target = 1.0
+	_hold = HOLD_SECONDS
+	Sfx.play("win")
+	var keeper = get_tree().get_first_node_in_group("shine")
+	if keeper and "score" in keeper:
+		_tally.text = "shine  %d" % int(keeper.score)
+		_tally.visible = true
+	restored.emit()
 
 func _process(delta: float) -> void:
 	if _target <= 0.0 and _fade <= 0.0 and not _corner_on:
@@ -101,10 +124,10 @@ func _build() -> void:
 
 	var panel := PanelContainer.new()
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.06, 0.10, 0.14, 0.72)
+	sb.bg_color = Color(Palette.ABYSS, 0.72)
 	sb.set_corner_radius_all(14)
 	sb.set_content_margin_all(28)
-	sb.border_color = Color(0.6, 0.85, 0.95, 0.35)
+	sb.border_color = Color(Palette.CYAN, 0.35)
 	sb.set_border_width_all(2)
 	panel.add_theme_stylebox_override("panel", sb)
 	center.add_child(panel)
@@ -117,22 +140,24 @@ func _build() -> void:
 	var title := Label.new()
 	title.text = "Cove Restored"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_override("font", DISPLAY_FONT)   # match the title wordmark's display face
 	title.add_theme_font_size_override("font_size", 60)
-	title.add_theme_color_override("font_color", Color(0.93, 0.98, 1.0))
+	title.add_theme_color_override("font_color", Palette.FOAM)
 	vb.add_child(title)
 
 	var sub := Label.new()
 	sub.text = "the water runs clear again"
 	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	sub.add_theme_font_size_override("font_size", 26)
-	sub.add_theme_color_override("font_color", Color(0.70, 0.85, 0.90))
+	sub.add_theme_color_override("font_color", Palette.MIST)
 	vb.add_child(sub)
 
 	_tally = Label.new()
 	_tally.visible = false
 	_tally.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_tally.add_theme_font_override("font", DISPLAY_FONT)
 	_tally.add_theme_font_size_override("font_size", 22)
-	_tally.add_theme_color_override("font_color", Color(1.0, 0.87, 0.55))
+	_tally.add_theme_color_override("font_color", Palette.GOLD)
 	vb.add_child(_tally)
 
 	# corner handoff (top-right): a little sun glyph + the one-time teaching subline
@@ -159,7 +184,7 @@ func _build() -> void:
 	_subline.text = "stay awhile - hold R for a new day"
 	_subline.size_flags_horizontal = Control.SIZE_SHRINK_END
 	_subline.add_theme_font_size_override("font_size", 22)
-	_subline.add_theme_color_override("font_color", Color(0.85, 0.93, 0.96, 0.9))
+	_subline.add_theme_color_override("font_color", Color(Palette.FOAM, 0.9))
 	stack.add_child(_subline)
 
 ## Tiny code-drawn sun: warm disc + rays. Persists in the corner as the "restored" mark.
@@ -170,7 +195,7 @@ class SunGlyph extends Control:
 
 	func _draw() -> void:
 		var c := size / 2.0
-		var warm := Color(1.0, 0.87, 0.55, 0.95)
+		var warm := Color(Palette.GOLD, 0.95)
 		draw_circle(c, 6.0, warm)
 		for i in 8:
 			var dir := Vector2.from_angle(TAU * float(i) / 8.0)

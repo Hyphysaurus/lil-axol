@@ -114,7 +114,10 @@ func _build() -> void:
 	vb.add_child(_spacer(22.0))
 
 	var hint := Label.new()
-	hint.text = "move WASD/stick · jump Space/A · spray C/X · run Shift/B"
+	# show the controls that actually apply: touch wording on phones, keys on desktop/pad
+	hint.text = "drag left to swim  ·  buttons to act  ·  tap open water to send your turtle" \
+		if Settings.touch_active() \
+		else "move WASD/stick · jump Space/A · spray C/X · run Shift/B"
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hint.add_theme_font_size_override("font_size", 18)
 	hint.add_theme_color_override("font_color", Color(Palette.MIST, 0.85))

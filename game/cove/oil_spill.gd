@@ -41,6 +41,13 @@ var _milestone := 0
 var current_clean := 0.0
 var _spark_cd := 0.0
 var _scrub_snd_cd := 0.0       # slower than _spark_cd so the pops tick, not machine-gun
+# The mask Image is edited every frame you spray (or while the leak trickles), but re-uploading the
+# whole 192x88 texture to the GPU every frame is a heavy web/GL cost. We mark it dirty and flush ONE
+# upload at ~30Hz — visually identical (≤33ms latency on the film), and it coalesces to zero uploads
+# whenever the mask isn't changing (e.g. an uncapped leak that isn't currently re-oiling a cell).
+var _mask_dirty := false
+var _upload_cd := 0.0
+const MASK_UPLOAD_HZ := 30.0
 
 func _ready() -> void:
 	add_to_group("oil_manager")
@@ -138,7 +145,7 @@ func spray_at(world_pos: Vector2, radius: float, delta: float) -> void:
 			_cov[my * MASK_W + mx] = nr
 			_mask.set_pixel(mx, my, Color(nr, 0.0, 0.0, 1.0))
 	if removed > 0.0:
-		_mask_tex.update(_mask)
+		_mask_dirty = true                       # batch the GPU upload (flushed in _process)
 		_remaining = maxf(0.0, _remaining - removed)
 		_set_clean()
 		scrubbed.emit(removed / _total, to_global(p))   # Shine and friends key off real progress
@@ -189,9 +196,21 @@ func stain_at(world_pos: Vector2, radius: float, amount: float) -> void:
 			_cov[i] = nr
 			_mask.set_pixel(mx, my, Color(nr, 0.0, 0.0, 1.0))
 	if added > 0.0:
-		_mask_tex.update(_mask)
+		_mask_dirty = true                       # batch the GPU upload (flushed in _process)
 		_remaining = minf(_total, _remaining + added)
 		_set_clean()
+
+## Flush the batched mask changes to the GPU at most MASK_UPLOAD_HZ times/sec. The Image itself is
+## already current (spray_at/stain_at edited it this frame); this only paces the texture upload.
+func _process(delta: float) -> void:
+	if not _mask_dirty:
+		return
+	_upload_cd -= delta
+	if _upload_cd > 0.0:
+		return
+	_upload_cd = 1.0 / MASK_UPLOAD_HZ
+	_mask_dirty = false
+	_mask_tex.update(_mask)
 
 ## Oil coverage (0..1) at a world position — used by the axolotl to sludge its movement in oil.
 func oil_at(world_pos: Vector2) -> float:

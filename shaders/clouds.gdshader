@@ -39,7 +39,7 @@ float bfbm(vec2 p, int oct) {
 // vec2(alpha, depth): depth 0 at the lit top edge -> 1 at the shaded base
 vec2 cumulus(vec2 uv, float scale, float by, float h, float dx) {
 	float ux = uv.x * scale + dx;
-	float topn = clamp(bfbm(vec2(ux, 2.3), 5) * coverage, 0.0, 1.0);
+	float topn = clamp(bfbm(vec2(ux, 2.3), 4) * coverage, 0.0, 1.0);
 	// break the bank into separate masses so it isn't a continuous wall along the horizon
 	float gap = smoothstep(0.22, 0.55, vnoise(vec2(ux * 0.5, 4.0)));
 	topn *= gap;
@@ -49,7 +49,7 @@ vec2 cumulus(vec2 uv, float scale, float by, float h, float dx) {
 	float cloud_top = bb - h * topn;
 	float flat_bottom = clamp((bb - uv.y) / 0.05, 0.0, 1.0);   // softer, feathered belly
 	float soft_top = clamp((uv.y - cloud_top) / 0.035, 0.0, 1.0);
-	float det = bfbm(vec2(ux * 2.1, uv.y * scale * 1.6 + 5.0), 4);
+	float det = bfbm(vec2(ux * 2.1, uv.y * scale * 1.6 + 5.0), 3);
 	float alpha = clamp(soft_top * flat_bottom * (1.0 - puffiness * det), 0.0, 1.0);
 	float depth = clamp((uv.y - cloud_top) / max(bb - cloud_top, 0.001), 0.0, 1.0);
 	return vec2(alpha, depth);
@@ -61,10 +61,17 @@ vec4 shade(vec2 ad) {
 }
 
 void fragment() {
-	vec4 far = shade(cumulus(UV, 6.0, base_y - 0.10, height * 0.5, TIME * drift * 0.6 + 37.0));
-	far.a *= 0.8;
-	vec4 near = shade(cumulus(UV, 3.4, base_y, height, TIME * drift));
-	float outa = near.a + far.a * (1.0 - near.a);
-	vec3 outrgb = (near.rgb * near.a + far.rgb * far.a * (1.0 - near.a)) / max(outa, 0.001);
-	COLOR = vec4(outrgb, outa * opacity);
+	// The cloud band only occupies a horizontal strip around base_y. Skip ALL the noise for pixels
+	// above the highest possible top / below the lowest belly (guaranteed empty) — roughly half the
+	// screen, the cheapest big win on this fullscreen pass. Gated by an if (no return in fragment())
+	// and the strip is screen-space coherent, so the GPU branch stays cheap.
+	COLOR = vec4(0.0);
+	if (UV.y >= base_y - height - 0.06 && UV.y <= base_y + 0.12) {
+		vec4 far = shade(cumulus(UV, 6.0, base_y - 0.10, height * 0.5, TIME * drift * 0.6 + 37.0));
+		far.a *= 0.8;
+		vec4 near = shade(cumulus(UV, 3.4, base_y, height, TIME * drift));
+		float outa = near.a + far.a * (1.0 - near.a);
+		vec3 outrgb = (near.rgb * near.a + far.rgb * far.a * (1.0 - near.a)) / max(outa, 0.001);
+		COLOR = vec4(outrgb, outa * opacity);
+	}
 }

@@ -2,9 +2,10 @@ extends Node2D
 ## Shore pollution — the interactive oil ON the land (Terra Nil-style: you restore each patch
 ## by hand) plus a few oil barrels adrift in the cove. Oil splats sit on the beach; aim your
 ## spray at one and it shrinks and fades (reusing oil.gdshader's `amount`). Clearing a splat
-## ticks the scrub sound and awards a little Shine. The bobbing barrels are set-dressing —
-## pollution washed into the cove. Self-places from the injected cove geometry; joins the
-## "sprayable" group so the axolotl's spray reaches the splats like it reaches the water film.
+## ticks the scrub sound and awards a little Shine. The drifting barrels are interactive too —
+## sustained spray PURIFIES them (they dissolve into clean water, same cozy cleanse as the leak
+## barrel) and clears the oil they were leaking. Self-places from the injected cove geometry; joins
+## the "sprayable" group so the axolotl's spray reaches the splats + barrels like the water film.
 
 const OIL_SHADER := preload("res://shaders/oil.gdshader")
 const WHITE := preload("res://assets/white.png")
@@ -13,6 +14,11 @@ const BARREL := preload("res://assets/props/industrial/red_oil_barrel.png")
 const SPLATS := 7
 const CLEAN_RATE := 1.5         # how fast a splat clears under a direct spray
 const SPLAT_SHINE := 700.0      # Shine for fully clearing one land splat
+const BARREL_CAP_SECONDS := 1.6 # sustained spray on a drifting barrel to purify it
+const BARREL_CAP_REACH := 30.0  # spray must land this close to the barrel to fill its meter
+# Shine for purifying a drifting barrel lives in the "spring_clean" feat (shine.FEATS).
+const BARREL_CLEAR := 46.0      # oil cleared on the water when a barrel purifies
+const LeakScript := preload("res://game/cove/leak_source.gd")   # shares the static purify-burst FX
 
 var _cfg: CoveConfig
 var _splats: Array = []         # { spr, mat, amount }
@@ -85,7 +91,8 @@ func _spawn_barrels() -> void:
 		var drip := _barrel_drip()
 		drip.position = Vector2(x + 7.0, _cfg.surface_y - 5.0)
 		add_child(drip)
-		_barrels.append({ "spr": s, "body": body, "slick": slick, "drip": drip, "x": x, "phase": float(i) * 2.3 })
+		_barrels.append({ "spr": s, "body": body, "slick": slick, "drip": drip, "x": x, "phase": float(i) * 2.3,
+			"cap": 0.0, "capped": false, "cd": 0.0 })
 
 ## The axolotl's spray reaching us (via the "sprayable" group). Cleans the land splat nearest
 ## the spray point; the water film is handled separately by OilSpill.
@@ -107,11 +114,41 @@ func spray_at(world_pos: Vector2, radius: float, delta: float) -> void:
 			var keeper = get_tree().get_first_node_in_group("shine")
 			if keeper and keeper.has_method("bonus"):
 				keeper.bonus(SPLAT_SHINE, sp.spr.global_position)
+	# spraying a drifting barrel fills its purify meter; sustained close spray purifies it (same as the leak)
+	for b in _barrels:
+		if b["capped"]:
+			continue
+		if world_pos.distance_to((b["spr"] as Node2D).global_position) > BARREL_CAP_REACH:
+			continue
+		hit = true
+		b["cd"] = 0.15
+		b["cap"] = minf(BARREL_CAP_SECONDS, float(b["cap"]) + delta)
+		if float(b["cap"]) >= BARREL_CAP_SECONDS:
+			_purify_barrel(b)
 	if hit:
 		_scrub_cd -= delta
 		if _scrub_cd <= 0.0:
 			_scrub_cd = 0.12
 			Sfx.play("scrub", -2.0, 1.0)
+
+## A drifting barrel PURIFIES — the same cozy cleanse as the leak barrel: its oil dissolves, it
+## crumbles into clean water + light, the slick + drips stop, and the water around it clears.
+func _purify_barrel(b: Dictionary) -> void:
+	b["capped"] = true
+	var s: Sprite2D = b["spr"]
+	get_tree().call_group("oil_manager", "spray_at", s.global_position, BARREL_CLEAR, 0.9)   # oil lifts away
+	var keeper = get_tree().get_first_node_in_group("shine")
+	if keeper and keeper.has_method("feat"):
+		keeper.feat(&"spring_clean", s.global_position + Vector2(0.0, -14.0))   # "Spring Clean" feat
+	Sfx.play("vent_open", -7.0)
+	Sfx.play("chime", -6.0, 1.3)
+	LeakScript._purify_fx(self, s.position + Vector2(0.0, -8.0))
+	(b["drip"] as CPUParticles2D).emitting = false
+	if is_instance_valid(b["body"]):
+		(b["body"] as Node).queue_free()
+	var tw := create_tween().set_parallel(true)
+	tw.tween_property(s, "modulate:a", 0.0, 0.45)
+	tw.tween_property(b["slick"], "modulate:a", 0.0, 0.5)
 
 ## Dark oil droplets dribbling off a drifting barrel into the water.
 func _barrel_drip() -> CPUParticles2D:
@@ -132,6 +169,12 @@ func _barrel_drip() -> CPUParticles2D:
 func _process(delta: float) -> void:
 	_t += delta
 	for b in _barrels:
+		if b["capped"]:
+			continue                 # purified — it's dissolving away, no more bob
+		# the purify meter drains when you stop spraying this barrel (no penalty, just not-yet-sealed)
+		b["cd"] = float(b["cd"]) - delta
+		if float(b["cd"]) <= 0.0:
+			b["cap"] = move_toward(float(b["cap"]), 0.0, delta * 1.5)
 		var s: Sprite2D = b["spr"]
 		# gentle bob on the surface; the collision body rides along so it stays under the sprite
 		var y := _cfg.surface_y - 1.0 + sin(_t * 1.3 + float(b["phase"])) * 3.0

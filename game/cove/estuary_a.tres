@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="CoveConfig" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://game/cove/cove_config.gd" id="1_cfg"]
+[ext_resource type="SpriteFrames" path="res://game/companion/frog_frames.tres" id="2_frogframes"]
+[ext_resource type="Resource" path="res://game/companion/frog_anims.tres" id="3_froganims"]
+
+[resource]
+script = ExtResource("1_cfg")
+has_water = true
+water_left = -142.0
+water_right = 377.0
+surface_y = -27.0
+seabed_y = 166.0
+spill_left = -100.0
+spill_right = 200.0
+clean_rate = 1.4
+kelp_count = 8
+fish_count = 6
+debris_count = 5
+pest_count = 6
+friend_enabled = true
+friend_pos = Vector2(380, 130)
+friend_kind = 1
+friend_frames = ExtResource("2_frogframes")
+friend_anims = ExtResource("3_froganims")
+friend_scale = 0.85
+leak_enabled = false
+win_threshold = 0.98
+exit_enabled = true
+exit_target = "res://main.tscn"
+exit_pos = Vector2(385, 45)
+exit_blocked = false

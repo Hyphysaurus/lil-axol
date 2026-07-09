@@ -20,6 +20,12 @@ func _ready() -> void:
 	_apply()
 
 func _apply() -> void:
+	var grain_on: bool = Settings.get_setting("visual", "grain", true)
+	var vig_on: bool = Settings.get_setting("visual", "vignette", true)
+	# With BOTH off there's nothing to grade — hide the pass so it stops sampling the screen texture.
+	# That skips the full-framebuffer copy every frame (the real cost), a genuine escape hatch for
+	# low-end/mobile, instead of just zeroing the uniforms while still running the fullscreen pass.
+	visible = grain_on or vig_on
 	var m := material as ShaderMaterial
-	m.set_shader_parameter("grain", _grain if Settings.get_setting("visual", "grain", true) else 0.0)
-	m.set_shader_parameter("vignette", _vignette if Settings.get_setting("visual", "vignette", true) else 0.0)
+	m.set_shader_parameter("grain", _grain if grain_on else 0.0)
+	m.set_shader_parameter("vignette", _vignette if vig_on else 0.0)

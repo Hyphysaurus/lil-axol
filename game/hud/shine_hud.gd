@@ -32,8 +32,7 @@ func _on_score(score: int, mult: int) -> void:
 		_combo.text = "x%d" % mult
 		_combo.visible = mult > 1
 		var warm := clampf(float(mult - 1) / 3.0, 0.0, 1.0)
-		_combo.add_theme_color_override("font_color",
-			Color(0.95, 0.98, 1.0).lerp(Color(1.0, 0.78, 0.35), warm))
+		_combo.add_theme_color_override("font_color", Palette.FOAM.lerp(Palette.GOLD, warm))
 		if climbed and mult > 1:
 			_pop_combo()
 
@@ -59,7 +58,9 @@ func _build() -> void:
 	row.set_anchors_preset(Control.PRESET_TOP_RIGHT)
 	row.offset_right = -16.0
 	row.offset_left = -260.0
-	row.offset_top = 52.0            # clear of the banner's corner sun (top 16)
+	# On touch, the MENU/DAY buttons live in this exact corner (y~48, captions to ~105), so drop the
+	# score readout below them; on desktop it clears only the banner's corner sun (top 16).
+	row.offset_top = 112.0 if Settings.touch_active() else 52.0
 	row.alignment = BoxContainer.ALIGNMENT_END
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_theme_constant_override("separation", 8)
@@ -76,8 +77,8 @@ func _build() -> void:
 	_label.text = "0"
 	_label.add_theme_font_override("font", DISPLAY_FONT)
 	_label.add_theme_font_size_override("font_size", 28)
-	_label.add_theme_color_override("font_color", Color(0.92, 0.97, 1.0, 0.95))
-	_label.add_theme_color_override("font_shadow_color", Color(0.03, 0.08, 0.12, 0.85))
+	_label.add_theme_color_override("font_color", Color(Palette.FOAM, 0.95))
+	_label.add_theme_color_override("font_shadow_color", Color(Palette.INK, 0.85))
 	_label.add_theme_constant_override("shadow_offset_x", 1)
 	_label.add_theme_constant_override("shadow_offset_y", 2)
 	row.add_child(_label)
@@ -119,4 +120,4 @@ class ChargeOrb extends Control:
 		draw_texture_rect(BUB, Rect2(c - sz * 0.5, sz), false, tint)
 		if pulse > 0.0:   # ready! ring swells off the orb
 			draw_arc(c, 13.0 + 8.0 * (1.0 - pulse), 0.0, TAU, 28,
-				Color(0.95, 0.99, 1.0, 0.8 * pulse), 2.0, true)
+				Color(Palette.FOAM, 0.8 * pulse), 2.0, true)

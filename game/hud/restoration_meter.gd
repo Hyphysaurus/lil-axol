@@ -62,8 +62,8 @@ func _build() -> void:
 	_label.text = "0% restored"
 	_label.add_theme_font_override("font", DISPLAY_FONT)
 	_label.add_theme_font_size_override("font_size", 20)
-	_label.add_theme_color_override("font_color", Color(0.92, 0.97, 1.0, 0.85))
-	_label.add_theme_color_override("font_shadow_color", Color(0.03, 0.08, 0.12, 0.8))
+	_label.add_theme_color_override("font_color", Color(Palette.FOAM, 0.9))
+	_label.add_theme_color_override("font_shadow_color", Color(Palette.INK, 0.8))
 	row.add_child(_label)
 
 ## The drawn meters: main water bar + kelp/fish stage minis beneath it.
@@ -71,11 +71,11 @@ class Gauge extends Control:
 	const W := 170.0
 	const H := 9.0
 	const MINI_H := 3.5
-	const INK := Color(0.92, 0.97, 1.0)
-	const WATER_A := Color(0.25, 0.75, 0.78)   # murk-teal -> vivid
-	const WATER_B := Color(0.45, 0.95, 0.85)
-	const KELP_COL := Color(0.38, 0.78, 0.48)
-	const FISH_COL := Color(0.95, 0.62, 0.45)
+	const INK := Palette.FOAM
+	const WATER_A := Palette.CYAN              # bright water -> pale surface aqua as it heals
+	const WATER_B := Palette.AQUA
+	const KELP_COL := Palette.FERN             # kelp/grass green
+	const FISH_COL := Palette.CORAL            # the fish shader's own coral
 
 	var _v := 0.0
 	var _pulse := 0.0
@@ -109,7 +109,7 @@ class Gauge extends Control:
 		_bar(Vector2(0.0, H + 4.0 + MINI_H + 3.0), Vector2(W * 0.62, MINI_H), fish, FISH_COL)
 
 	func _bar(pos: Vector2, size_px: Vector2, fill: float, col: Color) -> void:
-		draw_rect(Rect2(pos, size_px), Color(0.04, 0.09, 0.12, 0.55))
+		draw_rect(Rect2(pos, size_px), Color(Palette.INK, 0.55))
 		if fill > 0.0:
 			draw_rect(Rect2(pos + Vector2(1.0, 1.0),
 				Vector2(maxf((size_px.x - 2.0) * fill, 1.0), size_px.y - 2.0)), col)

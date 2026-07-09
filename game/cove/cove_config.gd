@@ -30,9 +30,22 @@ class_name CoveConfig
 @export_group("Ecosystem")
 @export var kelp_count: int = 6
 @export var fish_count: int = 5
+## Floating pollution debris the FROG's tongue clears (out of the axolotl's spray reach). 0 = none.
+@export var debris_count: int = 0
+## Pest-flies that swarm dirty water (a living symptom of pollution — they gently re-oil beneath
+## themselves, hard-capped by D-0005). The frog auto-tongues them into a cleanse; as the water heals
+## they give way to dragonflies (ambient reward). 0 = none.
+@export var pest_count: int = 0
 ## The rescued friend: an oil-matted companion asleep at friend_pos until sprayed clean.
 @export var friend_enabled: bool = true
 @export var friend_pos: Vector2 = Vector2(425.0, 148.0)
+## Which companion + verb: TURTLE = shell-bash demolition, FROG = tongue-grab. The art fields below let
+## one companion rig serve both — swap frames/anims/scale per cove, zero code (D-0006 data-driven rig).
+@export_enum("Turtle", "Frog") var friend_kind: int = 0
+## Optional per-cove companion art; null = the companion's own @export defaults (the turtle).
+@export var friend_frames: SpriteFrames
+@export var friend_anims: CharacterAnimSet
+@export var friend_scale: float = 1.0   # the frogpack frames are 50px vs the turtle's 40px — scale to match
 
 @export_group("Audio")
 ## Optional per-cove soundscape; null keeps the shared defaults (see cove_audio.gd).
@@ -53,3 +66,14 @@ class_name CoveConfig
 ## 0.98, not 0.999: progress is visibility-weighted now, but the last shimmer specks
 ## still shouldn't demand a pixel hunt.
 @export var win_threshold: float = 0.98
+
+@export_group("Exit / Pathway")
+## A one-way pathway out of this cove to the NEXT scene — the seam the multi-cove world is built on
+## (see cove_portal.gd). Off = a self-contained level with no exit.
+@export var exit_enabled: bool = false
+## Scene loaded when the axolotl enters the open passage (e.g. "res://estuary.tscn").
+@export var exit_target: String = ""
+## Where the passage sits, in cove-local coordinates.
+@export var exit_pos: Vector2 = Vector2.ZERO
+## true = a rubble plug blocks it until broken open (turtle ram / bubble bomb); false = already open.
+@export var exit_blocked: bool = true

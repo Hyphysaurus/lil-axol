@@ -5,10 +5,12 @@ class_name UiTheme extends RefCounted
 ## duplication, one place to tune. Palette: deep seafoam-navy panels, warm gold trim (the
 ## restored cove's sun), soft seafoam accents — watery and cozy, not a flat grey box.
 
-const INK := Color(0.93, 0.98, 0.96)       # warm-cool cream — body text
-const DIM := Color(0.62, 0.82, 0.82)       # muted seafoam — secondary labels
-const GOLD := Color(1.0, 0.87, 0.55)       # the cove's sun — headings & panel trim
-const SEAFOAM := Color(0.55, 0.92, 0.86)   # accent — button glow, highlights
+# Drawn straight from the Apollo master palette (game/palette.gd) so the overlay never drifts into a
+# parallel, slightly-off palette floating over an on-palette world. Named swatches, never literals.
+const INK := Palette.FOAM       # #ebede9 near-white foam — body text
+const DIM := Palette.MIST       # #a8b5b2 pale mist — secondary labels
+const GOLD := Palette.GOLD      # #e8c170 warm gold — headings & panel trim
+const SEAFOAM := Palette.AQUA   # #a4dddb pale surface aqua — button glow, highlights
 
 ## A soft, rounded, deep-water panel with a warm gold rim and a drop shadow for depth.
 static func panel() -> StyleBoxFlat:

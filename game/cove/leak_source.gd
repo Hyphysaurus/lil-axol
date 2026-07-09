@@ -8,11 +8,12 @@ extends Node2D
 ## joins the "sprayable" group so the axolotl's spray reaches it.
 
 const BARREL := preload("res://assets/props/industrial/red_oil_barrel.png")
-const EXPLODE := preload("res://assets/props/industrial/red_oil_barrel_explode.png")
+const OIL_SHADER := preload("res://shaders/oil.gdshader")
+const WHITE := preload("res://assets/white.png")
 
 const PROP_SCALE := 1.2         # 32px pixel-art barrel, scaled to a sensible size on the beach
-const EXPLODE_FRAMES := 12      # 384x32 sheet = 12 frames of 32x32
 const CAP_SECONDS := 2.0        # sustained spray on the barrel to neutralize it
+# Shine for cleaning the leak source lives in the "spring_clean" feat (shine.FEATS).
 const CAP_REACH := 34.0         # spray point must land this close to the barrel
 const STAIN_RADIUS := 24.0      # how wide the trickle re-oils near the source
 const DRIP := Vector2(26.0, 22.0)   # from the barrel down-right into the water at the shoreline
@@ -22,6 +23,7 @@ var _cfg: CoveConfig
 var _oil: Node
 var _spr: Sprite2D
 var _drip: CPUParticles2D
+var _pool: Sprite2D               # oil-shader pool stained on the ground at the barrel's base
 var _ring: Node2D
 var _body: StaticBody2D          # the barrel's physical collider — freed when it bursts
 var _capped := false
@@ -43,7 +45,8 @@ func _ready() -> void:
 	add_child(_drip)
 	_ring = CapRing.new()
 	add_child(_ring)
-	queue_redraw()               # draw the oil pool stained into the ground at the barrel's base
+	_pool = _make_pool()         # an oil-shader pool at the barrel's base (real oil, not a flat blob)
+	add_child(_pool)
 
 ## Give the barrel a physical body so the axolotl collides with it. A StaticBody2D on the
 ## DEFAULT collision layer is exactly what the beach and seabed already use, so the axolotl
@@ -80,7 +83,7 @@ func spray_at(world_pos: Vector2, _radius: float, delta: float) -> void:
 	_cap_t = minf(CAP_SECONDS, _cap_t + delta)
 	_spray_cd = 0.15
 	if _cap_t >= CAP_SECONDS:
-		_burst()
+		_purify()
 
 func _process(delta: float) -> void:
 	if _capped:
@@ -94,49 +97,68 @@ func _process(delta: float) -> void:
 		_cap_t = move_toward(_cap_t, 0.0, delta * 1.5)
 	(_ring as CapRing).progress = _cap_t / CAP_SECONDS
 
-## The source is neutralized: the barrel bursts, the blast clears the oil around it, the leak
-## is sealed for good.
-func _burst() -> void:
+## The source is PURIFIED, not blown up: the Tidekeeper's restorative spray dissolves the oil and the
+## rusted barrel crumbles into clean water + light, sealing the leak for good — cozy, not a violent
+## explosion (which is why plain water can neutralize it: it's restoration, not detonation).
+func _purify() -> void:
 	_capped = true
 	_drip.emitting = false
-	_spr.visible = false
-	queue_redraw()               # the oil pool clears now that the leak is sealed
 	if is_instance_valid(_body):
 		_body.queue_free()           # the barrel's gone — drop its collider so the axo doesn't
 		_body = null                 # stand on an invisible box where the barrel used to be
 	(_ring as CapRing).progress = 0.0
-	get_tree().call_group("oil_manager", "spray_at", global_position + DRIP, BLAST_CLEAR, 0.9)
-	Sfx.play("explode", -7.0)        # the magical burst (Helton Yan)
-	Sfx.play("chime", -5.0, 1.1)     # a bright "sealed" sparkle over it
-	_play_explosion()
+	get_tree().call_group("oil_manager", "spray_at", global_position + DRIP, BLAST_CLEAR, 0.9)   # oil lifts away
+	Sfx.play("vent_open", -6.0)      # a warm ascending sparkle (GameBurp) — a cleanse, not a boom
+	Sfx.play("chime", -5.0, 1.3)
+	var keeper = get_tree().get_first_node_in_group("shine")
+	if keeper and keeper.has_method("feat"):
+		keeper.feat(&"spring_clean", global_position + Vector2(0.0, -18.0))   # "Spring Clean" feat
+	_purify_fx(self, Vector2(0.0, -16.0))
+	# the barrel + its oil pool dissolve away instead of vanishing
+	var tw := create_tween().set_parallel(true)
+	tw.tween_property(_spr, "modulate:a", 0.0, 0.45)
+	if is_instance_valid(_pool):
+		tw.tween_property(_pool, "modulate:a", 0.0, 0.5)
 
-func _play_explosion() -> void:
-	var sf := SpriteFrames.new()
-	sf.add_animation(&"boom")
-	sf.set_animation_loop(&"boom", false)
-	sf.set_animation_speed(&"boom", 18.0)
-	for i in EXPLODE_FRAMES:
-		var at := AtlasTexture.new()
-		at.atlas = EXPLODE
-		at.region = Rect2(i * 32.0, 0.0, 32.0, 32.0)
-		sf.add_frame(&"boom", at)
-	var boom := AnimatedSprite2D.new()
-	boom.sprite_frames = sf
-	boom.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	boom.scale = Vector2(2.2, 2.2)          # the blast is bigger than the barrel
-	boom.position = Vector2(0.0, -18.0)     # centered on the barrel body
-	boom.z_index = 7
-	add_child(boom)
-	boom.animation_finished.connect(boom.queue_free)
-	boom.play(&"boom")
+## The cozy replacement for an explosion: a burst of clean-water foam + rising golden sparkles where a
+## barrel purifies. Static so the drifting sea barrels (shore_pollution) reuse the exact same look.
+static func _purify_fx(parent: Node, at: Vector2) -> void:
+	var foam := CPUParticles2D.new()
+	foam.one_shot = true; foam.emitting = true
+	foam.amount = 20; foam.lifetime = 0.7; foam.explosiveness = 0.9
+	foam.position = at; foam.spread = 180.0
+	foam.gravity = Vector2(0.0, 40.0)
+	foam.initial_velocity_min = 40.0; foam.initial_velocity_max = 110.0
+	foam.damping_min = 30.0; foam.damping_max = 70.0
+	foam.scale_amount_min = 1.0; foam.scale_amount_max = 2.8
+	foam.color = Color(Palette.AQUA, 0.9); foam.z_index = 7
+	parent.add_child(foam)
+	foam.finished.connect(foam.queue_free)
+	var spark := CPUParticles2D.new()
+	spark.one_shot = true; spark.emitting = true
+	spark.amount = 14; spark.lifetime = 1.0; spark.explosiveness = 0.85
+	spark.position = at; spark.direction = Vector2(0.0, -1.0); spark.spread = 70.0
+	spark.gravity = Vector2(0.0, -30.0)
+	spark.initial_velocity_min = 20.0; spark.initial_velocity_max = 60.0
+	spark.scale_amount_min = 0.8; spark.scale_amount_max = 1.8
+	spark.color = Color(Palette.GOLD, 0.95); spark.z_index = 8
+	parent.add_child(spark)
+	spark.finished.connect(spark.queue_free)
 
-## An oil pool stained into the ground around the barrel's base — the leak's mark on the land.
-func _draw() -> void:
-	if _capped:
-		return
-	draw_circle(Vector2(4.0, -3.0), 20.0, Color(Palette.INK, 0.42))
-	draw_circle(Vector2(-7.0, 0.0), 14.0, Color(Palette.INK, 0.36))
-	draw_circle(Vector2(16.0, 1.0), 12.0, Color(Palette.INK, 0.30))
+## An oil pool at the barrel's base, drawn with the game's OIL shader (petrol sheen, organic lobed
+## blob) so it reads as real oil integrated on the ground, not a flat drawn circle.
+func _make_pool() -> Sprite2D:
+	var mat := ShaderMaterial.new()
+	mat.shader = OIL_SHADER
+	mat.set_shader_parameter("amount", 0.9)
+	mat.set_shader_parameter("sheen", 0.5)
+	var s := Sprite2D.new()
+	s.texture = WHITE
+	s.material = mat
+	s.scale = Vector2(56.0, 30.0)     # a flat oily pool spreading at the base
+	s.position = Vector2(4.0, 2.0)
+	s.z_index = 3                      # on the ground, under the barrel (z 4)
+	return s
 
 func _make_drip() -> CPUParticles2D:
 	var p := CPUParticles2D.new()

@@ -45,3 +45,17 @@ class_name CharacterAnimSet
 @export_group("Shell")
 @export var shell_tuck: StringName = &"hide"
 @export var shell_emerge: StringName = &"unhide"
+## A one-shot startle the turtle plays the instant it's washed awake, before it settles into idle.
+## Turtle-only (the axolotl SpriteFrames has no such clip); harmless as unused data elsewhere.
+@export var fright: StringName = &"fright"
+
+## Directional tongue strikes for the FROG companion (its demolition-equivalent verb — a ranged grab).
+## Underwater variants for submerged aim. Defaults are the frogpack clip names; unused/harmless for
+## characters with no tongue.
+@export_group("Tongue")
+@export var tongue_fwd: StringName = &"attackforward"
+@export var tongue_diag: StringName = &"attackdiagonal"
+@export var tongue_up: StringName = &"attackup"
+@export var swim_tongue_fwd: StringName = &"swimattackforward"
+@export var swim_tongue_diag: StringName = &"swimattackdiagonal"
+@export var swim_tongue_up: StringName = &"swimattackup"

@@ -6,7 +6,7 @@ extends CanvasLayer
 ## Code-built overlay in the restoration_banner idiom; reads action state in _process and
 ## never consumes input events, so it can't interfere with movement or spray.
 
-const HOLD_SECONDS := 0.8
+const HOLD_SECONDS := 1.1       # a firm, deliberate hold — a stray brush of the DAY button won't reset
 const DRAIN_SPEED := 3.0        # released ring drains ~3x faster than it fills
 const FADE_TO_BLACK := 2.2      # blackout alpha/sec once triggered (~0.45s to dark)
 
@@ -20,10 +20,18 @@ func _ready() -> void:
 	layer = 96                  # above the banner (95), below PostFX (100)
 	add_to_group("new_day")     # the rest card's "new day" button finds us here
 	_build()
+	# On touch, the hold-progress ring is drawn ON the DAY button (touch_controls polls hold_progress),
+	# so hide this centre-screen ring there — it only made sense for the keyboard hold.
+	_ring.visible = not Settings.touch_active()
+	Settings.changed.connect(func() -> void: _ring.visible = not Settings.touch_active())
 
 ## Kick the fade-to-black reload from UI (shared restart routine — rest card uses this).
 func start() -> void:
 	_restarting = true
+
+## Hold fill 0..1, read by the touch overlay so the DAY button can draw the ring under the thumb.
+func hold_progress() -> float:
+	return _hold_t / HOLD_SECONDS
 
 func _process(delta: float) -> void:
 	if _restarting:
@@ -31,6 +39,8 @@ func _process(delta: float) -> void:
 		_blackout.color.a = _black
 		if _black >= 1.0:
 			set_process(false)  # one reload only; this node dies with the old scene
+			Settings.run_score = 0.0   # New Day = a fresh run; don't carry the old Shine total
+			Settings.roster_reset()    # ...and the friends return to their corners to be met again
 			get_tree().reload_current_scene()
 		return
 	if not InputMap.has_action("restart"):

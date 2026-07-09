@@ -92,12 +92,18 @@ func _make_pollen() -> CPUParticles2D:
 class GrassLayer extends Node2D:
 	var cols := 32
 	var clean := 0.0
+	const REDRAW_HZ := 18.0     # slow sway - 60fps redraw of ~160 blades is wasted CPU/WASM, and
+	                            # this is the biggest per-frame cost once the shore is lush
 	var _t := 0.0
+	var _redraw_acc := 0.0
 
 	func tick(delta: float) -> void:
 		_t += delta
 		if clean > 0.10:
-			queue_redraw()
+			_redraw_acc += delta
+			if _redraw_acc >= 1.0 / REDRAW_HZ:
+				_redraw_acc = 0.0
+				queue_redraw()
 
 	func _hash(a: int, b: int) -> float:
 		return fmod(absf(sin(float(a) * 12.9898 + float(b) * 47.11) * 43758.5453), 1.0)

@@ -14,11 +14,12 @@ uniform float drift = 0.045;       // slow sideways drift speed
 void fragment() {
 	// slanted coordinate: the beams rake diagonally across the column and drift over time
 	float s = UV.x + UV.y * ray_tilt + TIME * drift;
-	// stack a few sine bands at different frequencies -> irregular, natural-looking shafts
+	// two sine bands at different frequencies -> irregular, natural-looking shafts. This runs
+	// FULLSCREEN every frame once the cove is restored, so it's kept to two bands (a third finer band
+	// was dropped for perf — the difference reads as a touch less filigree, not a different effect).
 	float rays = smoothstep(0.55, 1.0, sin(s * 17.0) * 0.5 + 0.5);
 	rays += 0.6 * smoothstep(0.70, 1.0, sin(s * 31.0 + 1.7) * 0.5 + 0.5);
-	rays += 0.4 * smoothstep(0.78, 1.0, sin(s * 49.0 + 4.2) * 0.5 + 0.5);
-	rays *= 0.5;
+	rays *= 0.6;
 	// brightest up near the sun (screen top, UV.y = 0) and fading down, but only PARTWAY so the
 	// shafts still rake through the water lower on screen — not just the sky. Soft L/R edge fade.
 	float depth_fade = 1.0 - 0.7 * smoothstep(0.0, 1.05, UV.y);

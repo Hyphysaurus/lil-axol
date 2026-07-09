@@ -5,6 +5,7 @@ extends CanvasLayer
 ## one-shot per day (New Day reloads rebuild it fresh). Holds a UI lock while open.
 
 const SHOW_DELAY := 3.4        # let the banner celebrate first
+const DISPLAY_FONT := preload("res://assets/fonts/LilitaOne.ttf")   # the game's chunky display face
 
 var _root: Control
 var _entry: VBoxContainer
@@ -19,12 +20,16 @@ func _ready() -> void:
 	layer = 94                  # under the banner's corner sun (95), over the meters (92)
 	_build()
 	_root.visible = false
-	# The Tide Board auto-popup is OFF for now — it locked the player behind an initials modal
-	# before the cove was truly restored (turtle + vents still pending). Re-enable by reconnecting
-	# to the banner's `restored` signal here once the full-restoration win is back on.
-	#var banner = get_tree().get_first_node_in_group("restoration")
-	#if banner and banner.has_signal("restored"):
-	#	banner.restored.connect(_on_restored)
+	# TIDE BOARD DISABLED FOR NOW (Maram, 2026-07-05): the initials modal blocks progress on restoration
+	# — you finish the cove and want to head to the estuary, not get trapped in a leaderboard prompt. The
+	# node stays here inert (nothing connects it to the win) so it's a one-line re-enable later. To bring
+	# it back, uncomment `_wire.call_deferred()` and route it somewhere non-blocking (e.g. a menu button).
+	#_wire.call_deferred()
+
+func _wire() -> void:
+	var banner = get_tree().get_first_node_in_group("restoration")
+	if banner and banner.has_signal("restored"):
+		banner.restored.connect(_on_restored)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if _root.visible and (event.is_action_pressed("ui_cancel") or event.is_action_pressed("menu")):
@@ -73,8 +78,7 @@ func _show_board() -> void:
 			var l := Label.new()
 			l.text = "%d.  %s - %d" % [rank, str(row.get("name", "?")), int(row.get("score", 0))]
 			l.add_theme_font_size_override("font_size", 20)
-			l.add_theme_color_override("font_color",
-				Color(1.0, 0.87, 0.55) if rank == 1 else Color(0.85, 0.93, 0.96))
+			l.add_theme_color_override("font_color", Palette.GOLD if rank == 1 else Palette.FOAM)
 			_list.add_child(l)
 			rank += 1
 
@@ -94,7 +98,7 @@ func _build() -> void:
 
 	var dim := ColorRect.new()
 	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
-	dim.color = Color(0.02, 0.04, 0.07, 0.45)
+	dim.color = Color(Palette.INK, 0.5)
 	_root.add_child(dim)
 
 	var panel := PanelContainer.new()
@@ -112,14 +116,15 @@ func _build() -> void:
 	var head := Label.new()
 	head.text = "~ the tide board ~"
 	head.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	head.add_theme_font_override("font", DISPLAY_FONT)
 	head.add_theme_font_size_override("font_size", 30)
-	head.add_theme_color_override("font_color", Color(1.0, 0.87, 0.55))
+	head.add_theme_color_override("font_color", Palette.GOLD)
 	vb.add_child(head)
 
 	_status = Label.new()
 	_status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_status.add_theme_font_size_override("font_size", 16)
-	_status.add_theme_color_override("font_color", Color(0.70, 0.85, 0.90))
+	_status.add_theme_color_override("font_color", Palette.MIST)
 	vb.add_child(_status)
 
 	# --- entry: initials + submit/skip ---
@@ -131,7 +136,7 @@ func _build() -> void:
 	score_line.name = "ScoreLine"
 	score_line.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	score_line.add_theme_font_size_override("font_size", 22)
-	score_line.add_theme_color_override("font_color", Color(0.95, 0.99, 1.0))
+	score_line.add_theme_color_override("font_color", Palette.FOAM)
 	_entry.add_child(score_line)
 
 	_input = LineEdit.new()

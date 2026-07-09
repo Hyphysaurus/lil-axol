@@ -11,6 +11,7 @@ const KEY := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZ
 ## Post a score. Returns true on success.
 func submit(player: String, score: int) -> bool:
 	var r := HTTPRequest.new()
+	r.timeout = 8.0              # web: a stalled fetch must fail, not hang "sending..." forever
 	add_child(r)
 	var body := JSON.stringify({"name": player.substr(0, 12), "score": score})
 	if r.request(URL, _headers(true), HTTPClient.METHOD_POST, body) != OK:
@@ -23,6 +24,7 @@ func submit(player: String, score: int) -> bool:
 ## Top scores, best first: [{name, score}, ...]. Empty array on any failure.
 func fetch_top(limit := 10) -> Array:
 	var r := HTTPRequest.new()
+	r.timeout = 8.0              # web: bail after 8s instead of awaiting a dead request forever
 	add_child(r)
 	var url := "%s?select=name,score&order=score.desc&limit=%d" % [URL, limit]
 	if r.request(url, _headers(false), HTTPClient.METHOD_GET) != OK:

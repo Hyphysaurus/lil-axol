@@ -9,7 +9,7 @@ class_name ThermalVent
 
 const RockScript := preload("res://game/cove/destructible_rock.gd")
 const SURGE_RADIUS := 100.0    # oil cleared in the column above the vent when it opens
-const SURGE_SHINE := 3000.0    # Shine reward for opening a vent
+# Shine for opening a vent lives in the "geyser" feat (shine.FEATS) — it's a celebrated feat now.
 
 @export var cap_cols := 11
 @export var cap_rows := 7
@@ -21,6 +21,7 @@ var _pulse := 0.0
 
 func _ready() -> void:
 	z_index = 1
+	add_to_group("thermal_vent")   # the restoration banner polls this group for the "all vents open" win gate
 	_plume = _make_plume()
 	_plume.emitting = false
 	add_child(_plume)
@@ -44,9 +45,14 @@ func _open_vent() -> void:
 	get_tree().call_group("oil_manager", "spray_at", global_position, SURGE_RADIUS, 1.4)
 	get_tree().call_group("oil_manager", "spray_at", global_position + Vector2(0.0, -190.0), SURGE_RADIUS, 1.4)
 	var keeper = get_tree().get_first_node_in_group("shine")
-	if keeper and keeper.has_method("bonus"):
-		keeper.bonus(SURGE_SHINE, global_position)
+	if keeper and keeper.has_method("feat"):
+		keeper.feat(&"geyser", global_position)   # a celebrated feat: callout + Flow + Shine
 	create_tween().tween_property(self, "_glow", 1.0, 0.7)
+	get_tree().call_group("restoration", "notify_progress")   # a vent opening may complete the win
+
+## Public read for the win gate — is this vent broken open? (the banner needs ALL vents open.)
+func is_vent_open() -> bool:
+	return _open
 
 func _process(delta: float) -> void:
 	if _open:
