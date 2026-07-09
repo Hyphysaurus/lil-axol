@@ -36,7 +36,11 @@ func load_file() -> void:
 
 func _quarantine() -> void:
 	var abs := ProjectSettings.globalize_path(save_path)
-	DirAccess.rename_absolute(abs, abs + ".bad")   # keep the evidence, exactly once (overwrites older .bad)
+	if FileAccess.file_exists(save_path + ".bad"):
+		DirAccess.remove_absolute(abs + ".bad")   # Windows rename won't overwrite an existing target
+	var err := DirAccess.rename_absolute(abs, abs + ".bad")   # keep the evidence
+	if err != OK:
+		push_warning("WorldState: could not quarantine save (%d); starting fresh over it" % err)
 	_cfg = ConfigFile.new()
 
 func get_cove(id: String, key: String, default: Variant) -> Variant:
@@ -45,7 +49,9 @@ func get_cove(id: String, key: String, default: Variant) -> Variant:
 ## Set one per-cove value and flush to disk. Milestone-cadence only — never call per frame.
 func mark(id: String, key: String, value: Variant) -> void:
 	_cfg.set_value("cove_" + id, key, value)
-	_cfg.save(save_path)
+	var err := _cfg.save(save_path)
+	if err != OK:
+		push_warning("WorldState: save failed (%d) - progress kept in memory this session" % err)
 
 func is_restored(id: String) -> bool:
 	return bool(get_cove(id, "restored", false))

@@ -69,3 +69,14 @@ func _test_corrupt_quarantine() -> void:
 	ws.mark("hub", "restored", true)     # store still writable after quarantine
 	_check("corrupt: writable after quarantine", ws.is_restored("hub"))
 	ws.free()
+	# a SECOND corruption must quarantine again (Windows rename won't overwrite an existing .bad —
+	# the code must clear the old backup first)
+	f = FileAccess.open(path, FileAccess.WRITE)
+	f.store_string("[unclosed section\nkey=\"")
+	f.close()
+	var ws2: Node = WS.new()
+	ws2.save_path = path
+	ws2.load_file()
+	_check("corrupt: repeat quarantine still defaults", ws2.is_restored("hub") == false)
+	_check("corrupt: repeat quarantine keeps .bad", FileAccess.file_exists(path + ".bad"))
+	ws2.free()
