@@ -8,6 +8,11 @@ class_name CoveConfig
 ## water bounds have always been authored in). Shader COLORS are intentionally NOT
 ## here — they stay authored on the scene materials in the inspector.
 
+@export_group("Identity")
+## Stable save key for this cove ("hub", "estuary", ...). WorldState files all progress under it —
+## never rename once players have saves.
+@export var id: String = "hub"
+
 @export_group("Water Geometry")
 ## Whether this cove has a swimmable water body at all (land-only levels set false).
 @export var has_water: bool = true

@@ -25,6 +25,7 @@ MetSys="*uid://c01ibpvrp2wsd"
 LitManager="*uid://brf2hvdtyyw3q"
 Sfx="*res://game/audio/sfx.gd"
 Settings="*res://game/hud/settings_store.gd"
+WorldState="*res://game/world/world_state.gd"
 Leaderboard="*res://game/net/leaderboard.gd"
 
 [debug]

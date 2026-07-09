@@ -6,6 +6,7 @@
 
 [resource]
 script = ExtResource("1_cfg")
+id = "estuary"
 has_water = true
 water_left = -142.0
 water_right = 377.0
