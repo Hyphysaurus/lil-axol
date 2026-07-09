@@ -59,7 +59,7 @@ func _test_corrupt_quarantine() -> void:
 	if FileAccess.file_exists(path + ".bad"):
 		DirAccess.remove_absolute(abs + ".bad")
 	var f := FileAccess.open(path, FileAccess.WRITE)
-	f.store_string("{{{ this is not a config file }}}")
+	f.store_string("[unclosed section\nkey=\"")   # genuinely unparseable INI (an open bracket + dangling quote)
 	f.close()
 	var ws: Node = WS.new()
 	ws.save_path = path

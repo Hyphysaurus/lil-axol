@@ -36,10 +36,7 @@ func load_file() -> void:
 
 func _quarantine() -> void:
 	var abs := ProjectSettings.globalize_path(save_path)
-	# keep the evidence: copy to .bad then remove the original (rename_absolute proved unreliable
-	# for user:// paths on Windows — copy+remove has the same effect and works everywhere)
-	DirAccess.copy_absolute(abs, abs + ".bad")
-	DirAccess.remove_absolute(abs)
+	DirAccess.rename_absolute(abs, abs + ".bad")   # keep the evidence, exactly once (overwrites older .bad)
 	_cfg = ConfigFile.new()
 
 func get_cove(id: String, key: String, default: Variant) -> Variant:
