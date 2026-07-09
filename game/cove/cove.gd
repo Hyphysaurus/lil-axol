@@ -126,15 +126,19 @@ func _inject(n: Node) -> void:
 	if n and n.has_method("setup"):
 		n.setup(config)
 
-## Per-cove environment overrides (spec §9): tints applied to the shared kit's surfaces so the
-## marsh reads green-tea and muddy without forking the scene. Alpha 0 = keep defaults.
+## Per-cove environment overrides (spec §9): the marsh reads green-tea and muddy without forking
+## the scene. Water + soil tints ride shader UNIFORMS (default white = hub untouched — the modulate
+## chain is avoided because it also carries the day/night CanvasModulate these shaders ignore);
+## grass/pollen are plain canvas draws, so the land nodes' modulate tints those. Alpha 0 = unset.
 func _apply_environment() -> void:
 	if config.env_water_tint.a > 0.0:
 		var water := get_node_or_null("Water") as Sprite2D
-		if water:
-			water.self_modulate = config.env_water_tint
+		if water and water.material is ShaderMaterial:
+			(water.material as ShaderMaterial).set_shader_parameter("env_tint", config.env_water_tint)
 	if config.env_land_tint.a > 0.0:
 		for n in ["BlockLand", "BlockLandRight"]:
 			var land := get_node_or_null(n)
 			if land:
 				(land as Node2D).modulate = config.env_land_tint
+				if land.has_method("set_env_tint"):
+					land.set_env_tint(config.env_land_tint)

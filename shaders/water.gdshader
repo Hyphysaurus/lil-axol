@@ -27,8 +27,12 @@ uniform vec4 sky_reflect : source_color = vec4(0.5, 0.62, 0.85, 1.0);  // colour
 uniform float reflect_strength : hint_range(0.0, 1.0) = 0.35;
 uniform float reflect_depth = 70.0;  // px the reflection fades over
 
+// Per-cove environment tint (green-tea marsh water...), set by cove.gd:_apply_environment().
+// A uniform, NOT the modulate chain: entry COLOR also carries CanvasModulate (day/night Mood),
+// which this shader deliberately ignores — white = untinted, so the hub renders bit-identically.
+uniform vec4 env_tint : source_color = vec4(1.0);
+
 void fragment() {
-	vec4 mod_tint = COLOR; // entry COLOR = white texture * (self_)modulate — the per-cove env tint (white = no change)
 	float H = rect_size.y;
 	float W = rect_size.x;
 	float px_x = UV.x * W;
@@ -43,7 +47,8 @@ void fragment() {
 	if (px_y < crest) {
 		COLOR = vec4(0.0);                       // air, above the wavy surface
 	} else if (px_y < crest + foam_thickness) {
-		COLOR = col_foam * mod_tint;              // foam line
+		COLOR = col_foam;                         // foam line
+		COLOR.rgb *= env_tint.rgb;
 	} else {
 		float depth = clamp((px_y - crest) / max(H - crest, 1.0), 0.0, 1.0);
 		vec4 sc = mix(col_oily_shallow, col_shallow, clean);
@@ -59,6 +64,7 @@ void fragment() {
 		// sky reflection near the surface, fading with depth; gated by clean so oil stays matte
 		float refl = 1.0 - smoothstep(0.0, reflect_depth, px_y - (crest + foam_thickness));
 		c.rgb = mix(c.rgb, sky_reflect.rgb, refl * reflect_strength * clean);
-		COLOR = c * mod_tint;
+		COLOR = c;
+		COLOR.rgb *= env_tint.rgb;
 	}
 }

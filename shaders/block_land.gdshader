@@ -9,12 +9,16 @@ uniform float oil : hint_range(0.0, 1.0) = 1.0;   // 1 - cleanliness
 uniform vec2 grid = vec2(32.0, 35.0);             // cell columns / rows
 uniform float surface_row = 3.0;                  // rows above this are dry; below reads submerged
 
+// Per-cove environment tint (muddier marsh soil...), set by cove.gd:_apply_environment().
+// A uniform, NOT the modulate chain: entry COLOR also carries CanvasModulate (day/night Mood),
+// which this shader deliberately ignores — white = untinted, so the hub renders bit-identically.
+uniform vec4 env_tint : source_color = vec4(1.0);
+
 float hash(vec2 p) {
 	return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
 
 void fragment() {
-	vec4 mod_tint = COLOR; // entry COLOR = white texture * (self_)modulate — the per-cove env tint (white = no change)
 	vec2 cell = floor(UV * grid);
 	vec2 f = fract(UV * grid);
 	float j = hash(cell);
@@ -60,5 +64,5 @@ void fragment() {
 		tone = mix(tone, grit, (1.0 - smoothstep(0.05, 0.12, d)) * 0.6);
 	}
 
-	COLOR = vec4(tone, 1.0) * mod_tint;
+	COLOR = vec4(tone * env_tint.rgb, 1.0);
 }

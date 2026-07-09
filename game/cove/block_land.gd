@@ -55,6 +55,12 @@ func _hook() -> void:
 		_clean = _target
 	_apply()
 
+## Per-cove environment tint for the soil quad. A shader uniform, not modulate: the soil shader
+## ignores the modulate/CanvasModulate chain by design (day/night Mood must not double-darken it) —
+## grass + pollen pick the tint up via plain node modulate instead (see cove._apply_environment).
+func set_env_tint(c: Color) -> void:
+	_soil_mat.set_shader_parameter("env_tint", c)
+
 func _process(delta: float) -> void:
 	if not is_equal_approx(_clean, _target):
 		_clean = move_toward(_clean, _target, delta * EASE)
