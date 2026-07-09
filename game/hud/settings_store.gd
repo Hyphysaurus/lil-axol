@@ -15,6 +15,38 @@ const ACTIONS := ["move_left", "move_right", "move_up", "move_down",
 	"jump", "run", "spray", "dash", "bubble", "restart"]
 
 var title_shown := false             # session-only: New Day reloads skip the title veil
+var run_score := 0.0                 # session-only: the running Shine total, carried across a pathway
+                                     # to the next cove (see shine.gd + cove_portal.gd); reset on New Day
+
+# --- the partner ROSTER (session-only, carried across scenes like run_score) ---
+# Rescued partners persist for the whole run; ONE is active and travels with you (cozy + readable —
+# the roster gives the party fantasy, the single follower keeps the screen calm). Kinds are the
+# companion's Kind enum ints (0=Turtle, 1=Frog, 2=Otter). Reset on New Day with the score.
+signal roster_changed                # a partner joined or the active partner swapped; HUD re-reads
+
+var run_roster: Array[int] = []      # rescued partner kinds, in rescue order
+var run_active := -1                 # the kind travelling with you (-1 = alone)
+var arrive_via_portal := false       # session-only: the next scene load is a tunnel crossing — spawn
+                                     # the axolotl at the passage mouth, moving, behind an iris reveal
+
+## A partner was rescued: add it to the roster and make it the active traveller (meeting a new
+## friend = they join you now; you can swap back to an old friend any time).
+func roster_add(kind: int) -> void:
+	if not run_roster.has(kind):
+		run_roster.append(kind)
+	run_active = kind
+	roster_changed.emit()
+
+## Swap which rescued partner travels with you. Ignored for kinds you haven't rescued yet.
+func roster_swap(kind: int) -> void:
+	if run_roster.has(kind) and run_active != kind:
+		run_active = kind
+		roster_changed.emit()
+
+func roster_reset() -> void:
+	run_roster.clear()
+	run_active = -1
+	roster_changed.emit()
 
 var _cfg := ConfigFile.new()
 var _locks := 0
@@ -40,6 +72,28 @@ func pop_ui_lock() -> void:
 
 func ui_locked() -> bool:
 	return _locks > 0
+
+## Is the on-screen touch overlay active? One source of truth for the touch controls, the title's
+## control legend, the joystick ghost, and the reset ring — touch_mode 0 = auto (has touchscreen),
+## 1 = always on, 2 = off. Keeps the "which controls am I showing" test from being copy-pasted.
+func touch_active() -> bool:
+	var mode: int = get_setting("controls", "touch_mode", 0)
+	if mode == 0:                      # AUTO = the PLATFORM, not merely "a touch panel exists"
+		return is_touch_platform()
+	return mode == 1                   # 1 = always on, 2 = always off
+
+## A genuine touch platform: a native mobile export, or a MOBILE browser (web_android / web_ios).
+## A desktop — even a Windows touchscreen laptop or a desktop browser — is NOT a touch platform
+## (keyboard + mouse is primary there), so "auto" no longer forces the on-screen controls on next
+## to the mouse. This is the auto-detect that recognizes the platform.
+func is_touch_platform() -> bool:
+	return OS.has_feature("mobile") or OS.has_feature("web_android") or OS.has_feature("web_ios")
+
+## True when the mouse is the aiming pointer — spray/bubble aim, the reticle, and the turtle's
+## shell-spin steer toward the cursor. Tied to the touch overlay: if the on-screen joystick is up
+## (touch platform, or forced on), aim by the joystick instead of the mouse.
+func aim_with_mouse() -> bool:
+	return not touch_active()
 
 # --- generic persisted values (visual flags, touch mode) ---
 

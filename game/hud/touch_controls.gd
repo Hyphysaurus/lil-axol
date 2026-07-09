@@ -18,7 +18,7 @@ const DRAG_START := 12.0        # a left-half finger must travel this far to bec
 ## Short caps drawn under each button so the control reads at a glance (the font has plain Latin).
 const LABELS := {
 	"spray": "SPRAY", "jump": "JUMP", "dash": "DASH",
-	"bubble": "BOMB", "menu": "MENU", "restart": "DAY",
+	"bubble": "BOMB", "shell": "SPIN", "menu": "MENU", "restart": "DAY",
 }
 
 ## Force the overlay on for desktop testing (pair with emulate_touch_from_mouse).
@@ -31,6 +31,7 @@ var _stick_vec := Vector2.ZERO  # deflection, unit-clamped
 var _pending_id := -1           # a left-half finger that hasn't dragged yet — a tap or a nascent stick
 var _pending_origin := Vector2.ZERO
 var _held := {}                 # action name -> finger id, for the hold buttons
+var _stick_used := false        # has the player driven the joystick yet? (drops the onboarding ghost)
 
 func _ready() -> void:
 	layer = 90                  # under the banner (95) and NewDay (96)
@@ -45,13 +46,12 @@ func _ready() -> void:
 ## Visibility = the Settings touch mode (auto / always on / off), minus any open menu —
 ## menus own the whole screen, and hiding also releases anything mid-hold.
 func _refresh() -> void:
-	var mode: int = Settings.get_setting("controls", "touch_mode", 0)
-	var on := (DisplayServer.is_touchscreen_available() or force_visible) if mode == 0 else mode == 1
-	on = on and not Settings.ui_locked()
+	var on := (Settings.touch_active() or force_visible) and not Settings.ui_locked()
 	if not on:
 		_release_all()
 	visible = on
 	set_process_input(on)
+	_canvas.set_process(on)     # the canvas only pulses the ghost / polls the reset ring while shown
 
 ## The Input singleton outlives scene reloads — anything still pressed when NewDay
 ## reloads would stay pressed forever (a held restart button = infinite reload loop).
@@ -69,9 +69,9 @@ func _release_all() -> void:
 	_held.clear()
 	_sync()
 
-## We consume every touch WE act on (button hit, joystick spawn/drag, owned release) so it can't
-## fall through to the turtle's point-and-click command. Touches on open water are left alone —
-## those reach the companion as a "go demolish there" command (see companion._unhandled_input).
+## We consume every touch WE act on (button hit, joystick spawn/drag, owned release). The turtle's
+## demolition is now the Shell button (HOLD to pilot the shell-spin), so there's no point-and-click
+## command anymore — a left-half tap that never becomes the joystick simply does nothing.
 func _input(event: InputEvent) -> void:
 	var used := false
 	if event is InputEventScreenTouch:
@@ -91,10 +91,9 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 ## Returns true if we claimed this touch (a button, or a left-half movement/tap finger). The LEFT
-## half is movement territory; the first finger there is PENDING — it neither moves the axolotl nor
-## shows a ring, so a quick release reads as a tap = a turtle command, while a real drag promotes it
-## to the joystick. Any left-half touch is consumed so it can't leak a stray command; the RIGHT half
-## is left alone → open-water taps there reach the turtle command in companion._unhandled_input.
+## half is movement territory; the first finger there is PENDING — a real drag promotes it to the
+## joystick, while a quick release is just an ignored tap. Any left-half touch is consumed so it
+## can't leak elsewhere; the RIGHT half is left alone for anything below this layer.
 func _touch_down(id: int, pos: Vector2) -> bool:
 	var btns := _buttons()
 	for action in btns:
@@ -122,9 +121,8 @@ func _touch_up(id: int) -> bool:
 		_apply_stick()
 		used = true
 	elif id == _pending_id:
-		_command_at(_pending_origin)  # a left-half finger that never dragged = a tap = send the turtle
-		_pending_id = -1
-		used = true
+		_pending_id = -1              # a left-half tap that never became the joystick — now a no-op
+		used = true                   # (demolition is the Shell button now, not a point-and-click command)
 	for action in _held.keys():
 		if _held[action] == id:
 			_held.erase(action)
@@ -138,13 +136,8 @@ func _promote_pending(pos: Vector2) -> void:
 	_stick_id = _pending_id
 	_stick_origin = _pending_origin
 	_pending_id = -1
+	_stick_used = true              # they found the invisible stick — the "drag to swim" ghost can retire
 	_stick_move(pos)
-
-## Route a left-half tap to the turtle: convert the screen point to world and hand it to the
-## companion via its group, so this layer stays decoupled from the turtle node.
-func _command_at(screen_pos: Vector2) -> void:
-	var world := get_viewport().get_canvas_transform().affine_inverse() * screen_pos
-	get_tree().call_group("companion", "command_to", world)
 
 ## The pause/settings card opens on the "menu" action arriving as an EVENT (its _unhandled_input),
 ## so a plain Input.action_press won't reach it — synthesize the action. Press AND release so the
@@ -198,6 +191,7 @@ func _buttons() -> Dictionary:
 		"jump":    [Vector2(s.x - 202.0, s.y - 80.0), 44.0],
 		"dash":    [Vector2(s.x - 214.0, s.y - 188.0), 40.0],
 		"bubble":  [Vector2(s.x - 100.0, s.y - 206.0), 42.0],
+		"shell":   [Vector2(s.x - 310.0, s.y - 172.0), 38.0],   # HOLD to pilot the turtle's shell-spin
 		"menu":    [Vector2(s.x - 48.0, 48.0), 26.0],
 		"restart": [Vector2(s.x - 112.0, 48.0), 26.0],
 	}
@@ -208,6 +202,10 @@ func _sync() -> void:
 	_canvas.stick_origin = _stick_origin
 	_canvas.stick_knob = _stick_origin + _stick_vec * STICK_RADIUS
 	_canvas.stick_r = STICK_RADIUS
+	# onboarding: until the player first drives the stick, a "drag to swim" ghost rests in the
+	# left-hand thumb zone so the invisible floating joystick is discoverable
+	_canvas.ghost_on = not _stick_used
+	_canvas.ghost_pos = Vector2(_canvas.size.x * 0.22, _canvas.size.y - 150.0)
 	_canvas.btns = []
 	var btns := _buttons()
 	for action in btns:
@@ -222,10 +220,29 @@ class TouchCanvas extends Control:
 	var stick_knob := Vector2.ZERO
 	var stick_r := 74.0
 	var btns := []   # [center, radius, held, action-name glyph key]
+	var ghost_on := false           # draw the resting "drag to swim" onboarding joystick
+	var ghost_pos := Vector2.ZERO
+	var restart_progress := 0.0     # DAY-button hold fill (0..1), polled from NewDay
+	var _pulse := 0.0               # animates the ghost breathing + knob orbit
 
 	func _init() -> void:
 		set_anchors_preset(Control.PRESET_FULL_RECT)
 		mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	## Per-frame while shown: breathe the onboarding ghost and mirror the reset-hold progress onto
+	## the DAY button, so the fill ring appears under the player's actual thumb (not center-screen).
+	func _process(delta: float) -> void:
+		var redraw := false
+		if ghost_on and not stick_on:
+			_pulse += delta
+			redraw = true
+		var nd := get_tree().get_first_node_in_group("new_day")
+		var p: float = nd.hold_progress() if nd and nd.has_method("hold_progress") else 0.0
+		if not is_equal_approx(p, restart_progress):
+			restart_progress = p
+			redraw = true
+		if redraw:
+			queue_redraw()
 
 	func _draw() -> void:
 		var font := get_theme_default_font()
@@ -235,6 +252,18 @@ class TouchCanvas extends Control:
 			draw_arc(stick_origin, stick_r, 0.0, TAU, 48, Color(Palette.FOAM, 0.6), 3.0, true)
 			draw_circle(stick_knob, 30.0, Color(Palette.CYAN, 0.6))                 # the thumb knob
 			draw_arc(stick_knob, 30.0, 0.0, TAU, 32, Color(Palette.FOAM, 0.95), 2.5, true)
+		elif ghost_on:
+			# resting joystick ghost - the left-half stick is invisible until the player first drives it
+			var a := 0.30 + 0.16 * sin(_pulse * 2.2)
+			draw_circle(ghost_pos, stick_r, Color(Palette.INK, 0.16))
+			draw_arc(ghost_pos, stick_r, 0.0, TAU, 48, Color(Palette.FOAM, a), 2.5, true)
+			var orbit := Vector2.from_angle(_pulse * 1.5) * 18.0
+			draw_circle(ghost_pos + orbit, 22.0, Color(Palette.CYAN, a * 0.7))
+			draw_arc(ghost_pos + orbit, 22.0, 0.0, TAU, 28, Color(Palette.FOAM, minf(a + 0.15, 1.0)), 2.0, true)
+			if font:
+				var gt := "drag to swim"
+				var gw := font.get_string_size(gt, HORIZONTAL_ALIGNMENT_LEFT, -1.0, 16).x
+				draw_string(font, ghost_pos + Vector2(-gw * 0.5, stick_r + 22.0), gt, HORIZONTAL_ALIGNMENT_LEFT, -1.0, 16, Color(Palette.FOAM, minf(a + 0.2, 1.0)))
 		# --- action buttons ---
 		for b in btns:
 			var c: Vector2 = b[0]
@@ -245,7 +274,9 @@ class TouchCanvas extends Control:
 			var fill: Color = Palette.CYAN if action == "spray" else Palette.FOAM   # spray (primary) pops cyan
 			draw_circle(c, r, Color(fill, 0.44 if held else 0.24))                  # frosted body, brighter when held
 			draw_arc(c, r, 0.0, TAU, 40, Color(Palette.FOAM, 0.95 if held else 0.72), 3.0, true)
-			var ink := Color(0.98, 0.99, 1.0, 0.95 if held else 0.82)
+			if action == "restart" and restart_progress > 0.01:
+				draw_arc(c, r + 5.0, -PI / 2.0, -PI / 2.0 + TAU * restart_progress, 40, Color(Palette.GOLD, 0.95), 3.5, true)
+			var ink := Color(Palette.FOAM, 0.95 if held else 0.82)
 			_glyph(action, c, ink)
 			if font:                                                                # a plain-language cap under the icon
 				var txt: String = LABELS.get(action, "")
@@ -269,6 +300,10 @@ class TouchCanvas extends Control:
 			"bubble":   # a bubble with its highlight
 				draw_arc(c, 12.0, 0.0, TAU, 24, ink, 3.0, true)
 				draw_arc(c, 7.0, -2.2, -1.2, 8, ink, 2.0, true)
+			"shell":    # a turtle-shell dome with a spin swirl
+				draw_arc(c, 11.0, PI, TAU, 16, ink, 3.0, true)                 # dome (top half)
+				draw_line(c + Vector2(-11, 0), c + Vector2(11, 0), ink, 3.0)   # base line
+				draw_arc(c + Vector2(0, -2), 5.5, -PI * 0.4, PI * 0.9, 16, ink, 2.0, true)   # spin swirl
 			"menu":     # three stacked bars (a pause/menu glyph)
 				for k in 3:
 					var y := -7.0 + k * 7.0

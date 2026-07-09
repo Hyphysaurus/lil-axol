@@ -25,12 +25,19 @@ const CELL := 8.0                 # px per rock cell — smaller = smoother carv
 ## true = ONLY the turtle's shell-ram can break it (the bubble bomb can't) — the land nooks use this
 ## so smashing them stays the turtle's job, not a stray bomb.
 @export var turtle_only := false
+## A subtle diegetic "this is breakable" aura — a slow pulse in the rock's own colour. Off for
+## anything you'd rather not advertise.
+@export var breakable_glow := true
 
 var _present: Array = []          # rows×cols of bool — is this cell still solid?
 var _shapes: Array = []           # rows×cols of CollisionShape2D (null where eroded at spawn)
 var _body: StaticBody2D           # one body owns every cell's collision shape
 var _remaining := 0              # solid cells still standing; when it hits 0, `cleared` fires
 var _emptied := false
+var _glow_t := 0.0               # drives the breakable aura's slow pulse
+var _redraw_acc := 0.0           # throttles the pulse redraw to ~10 Hz
+var _scars: Array = []           # [local cell centre, age] — fresh-break craters, fading ~1.2s
+const SCAR_LIFE := 1.2
 
 func _ready() -> void:
 	# turtle-only nooks join a private group the bubble bomb doesn't call; everything else is "blastable"
@@ -70,22 +77,59 @@ func _center(c: int, r: int) -> Vector2:
 func _hash(c: int, r: int) -> float:
 	return fmod(absf(sin(float(c) * 12.9898 + float(r) * 78.233) * 43758.5453), 1.0)
 
+func _process(delta: float) -> void:
+	var shimmer := breakable_glow and _remaining > 0
+	if not shimmer and _scars.is_empty():
+		return
+	_glow_t += delta
+	for s in _scars:
+		s[1] += delta
+	while not _scars.is_empty() and _scars[0][1] > SCAR_LIFE:   # appended in order — oldest first
+		_scars.pop_front()
+	_redraw_acc += delta
+	if _redraw_acc >= 0.05:         # ~20 Hz — keeps the shimmer alive and the scars fading smoothly
+		_redraw_acc = 0.0
+		queue_redraw()
+
 func _draw() -> void:
+	# fresh-break craters: each carved cell leaves a dark bitten-out recess that fades over a second —
+	# a bite visibly TAKEN out of the world, instead of rubble evaporating against a clean background
+	for s in _scars:
+		var sa: float = 0.38 * (1.0 - s[1] / SCAR_LIFE)
+		draw_rect(Rect2(s[0] - Vector2(CELL, CELL) * 0.5, Vector2(CELL, CELL)), Color(Palette.INK, sa))
+	# breakable shimmer: a scatter of cells gently "catch the light" on a slow pulse — each shimmer
+	# cell brightens at its own phase, so loose rock glints like mineral seams (diegetic, no blob)
+	var pz := sin(_glow_t * 2.0)
 	for r in rows:
 		for c in cols:
 			if not _present[r][c]:
 				continue
 			var p := _center(c, r) - Vector2(CELL, CELL) * 0.5
-			# per-cell tonal variation (tone_a->tone_b), plus a dark grid edge for a chunky read
-			var tone := tone_a.lerp(tone_b, 0.25 + 0.55 * _hash(c, r))
+			var j := _hash(c, r)
+			# per-cell tone + value mottling so no cell is a flat fill (grain like the block-land)
+			var tone := tone_a.lerp(tone_b, 0.2 + 0.6 * j)
+			var m := _hash(r * 3 + 7, c * 5 + 2)
+			if m > 0.62:
+				tone = tone.darkened(0.16)
+			elif m < 0.3:
+				tone = tone.lightened(0.12)
+			if breakable_glow and j > 0.68:   # ~1/3 of cells shimmer, each at its own phase
+				var tw := 0.5 + 0.5 * sin(_glow_t * 2.0 + j * TAU + pz)
+				tone = tone.lightened(0.10 * tw)
 			draw_rect(Rect2(p, Vector2(CELL, CELL)), tone)
-			draw_rect(Rect2(p, Vector2(CELL, CELL)), Color(Palette.INK, 0.5), false, 1.0)
+			# a SOFT seam tinted to the material (warm loam / cool stone), not a harsh near-black grid
+			draw_rect(Rect2(p, Vector2(CELL, CELL)), Color(tone_a.darkened(0.35), 0.28), false, 1.0)
+			# scattered grit specks for texture
+			var s := _hash(r * 11 + 3, c * 2 + 9)
+			if s > 0.72:
+				var speck: Color = tone.darkened(0.28) if s > 0.86 else tone.lightened(0.3)
+				draw_rect(Rect2(p + Vector2(1.5 + s * 3.5, 1.5 + j * 3.5), Vector2(2.0, 2.0)), Color(speck, 0.7))
 
 ## Carve every solid cell within `radius` of a world point, returning the count removed (0 = nothing
 ## there, so a blast source knows whether it connected). Called via the "blastable" group by the two
 ## things that break rubble — the turtle's shell-ram and the bubble bomb. `_power` reserved for later
 ## (multi-hit rubble that cracks before it clears).
-func blast(world_pos: Vector2, radius: float, _power := 1.0) -> int:
+func blast(world_pos: Vector2, radius: float, _power := 1.0, quiet := false) -> int:
 	var local := to_local(world_pos)
 	var removed := 0
 	var center := Vector2.ZERO
@@ -98,6 +142,8 @@ func blast(world_pos: Vector2, radius: float, _power := 1.0) -> int:
 				(_shapes[r][c] as CollisionShape2D).set_deferred("disabled", true)  # open the path
 				center += _center(c, r)
 				removed += 1
+				if _scars.size() < 140:
+					_scars.append([_center(c, r), 0.0])   # a fading crater where the cell was
 	if removed == 0:
 		return 0
 	_remaining -= removed
@@ -106,8 +152,19 @@ func blast(world_pos: Vector2, radius: float, _power := 1.0) -> int:
 		cleared.emit()             # the cap is fully gone -> the vent beneath can open
 	queue_redraw()
 	_shatter(position + center / float(removed), removed)
-	Sfx.play("break", -7.0)        # heavy stone smash (turtle ram / bubble bomb)
+	if not quiet:                  # the shell-spin carves continuously and plays its own grind loop
+		Sfx.play("break", -7.0)    # heavy stone smash (bubble bomb / a single ram)
 	return removed
+
+## Is any still-solid cell within `radius` of a world point? A cheap, NON-destructive contact test
+## the turtle uses to start bashing on FIRST CONTACT instead of dashing to a mark aimed deep inside.
+func has_solid_within(world: Vector2, radius: float) -> bool:
+	var local := to_local(world)
+	for r in rows:
+		for c in cols:
+			if _present[r][c] and _center(c, r).distance_to(local) <= radius:
+				return true
+	return false
 
 ## Chunky rock bits fly out of the carve, scaled to how much was removed.
 func _shatter(cove_pos: Vector2, amount: int) -> void:

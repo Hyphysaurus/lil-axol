@@ -57,8 +57,7 @@ func _check_triggers() -> void:
 	# Turtle awake + rubble around (shared caps OR its own land nooks) — teach the point-and-click demolish.
 	var has_rubble := not (get_tree().get_nodes_in_group("blastable").is_empty() and get_tree().get_nodes_in_group("turtle_blastable").is_empty())
 	if friend and _following(friend) and has_rubble:
-		var how := "[color=#ffcd75][b]Tap[/b][/color] the open water" if _touch() else "[color=#ffcd75][b]Click[/b][/color] a spot"
-		nudge("command", "Your turtle can smash rubble! %s to send it there." % how)
+		nudge("command", "Your turtle can smash rubble! Hold %s to pilot its spinning shell through it." % _prompt("shell", "SPIN"))
 
 func _lazy_hook_bubble() -> void:
 	if _bubble_hooked:

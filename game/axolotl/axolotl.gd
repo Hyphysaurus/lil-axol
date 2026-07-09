@@ -6,10 +6,13 @@ extends CharacterBody2D
 
 const MOVE_EPS := 6.0
 const BubbleBomb := preload("res://game/axolotl/bubble.gd")
+const Spring := preload("res://game/fx/spring.gd")   # offset-transform juice helper (see _juice)
 
 # --- juice (visual only — never touches movement; D-0002: art stays out of config) ---
 const TILT_MAX := 0.35          # swim nose-down/up lean, radians at full vertical speed
 const TILT_LERP := 6.0
+const SKEW_MAX := 0.16          # how far the body leans (skews) into horizontal motion, radians
+const BREATHE := 0.02           # idle breathing depth — a subtle scale swell when calm
 const SCALE_RECOVER := 9.0      # how fast squash/stretch settles back to 1:1
 const LAND_CLIP_T := 0.22       # how long the landing clip owns the sprite (3 frames @ 14fps)
 const AFK_AT := 18.0            # quiet seconds before the axo lies down and drifts off
@@ -30,6 +33,7 @@ var _anims: AnimationController  # drives _spr from the states the movement code
 var _half_h := 9.0             # feet are this far below center (read off the collision shape)
 var _face := 1.0
 var _t := 0.0
+var _lean := Spring.new(0.0, 70.0)   # springy body-lean (skew) into horizontal motion — offset juice
 var _hop_grace := 0.0
 var _in_water := false
 var _was_on_floor := false
@@ -42,8 +46,15 @@ var _dash_cd := 0.0
 var _spray_p: CPUParticles2D
 var _bubbles: CPUParticles2D
 var _bubble: Node = null       # the live Bubble Bomb while its button is held (aim/steer/release)
+var _reticle: Reticle          # aim indicator: shows where spray/bubble/dash point
+var _shake := 0.0              # camera impact shake, kicked by shake() and decayed in _juice
 
 @onready var _cam: Camera2D = $Camera
+
+## Kick the camera with an impact shake (the shell-spin's rubble bites, big pops...). Public and
+## reached via the "player" group so any system can thump the screen without knowing this node.
+func shake(amount: float) -> void:
+	_shake = minf(_shake + amount, 5.0)
 
 ## Called by the Cove composition root once, before the first physics frame.
 func setup(cfg: CoveConfig) -> void:
@@ -57,6 +68,12 @@ func setup(cfg: CoveConfig) -> void:
 func _cove_local() -> Vector2:
 	var cove := get_parent() as Node2D
 	return cove.to_local(global_position) if cove else position
+
+## True while the turtle companion is being piloted by joystick (touch shell-spin) — the stick then
+## steers the shell, so the axolotl yields its controls. Desktop mouse-piloting leaves this false.
+func _companion_locks_input() -> bool:
+	var c := get_tree().get_first_node_in_group("companion")
+	return c != null and c.has_method("wants_input_lock") and c.wants_input_lock()
 
 func _ready() -> void:
 	add_to_group("player")   # companions and future systems find the tidekeeper here
@@ -89,6 +106,11 @@ func _ready() -> void:
 	_spray_p.z_index = 7
 	add_child(_spray_p)
 
+	# aim reticle — a small code-drawn indicator of where the current verb points
+	_reticle = Reticle.new()
+	_reticle.z_index = 4
+	add_child(_reticle)
+
 	# gentle bubble trail while swimming (emitting toggled in _swim)
 	_bubbles = CPUParticles2D.new()
 	_bubbles.emitting = false
@@ -115,8 +137,10 @@ func _physics_process(delta: float) -> void:
 	_dash_cd = maxf(0.0, _dash_cd - delta)
 	_dash_t = maxf(0.0, _dash_t - delta)
 
-	# menus (title / settings / rest card) own the input; the cove keeps living behind them
-	var ui := Settings.ui_locked()
+	# menus (title / settings / rest card) own the input; the cove keeps living behind them. also
+	# yield the controls while the turtle is joystick-piloted (touch shell-spin — the stick steers
+	# the shell, so the axolotl holds still; desktop pilots with the mouse and stays free to swim).
+	var ui := Settings.ui_locked() or _companion_locks_input()
 	var dir := 0.0 if ui else Input.get_axis("move_left", "move_right")
 	if dir != 0.0:
 		_face = signf(dir)
@@ -126,9 +150,16 @@ func _physics_process(delta: float) -> void:
 	var spraying := not ui and Input.is_action_pressed("spray")
 	_spray_p.emitting = spraying
 	Sfx.loop("spray", spraying, -6.0)
+	# shared aim vector for every verb (mouse on desktop, stick/keys on touch)
+	var aim := _aim(dir)
+	var mouse_aim := Settings.aim_with_mouse()
+	var aiming := not ui and (spraying or Input.is_action_pressed("bubble") or Input.is_action_pressed("dash"))
+	# desktop: a live crosshair sitting ON the mouse cursor (subtle when idle, bright when a verb
+	# fires); touch/keys: a target out along the aim at the verb's reach, shown only while armed
+	var ret_local := get_local_mouse_position() if mouse_aim else aim * tuning.spray_reach
+	_reticle.set_target(ret_local, 1.0 if aiming else (0.42 if mouse_aim else 0.0))
 	if spraying:
 		# aim follows the input direction (stick = analog, keys = 8-way); neutral = facing
-		var aim := _aim(dir)
 		_spray_p.position = aim * 10.0 + Vector2(0.0, 1.0)   # off the snout, along the aim
 		_spray_p.direction = aim + Vector2(0.0, -0.15)        # slight cosmetic lift on the jet
 		var reach := global_position + aim * tuning.spray_reach
@@ -322,7 +353,15 @@ func _animate_idle(delta: float) -> void:
 ## Visual-only follow-through: squash/stretch settles back and the sprite leans into
 ## vertical swim motion. Never writes velocity/position — D-0003 stays intact.
 func _juice(delta: float) -> void:
-	_spr.scale = _spr.scale.lerp(Vector2.ONE, clampf(SCALE_RECOVER * delta, 0.0, 1.0))
+	# BREATHING: when calm, the pose the scale eases back to gently swells instead of sitting at 1:1 —
+	# so an idle/hovering axo is alive, not frozen. Active states kick the scale and this rest is ~1:1.
+	var calm := clampf(1.0 - absf(velocity.x) / 60.0, 0.0, 1.0)
+	var breath := sin(_t * 1.6) * BREATHE * calm
+	var rest := Vector2(1.0 - breath * 0.5, 1.0 + breath)
+	_spr.scale = _spr.scale.lerp(rest, clampf(SCALE_RECOVER * delta, 0.0, 1.0))
+	# LEAN: a springy skew leans the body into horizontal motion (leads the turn, then settles back) —
+	# the marquee "offset transform" juice. Skew is on the SPRITE only; movement is untouched.
+	_spr.skew = _lean.update(clampf(velocity.x / tuning.run_speed, -1.0, 1.0) * SKEW_MAX, delta)
 	var target_tilt := 0.0
 	if _in_water:
 		target_tilt = clampf(velocity.y / tuning.swim_v, -1.0, 1.0) * TILT_MAX * _face
@@ -330,6 +369,13 @@ func _juice(delta: float) -> void:
 	# sit & watch (or a full AFK nap): the camera breathes out and the cove becomes the show
 	var z := 2.55 if (_sitting or _idle_t >= AFK_AT) else 3.0
 	_cam.zoom = _cam.zoom.lerp(Vector2(z, z), clampf(1.5 * delta, 0.0, 1.0))
+	# impact shake: a fast-decaying jitter on the camera offset (kicked via shake())
+	if _shake > 0.05:
+		_shake = move_toward(_shake, 0.0, 11.0 * delta)
+		_cam.offset = Vector2(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0)) * _shake
+	elif _cam.offset != Vector2.ZERO:
+		_shake = 0.0
+		_cam.offset = Vector2.ZERO
 
 func _land() -> void:
 	_spr.scale = Vector2(1.3, 0.72)   # landing squash
@@ -371,8 +417,14 @@ func _splash(amt: float) -> void:
 	get_parent().add_child(p)   # add to the cove (world coords) so the splash stays at the surface
 	p.finished.connect(p.queue_free)
 
-## Current aim: input direction (analog on stick, 8-way on keys), facing when neutral.
+## Current aim: toward the MOUSE cursor on desktop; the input direction (analog stick / 8-way keys,
+## facing when neutral) on touch/gamepad. One source of truth for spray, bubble, and the reticle.
 func _aim(dir: float) -> Vector2:
+	if Settings.aim_with_mouse():
+		var to_mouse := get_global_mouse_position() - global_position
+		if to_mouse.length() > 2.0:
+			return to_mouse.normalized()
+		return Vector2(_face, 0.0)
 	var v := Vector2(dir, 0.0 if Settings.ui_locked() else Input.get_axis("move_up", "move_down"))
 	return v.normalized() if v != Vector2.ZERO else Vector2(_face, 0.0)
 
@@ -450,3 +502,33 @@ func _dust() -> void:
 	p.z_index = 5
 	get_parent().add_child(p)
 	p.finished.connect(p.queue_free)
+
+## A small code-drawn aim indicator. On desktop it's a live crosshair sitting ON the mouse cursor
+## (subtle when idle, bright while a verb fires); on touch/keys it's a target out along the aim at the
+## verb's reach, shown only while a verb is armed. It redraws every frame while visible, so it tracks
+## the cursor in realtime. Child of the axolotl body (unaffected by the sprite's skew/tilt juice);
+## the target is in body-local space.
+class Reticle extends Node2D:
+	var _target := Vector2.RIGHT * 40.0   # where to draw, in body-local space
+	var _lit := 0.0                       # eased brightness, 0 hidden .. 1 bright
+	var _goal := 0.0
+
+	func set_target(local_pos: Vector2, intensity: float) -> void:
+		_target = local_pos
+		_goal = intensity
+
+	func _process(delta: float) -> void:
+		_lit = move_toward(_lit, _goal, delta * 6.0)
+		if _lit > 0.02:
+			queue_redraw()   # redraw while visible so the crosshair follows the cursor live
+
+	func _draw() -> void:
+		if _lit <= 0.02:
+			return
+		var p := _target
+		var a := 0.9 * _lit
+		draw_line(Vector2.ZERO, p, Color(Palette.CYAN, 0.10 * _lit), 1.0)   # faint lead line
+		draw_arc(p, 6.0, 0.0, TAU, 20, Color(Palette.CYAN, a), 1.5, true)   # crosshair ring
+		for k in 4:                                                          # four tick marks
+			var d := Vector2.from_angle(float(k) * PI * 0.5)
+			draw_line(p + d * 4.0, p + d * 8.0, Color(Palette.FOAM, a), 1.5)
