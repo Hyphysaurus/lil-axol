@@ -14,6 +14,7 @@ float hash(vec2 p) {
 }
 
 void fragment() {
+	vec4 mod_tint = COLOR; // entry COLOR = white texture * (self_)modulate — the per-cove env tint (white = no change)
 	vec2 cell = floor(UV * grid);
 	vec2 f = fract(UV * grid);
 	float j = hash(cell);
@@ -59,5 +60,5 @@ void fragment() {
 		tone = mix(tone, grit, (1.0 - smoothstep(0.05, 0.12, d)) * 0.6);
 	}
 
-	COLOR = vec4(tone, 1.0);
+	COLOR = vec4(tone, 1.0) * mod_tint;
 }

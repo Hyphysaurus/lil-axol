@@ -28,6 +28,7 @@ uniform float reflect_strength : hint_range(0.0, 1.0) = 0.35;
 uniform float reflect_depth = 70.0;  // px the reflection fades over
 
 void fragment() {
+	vec4 mod_tint = COLOR; // entry COLOR = white texture * (self_)modulate — the per-cove env tint (white = no change)
 	float H = rect_size.y;
 	float W = rect_size.x;
 	float px_x = UV.x * W;
@@ -42,7 +43,7 @@ void fragment() {
 	if (px_y < crest) {
 		COLOR = vec4(0.0);                       // air, above the wavy surface
 	} else if (px_y < crest + foam_thickness) {
-		COLOR = col_foam;                        // foam line
+		COLOR = col_foam * mod_tint;              // foam line
 	} else {
 		float depth = clamp((px_y - crest) / max(H - crest, 1.0), 0.0, 1.0);
 		vec4 sc = mix(col_oily_shallow, col_shallow, clean);
@@ -58,6 +59,6 @@ void fragment() {
 		// sky reflection near the surface, fading with depth; gated by clean so oil stays matte
 		float refl = 1.0 - smoothstep(0.0, reflect_depth, px_y - (crest + foam_thickness));
 		c.rgb = mix(c.rgb, sky_reflect.rgb, refl * reflect_strength * clean);
-		COLOR = c;
+		COLOR = c * mod_tint;
 	}
 }
