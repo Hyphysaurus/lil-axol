@@ -32,6 +32,12 @@
 [ext_resource type="Script" path="res://game/hud/hints.gd" id="30_hints"]
 [ext_resource type="Script" path="res://game/cove/block_land.gd" id="31_land"]
 [ext_resource type="Script" path="res://game/cove/land_nook.gd" id="32_nook"]
+[ext_resource type="Script" path="res://game/hud/feat_banner.gd" id="33_featbanner"]
+[ext_resource type="Script" path="res://game/cove/cove_portal.gd" id="34_portal"]
+[ext_resource type="Script" path="res://game/cove/debris_field.gd" id="35_debris"]
+[ext_resource type="Script" path="res://game/cove/pest_field.gd" id="36_pests"]
+[ext_resource type="Script" path="res://game/hud/partner_hud.gd" id="37_partners"]
+[ext_resource type="Script" path="res://game/cove/ground_fill.gd" id="38_ground"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_sn0t7"]
 size = Vector2(255, 280)
@@ -46,6 +52,12 @@ shader_parameter/grain = 0.08
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bhunq"]
 size = Vector2(599, 75)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_leftbank"]
+size = Vector2(24, 362)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_rightbeach"]
+size = Vector2(80, 280)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_grs"]
 shader = ExtResource("8_grs")
@@ -126,8 +138,11 @@ position = Vector2(509, 172)
 script = ExtResource("13_cove")
 config = ExtResource("14_cfg")
 
+[node name="GroundFill" type="Node2D" parent="."]
+script = ExtResource("38_ground")
+
 [node name="Axolotl" parent="." unique_id=1466163284 instance=ExtResource("2_1gfh3")]
-z_index = 2
+z_index = 10
 position = Vector2(-295, -50)
 
 [node name="Beach" type="StaticBody2D" parent="." unique_id=423457899]
@@ -154,6 +169,23 @@ shape = SubResource("RectangleShape2D_bhunq")
 [node name="Polygon2D" type="Polygon2D" parent="Seabed" unique_id=1600107471]
 color = Color(0.11, 0.16, 0.23, 1)
 polygon = PackedVector2Array(-142, 150, 457, 150, 457, 241, -142, 241)
+
+[node name="Banks" type="StaticBody2D" parent="."]
+
+[node name="LeftWall" type="CollisionShape2D" parent="Banks"]
+position = Vector2(-406, 60)
+shape = SubResource("RectangleShape2D_leftbank")
+
+[node name="BeachRight" type="StaticBody2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="BeachRight"]
+position = Vector2(417, 101)
+shape = SubResource("RectangleShape2D_rightbeach")
+
+[node name="BlockLandRight" type="Node2D" parent="."]
+position = Vector2(377, -39)
+script = ExtResource("31_land")
+cols = 10
 
 [node name="Grass" type="Sprite2D" parent="." unique_id=771000001]
 visible = false
@@ -190,7 +222,7 @@ script = ExtResource("32_nook")
 z_index = 5
 material = SubResource("ShaderMaterial_fnfnh")
 position = Vector2(-142, -35)
-scale = Vector2(599, 276)
+scale = Vector2(519, 276)
 texture = ExtResource("2_xbt28")
 centered = false
 
@@ -278,11 +310,26 @@ script = ExtResource("22_shine")
 [node name="ShineHud" type="CanvasLayer" parent="."]
 script = ExtResource("23_shinehud")
 
+[node name="FeatBanner" type="CanvasLayer" parent="."]
+script = ExtResource("33_featbanner")
+
+[node name="PartnerHud" type="CanvasLayer" parent="."]
+script = ExtResource("37_partners")
+
 [node name="HighScores" type="CanvasLayer" parent="."]
 script = ExtResource("24_scores")
 
 [node name="CoveAudio" type="Node" parent="."]
 script = ExtResource("25_audio")
+
+[node name="Portal" type="Node2D" parent="."]
+script = ExtResource("34_portal")
+
+[node name="DebrisField" type="Node2D" parent="."]
+script = ExtResource("35_debris")
+
+[node name="PestField" type="Node2D" parent="."]
+script = ExtResource("36_pests")
 
 [node name="Friend" type="Node2D" parent="."]
 script = ExtResource("26_friend")

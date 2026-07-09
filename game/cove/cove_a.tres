@@ -6,7 +6,8 @@
 script = ExtResource("1_cfg")
 has_water = true
 water_left = -142.0
-water_right = 457.0
+water_right = 377.0
+friend_pos = Vector2(335, 148)
 surface_y = -27.0
 seabed_y = 166.0
 spill_left = -130.0
@@ -14,3 +15,7 @@ spill_right = 320.0
 clean_rate = 1.4
 kelp_count = 6
 fish_count = 9
+exit_enabled = true
+exit_target = "res://estuary.tscn"
+exit_pos = Vector2(385, 45)
+exit_blocked = true
