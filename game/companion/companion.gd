@@ -168,7 +168,7 @@ func wake_instant() -> void:
 	_zzz.emitting = false
 	_oil_a = 0.0
 	_spr.modulate = clean_tint
-	Settings.roster_add(_kind)
+	Settings.roster_include(_kind)   # register WITHOUT stealing the player's active-partner choice
 	queue_redraw()
 
 ## True while the turtle is being actively piloted with the JOYSTICK (touch) — the axolotl reads this

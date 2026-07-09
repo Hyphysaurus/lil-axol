@@ -37,6 +37,20 @@ func roster_add(kind: int) -> void:
 	run_active = kind
 	roster_changed.emit()
 
+## Register a partner in the roster WITHOUT stealing the active slot — the persistence spawn
+## path (re-entering a cove whose friend was rescued on an earlier visit must not undo the
+## player's chosen traveller). Becomes active only when nobody is (fresh-session default).
+func roster_include(kind: int) -> void:
+	var changed := false
+	if not run_roster.has(kind):
+		run_roster.append(kind)
+		changed = true
+	if run_active == -1:
+		run_active = kind
+		changed = true
+	if changed:
+		roster_changed.emit()
+
 ## Swap which rescued partner travels with you. Ignored for kinds you haven't rescued yet.
 func roster_swap(kind: int) -> void:
 	if run_roster.has(kind) and run_active != kind:
