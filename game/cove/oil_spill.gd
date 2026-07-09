@@ -223,6 +223,32 @@ func oil_at(world_pos: Vector2) -> float:
 		return 0.0
 	return _cov[my * MASK_W + mx]
 
+## Jump the whole spill to a cleanliness fraction (0 = untouched, 1 = fully clean) — the
+## persistence spawn path (WorldState). Scales every cell uniformly; the visibility floor
+## applies, so thin residue snaps clean exactly as scrubbing would. Recomputes the milestone
+## cursor so re-seeded progress doesn't replay milestone bursts/chimes.
+func set_clean_fraction(f: float) -> void:
+	f = clampf(f, 0.0, 1.0)
+	if _mask == null or f <= 0.0:
+		return
+	var keep := 1.0 - f
+	_remaining = 0.0
+	for my in MASK_H:
+		for mx in MASK_W:
+			var i := my * MASK_W + mx
+			var nr := _cov[i] * keep
+			if nr < VIS_FLOOR:
+				nr = 0.0
+			_cov[i] = nr
+			_mask.set_pixel(mx, my, Color(nr, 0.0, 0.0, 1.0))
+			_remaining += _vis(nr)
+	_mask_tex.update(_mask)
+	_set_clean()
+	_milestone = 0
+	for m in MILESTONES:
+		if current_clean >= float(m):
+			_milestone += 1
+
 ## Progress weight of a coverage value — matches the film shader's visibility ramp, so the
 ## meter and the win can never demand oil the player cannot find. Raw coverage (oil_at)
 ## stays untouched for the debuff and the ecosystem reveal.

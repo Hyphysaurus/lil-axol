@@ -53,6 +53,8 @@ const TONGUE_COOLDOWN := 0.7   # min seconds between tongue strikes (so it isn't
 enum State { SLEEPING, WAKING, FOLLOWING }
 enum Kind { TURTLE, FROG }      # TURTLE = shell-spin demolition; FROG = tongue-grab (config-selected)
 
+signal woke   # emitted once when the rescue ceremony completes (WorldState files friend_awake off this)
+
 var _cfg: CoveConfig
 var _kind := Kind.TURTLE
 var _state := State.SLEEPING
@@ -142,6 +144,8 @@ func _wake() -> void:
 	var keeper = get_tree().get_first_node_in_group("shine")
 	if keeper and keeper.has_method("feat"):
 		keeper.feat(&"wake_up", global_position)   # "Wake-Up Call" feat: callout + Flow + Shine
+	Settings.roster_add(_kind)   # the rescued friend joins the roster (chips HUD); was never wired
+	woke.emit()
 	await get_tree().create_timer(0.5).timeout
 	if _state != State.WAKING:          # (a New Day reset could have freed/retired us mid-wait)
 		return
@@ -153,6 +157,19 @@ func _wake() -> void:
 ## Public read for the win gate — has this friend been rescued (no longer asleep in its corner)?
 func is_awake() -> bool:
 	return _state != State.SLEEPING
+
+## Persistence spawn path: start this friend already rescued — no ceremony, no feat, no Shine,
+## straight to FOLLOWING. Mirrors _wake()'s end state (tint, stain, zzz, roster).
+func wake_instant() -> void:
+	if _state != State.SLEEPING:
+		return
+	_state = State.FOLLOWING
+	_progress = RESCUE_SECONDS
+	_zzz.emitting = false
+	_oil_a = 0.0
+	_spr.modulate = clean_tint
+	Settings.roster_add(_kind)
+	queue_redraw()
 
 ## True while the turtle is being actively piloted with the JOYSTICK (touch) — the axolotl reads this
 ## to hand the stick to the shell and hold still. On desktop the shell is mouse-steered, so this stays

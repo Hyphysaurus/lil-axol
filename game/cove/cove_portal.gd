@@ -15,6 +15,8 @@ const PLUG_ROWS := 11
 const TRIGGER_RADIUS := 28.0   # how close the axolotl must get to the OPEN passage to cross
 const FADE_TIME := 0.6
 
+signal opened   # the way is clear (WorldState files portal_cleared off this)
+
 var _cfg: CoveConfig
 var _open := false
 var _crossing := false
@@ -71,10 +73,24 @@ func _on_open() -> void:
 	if _open:
 		return
 	_open = true
+	opened.emit()
 	Sfx.play("vent_open", -8.0)             # a warm "the way is clear" cue
 	create_tween().tween_property(self, "_glow", 1.0, 0.6)
 	if _swirl:
 		_swirl.emitting = true              # the current begins to visibly flow through
+
+## Persistence spawn path: this passage was cleared on an earlier visit — open it silently
+## (no SFX, no glow tween; the state simply IS open). Frees any rubble plug.
+func force_open() -> void:
+	for c in get_children():
+		if c is DestructibleRock:
+			c.queue_free()
+	if not _open:
+		_open = true
+		_glow = 1.0
+		if _swirl:
+			_swirl.emitting = true
+	queue_redraw()
 
 func _process(delta: float) -> void:
 	if not _open or _crossing or _cfg == null:

@@ -5,12 +5,29 @@ extends Node2D
 ##
 ## Child _ready() runs before this (bottom-up), so setup() lands after each child has
 ## initialised but before the first physics frame — config is always present in time.
+##
+## PERSISTENCE (Living Watershed slice 1): after injection the root consults WorldState —
+## a restored cove spawns clean (oil gone, friend awake, portal open, leak retired); a
+## partially-cleaned one re-seeds its saved cleanliness. Milestone saves are wired via
+## signals (restored / opened / woke) + a cleanliness save on scene exit. An ECHO run
+## (WorldState.echo, set by New Day on a restored cove) skips BOTH: fresh spill, no saves —
+## the score replay leaves the world untouched (spec §7).
 
 @export var config: CoveConfig
 
 const IrisWipe := preload("res://game/fx/iris_wipe.gd")
 
+var _echo := false
+
+## Is this visit an Echo run? (High-scores board keys off this.)
+func is_echo() -> bool:
+	return _echo
+
 func _ready() -> void:
+	add_to_group("cove_root")
+	_echo = WorldState.echo
+	WorldState.echo = false          # one reload only; consuming it here makes crossings normal
+	WorldState.current_id = config.id
 	_inject($Axolotl)
 	_inject($OilSpill)
 	_inject($CoveLife)
@@ -27,6 +44,68 @@ func _ready() -> void:
 	if Settings.arrive_via_portal:
 		Settings.arrive_via_portal = false
 		_arrive()
+	if not _echo:
+		_apply_saved()
+		_wire_saves()
+
+## A live (not queued-for-deletion) child by name, or null. Components retire themselves in
+## setup() (friend_enabled false, no exit configured...) — never poke a retiring node.
+func _live(n: String) -> Node:
+	var node := get_node_or_null(n)
+	return node if node != null and not node.is_queued_for_deletion() else null
+
+## Spawn-time restore from WorldState (spec §7): the world as you left it.
+func _apply_saved() -> void:
+	var id := config.id
+	var friend := _live("Friend")
+	var portal := _live("Portal")
+	var oil := _live("OilSpill")
+	if WorldState.is_restored(id):
+		var banner := _live("RestorationBanner")
+		if banner:
+			banner.is_restored = true          # latch: no duplicate celebration on re-entry
+		if friend and friend.has_method("wake_instant"):
+			friend.wake_instant()
+		if oil and oil.has_method("set_clean_fraction"):
+			oil.set_clean_fraction(1.0)
+		if portal and portal.has_method("force_open"):
+			portal.force_open()
+		var leak := _live("LeakSource")
+		if leak:
+			leak.queue_free()                  # a healed cove's leak stays capped
+		return
+	# partial progress: re-seed cleanliness + the flags that were individually earned
+	if friend and friend.has_method("wake_instant") and bool(WorldState.get_cove(id, "friend_awake", false)):
+		friend.wake_instant()
+	if oil and oil.has_method("set_clean_fraction"):
+		var f := float(WorldState.get_cove(id, "cleanliness", 0.0))
+		if f > 0.02:
+			oil.set_clean_fraction(f)
+	if portal and portal.has_method("force_open") and bool(WorldState.get_cove(id, "portal_cleared", false)):
+		portal.force_open()
+
+## Milestone saves: each signal writes one flag the moment it's earned.
+func _wire_saves() -> void:
+	var id := config.id
+	var banner := _live("RestorationBanner")
+	if banner and banner.has_signal("restored"):
+		banner.restored.connect(func() -> void: WorldState.mark(id, "restored", true))
+	var portal := _live("Portal")
+	if portal and portal.has_signal("opened"):
+		portal.opened.connect(func() -> void: WorldState.mark(id, "portal_cleared", true))
+	var friend := _live("Friend")
+	if friend and friend.has_signal("woke"):
+		friend.woke.connect(func() -> void: WorldState.mark(id, "friend_awake", true))
+
+## Scene exit (portal cross, New Day, quit): file the scrub progress of an unfinished cove.
+func _exit_tree() -> void:
+	if _echo:
+		return
+	if WorldState.is_restored(config.id):
+		return
+	var oil := get_node_or_null("OilSpill")
+	if oil and "current_clean" in oil:
+		WorldState.mark(config.id, "cleanliness", oil.current_clean)
 
 ## A tunnel crossing brought us here: the axolotl emerges at THIS cove's passage mouth (the left
 ## edge of the water — you exited the last cove travelling right), already swimming, behind an
