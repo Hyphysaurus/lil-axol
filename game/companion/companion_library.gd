@@ -15,7 +15,7 @@ const ART := {
 	1: {   # Kind.FROG — the frogpack (50px art, scaled to sit beside the 40px turtle)
 		"frames": preload("res://game/companion/frog_frames.tres"),
 		"anims": preload("res://game/companion/frog_anims.tres"),
-		"scale": 0.85,
+		"scale": 1.0,   # no runtime fractional scaling of pixel art (spec §9); resize in ART if too big
 	},
 	# 2: Kind.OTTER — reserved (deep-haul / rock-crack / sluice verbs); add its .tres rows here
 }

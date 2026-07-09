@@ -205,6 +205,11 @@ func _process(delta: float) -> void:
 	var in_water := position.y > _cfg.surface_y + 4.0
 	var lift := FOLLOW_LIFT_WATER if in_water else FOLLOW_LIFT_LAND   # sit ON the blocks on land, lift in water
 	var target := (get_parent() as Node2D).to_local(axo.global_position) + Vector2(0.0, lift)
+	if _kind == Kind.FROG:
+		# the frog is a SURFACE-AND-LAND creature (spec §9): it rides the waterline and hops the
+		# banks/lilypads — never dives. Clamping the follow target here retires the deep-water
+		# swim jank at the source; the axolotl remains free to dip under alone.
+		target.y = minf(target.y, _cfg.surface_y - 2.0)
 	target.x = clampf(target.x, _cfg.water_left - 260.0, _cfg.water_right - 8.0)   # onto the BEACH too, not just the water's edge
 	target.y = minf(target.y, _cfg.seabed_y)          # never sink through the floor; free to rise ashore
 	var gap := target - position
