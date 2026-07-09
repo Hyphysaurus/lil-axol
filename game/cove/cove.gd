@@ -41,6 +41,7 @@ func _ready() -> void:
 	_inject($Portal)
 	_inject($DebrisField)
 	_inject($PestField)
+	_apply_environment()
 	if Settings.arrive_via_portal:
 		Settings.arrive_via_portal = false
 		_arrive()
@@ -124,3 +125,16 @@ func _inject(n: Node) -> void:
 	# has_method guard keeps the scene runnable while components are migrated one at a time
 	if n and n.has_method("setup"):
 		n.setup(config)
+
+## Per-cove environment overrides (spec §9): tints applied to the shared kit's surfaces so the
+## marsh reads green-tea and muddy without forking the scene. Alpha 0 = keep defaults.
+func _apply_environment() -> void:
+	if config.env_water_tint.a > 0.0:
+		var water := get_node_or_null("Water") as Sprite2D
+		if water:
+			water.self_modulate = config.env_water_tint
+	if config.env_land_tint.a > 0.0:
+		for n in ["BlockLand", "BlockLandRight"]:
+			var land := get_node_or_null(n)
+			if land:
+				(land as Node2D).modulate = config.env_land_tint

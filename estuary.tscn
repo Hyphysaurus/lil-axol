@@ -7,14 +7,28 @@
 [ext_resource type="Script" path="res://game/hud/credits_card.gd" id="5_credits"]
 [ext_resource type="Resource" path="res://game/cove/estuary_a.tres" id="6_cfg"]
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_mud"]
+size = Vector2(519, 145)
+
 [node name="Estuary" type="Node2D"]
 
 [node name="Tint" type="CanvasModulate" parent="."]
-color = Color(0.78, 0.94, 0.8, 1)
+color = Color(0.9, 0.97, 0.88, 1)
 
 [node name="Cove" parent="." instance=ExtResource("1_cove")]
 position = Vector2(402, 28)
 config = ExtResource("6_cfg")
+
+[node name="MudBed" type="StaticBody2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="MudBed"]
+position = Vector2(519.5, 196.5)
+shape = SubResource("RectangleShape2D_mud")
+
+[node name="Polygon2D" type="Polygon2D" parent="MudBed"]
+z_index = 2
+color = Color(0.23, 0.19, 0.14, 1)
+polygon = PackedVector2Array(260, 124, 779, 124, 779, 269, 260, 269)
 
 [node name="TitleCard" type="CanvasLayer" parent="."]
 script = ExtResource("2_title")

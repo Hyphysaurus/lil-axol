@@ -52,6 +52,13 @@ class_name CoveConfig
 @export var friend_anims: CharacterAnimSet
 @export var friend_scale: float = 1.0   # the frogpack frames are 50px vs the turtle's 40px — scale to match
 
+@export_group("Environment")
+## Optional per-cove looks, applied by the composition root (alpha 0 = unset, keep defaults).
+## Water tint multiplies the water sprite's shader output (green-tea marsh water); land tint
+## the block-land soil. Real per-cove identity instead of a whole-scene CanvasModulate wash.
+@export var env_water_tint: Color = Color(0.0, 0.0, 0.0, 0.0)
+@export var env_land_tint: Color = Color(0.0, 0.0, 0.0, 0.0)
+
 @export_group("Audio")
 ## Optional per-cove soundscape; null keeps the shared defaults (see cove_audio.gd).
 @export var ambience: AudioStream
