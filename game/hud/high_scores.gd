@@ -20,11 +20,10 @@ func _ready() -> void:
 	layer = 94                  # under the banner's corner sun (95), over the meters (92)
 	_build()
 	_root.visible = false
-	# TIDE BOARD DISABLED FOR NOW (Maram, 2026-07-05): the initials modal blocks progress on restoration
-	# — you finish the cove and want to head to the estuary, not get trapped in a leaderboard prompt. The
-	# node stays here inert (nothing connects it to the win) so it's a one-line re-enable later. To bring
-	# it back, uncomment `_wire.call_deferred()` and route it somewhere non-blocking (e.g. a menu button).
-	#_wire.call_deferred()
+	# The Tide Board interrupts ECHO RUNS ONLY (spec §7): a score replay of an already-restored
+	# cove ends in the initials card, while a FIRST restoration stays unblocked — you finish the
+	# cove and head for the estuary, not a leaderboard prompt (Maram, 2026-07-05).
+	_wire.call_deferred()
 
 func _wire() -> void:
 	var banner = get_tree().get_first_node_in_group("restoration")
@@ -37,6 +36,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 func _on_restored() -> void:
+	var root := get_tree().get_first_node_in_group("cove_root")
+	if root == null or not root.has_method("is_echo") or not root.is_echo():
+		return   # first restorations celebrate without a modal; only Echo replays score-chase
 	if _shown:
 		return
 	_shown = true

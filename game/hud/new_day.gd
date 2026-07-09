@@ -41,6 +41,10 @@ func _process(delta: float) -> void:
 			set_process(false)  # one reload only; this node dies with the old scene
 			Settings.run_score = 0.0   # New Day = a fresh run; don't carry the old Shine total
 			Settings.roster_reset()    # ...and the friends return to their corners to be met again
+			# On a RESTORED cove, a new day is an ECHO RUN: replay the restoration for score while
+			# the persistent world stays healed (spec §7 — the arcade layer's home). On an
+			# unfinished cove it keeps meaning "restart the attempt".
+			WorldState.echo = WorldState.is_restored(WorldState.current_id)
 			get_tree().reload_current_scene()
 		return
 	if not InputMap.has_action("restart"):
