@@ -40,6 +40,7 @@
 [ext_resource type="Script" path="res://game/cove/ground_fill.gd" id="38_ground"]
 [ext_resource type="Script" path="res://game/cove/lily_pads.gd" id="39_lily"]
 [ext_resource type="Script" path="res://game/cove/reeds.gd" id="40_reeds"]
+[ext_resource type="Script" path="res://game/cove/climb_wall.gd" id="41_climb"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_sn0t7"]
 size = Vector2(255, 280)
@@ -60,6 +61,9 @@ size = Vector2(24, 362)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_rightbeach"]
 size = Vector2(80, 280)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_tower"]
+size = Vector2(40, 80)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_grs"]
 shader = ExtResource("8_grs")
@@ -194,6 +198,27 @@ shape = SubResource("RectangleShape2D_rightbeach")
 position = Vector2(377, -39)
 script = ExtResource("31_land")
 cols = 10
+
+[node name="BankTower" type="Node2D" parent="."]
+position = Vector2(415, -119)
+script = ExtResource("31_land")
+cols = 5
+rows = 10
+
+[node name="BankTowerBody" type="StaticBody2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="BankTowerBody"]
+position = Vector2(435, -79)
+shape = SubResource("RectangleShape2D_tower")
+
+[node name="TowerWall" type="Node2D" parent="."]
+position = Vector2(408, -119)
+script = ExtResource("41_climb")
+extent = Vector2(14, 99)
+
+[node name="LandNook3" type="Node2D" parent="."]
+position = Vector2(435, -131)
+script = ExtResource("32_nook")
 
 [node name="Grass" type="Sprite2D" parent="." unique_id=771000001]
 visible = false

@@ -48,6 +48,11 @@ var _bubbles: CPUParticles2D
 var _bubble: Node = null       # the live Bubble Bomb while its button is held (aim/steer/release)
 var _reticle: Reticle          # aim indicator: shows where spray/bubble/dash point
 var _shake := 0.0              # camera impact shake, kicked by shake() and decayed in _juice
+var _climbing := false         # latched onto a climbable root curtain (designated surfaces only)
+var _climb_wall: Node2D = null # the curtain we're latched to (its ledge_side steers the crest hop)
+
+const CLIMB_SPEED := 70.0      # px/s up/down a root curtain (a new state — D-0003 numbers untouched)
+const CLIMB_HOP := 0.8         # hop-off jump strength as a fraction of the full jump
 
 @onready var _cam: Camera2D = $Camera
 
@@ -186,6 +191,7 @@ func _physics_process(delta: float) -> void:
 			else:
 				submerged = feet > _cfg.surface_y + 4.0   # dip in to start
 	if submerged and not _in_water:
+		_climbing = false         # water always takes over — a curtain dipping below the line hands off to swim
 		_enter_water()
 	elif not submerged and _in_water:
 		_exit_water()
@@ -193,6 +199,20 @@ func _physics_process(delta: float) -> void:
 	_update_bubble(dir, ui)   # launch / steer / release the aimed Bubble Bomb (works anywhere)
 	if submerged:
 		_swim(delta, dir)
+		_juice(delta)
+		return
+
+	# --- climbing (designated surfaces): UP on a root curtain latches; UP/DOWN scales it;
+	# JUMP hops off; sliding off either end lets go (see game/cove/climb_wall.gd) ---
+	if _climbing:
+		_climb(delta, dir, ui)
+		_juice(delta)
+		return
+	if not ui and Input.get_axis("move_up", "move_down") < -0.4 and _on_climbable():
+		_climbing = true
+		velocity = Vector2.ZERO
+		Sfx.play("scrub", -14.0, 1.3)   # a soft root-rustle grab
+		_climb(delta, dir, ui)
 		_juice(delta)
 		return
 
@@ -224,6 +244,48 @@ func _physics_process(delta: float) -> void:
 	_was_on_floor = is_on_floor()
 	_animate_land(running, spraying, delta)
 	_juice(delta)
+
+## The climbable strip under the axolotl right now, or null. (Designated surfaces only — a couple
+## per scene, so polling the group is cheap.)
+func _on_climbable() -> Node2D:
+	for w in get_tree().get_nodes_in_group("climbable"):
+		if w.has_method("has_point") and w.has_point(global_position):
+			return w
+	return null
+
+## Latched on a root curtain: gravity is off, UP/DOWN inches along it, JUMP hops away. Cresting
+## the top hops the axolotl ONTO the ledge (the wall knows which side it's on) so holding UP can
+## never re-latch into a jitter; sliding off the bottom just lets go into a normal fall.
+func _climb(delta: float, dir: float, ui: bool) -> void:
+	_sitting = false
+	_idle_t = 0.0
+	var v := 0.0 if ui else Input.get_axis("move_up", "move_down")
+	velocity = Vector2(0.0, v * CLIMB_SPEED)
+	move_and_slide()
+	if not ui and Input.is_action_just_pressed("jump"):
+		_climbing = false               # a deliberate hop off the curtain
+		velocity = Vector2(dir * tuning.walk_speed, tuning.jump_velocity * CLIMB_HOP)
+		_spr.scale = Vector2(0.72, 1.28)
+		Sfx.play("jump")
+		return
+	var wall := _on_climbable()
+	if wall == null:
+		_climbing = false
+		if v < -0.1:                    # crested the top while climbing UP -> hop onto the ledge
+			var side := 1.0
+			if is_instance_valid(_climb_wall) and "ledge_side" in _climb_wall:
+				side = _climb_wall.ledge_side
+			velocity = Vector2(side * 55.0, tuning.jump_velocity * 0.55)
+			_face = signf(side)
+			_spr.scale = Vector2(0.72, 1.28)
+			Sfx.play("jump", -6.0)
+		_climb_wall = null
+		return
+	_climb_wall = wall                  # remembered for the crest hop above
+	if absf(v) > 0.1:
+		_anims.play(anim_set.wall_climb, _face)
+	else:
+		_anims.play(anim_set.wall_grab, _face)
 
 func _swim(delta: float, dir: float) -> void:
 	var ui := Settings.ui_locked()
