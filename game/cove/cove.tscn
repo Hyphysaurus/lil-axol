@@ -38,6 +38,8 @@
 [ext_resource type="Script" path="res://game/cove/pest_field.gd" id="36_pests"]
 [ext_resource type="Script" path="res://game/hud/partner_hud.gd" id="37_partners"]
 [ext_resource type="Script" path="res://game/cove/ground_fill.gd" id="38_ground"]
+[ext_resource type="Script" path="res://game/cove/lily_pads.gd" id="39_lily"]
+[ext_resource type="Script" path="res://game/cove/reeds.gd" id="40_reeds"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_sn0t7"]
 size = Vector2(255, 280)
@@ -140,6 +142,12 @@ config = ExtResource("14_cfg")
 
 [node name="GroundFill" type="Node2D" parent="."]
 script = ExtResource("38_ground")
+
+[node name="LilyPads" type="Node2D" parent="."]
+script = ExtResource("39_lily")
+
+[node name="Reeds" type="Node2D" parent="."]
+script = ExtResource("40_reeds")
 
 [node name="Axolotl" parent="." unique_id=1466163284 instance=ExtResource("2_1gfh3")]
 z_index = 10

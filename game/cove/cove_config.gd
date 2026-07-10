@@ -41,6 +41,10 @@ class_name CoveConfig
 ## themselves, hard-capped by D-0005). The frog auto-tongues them into a cleanse; as the water heals
 ## they give way to dragonflies (ambient reward). 0 = none.
 @export var pest_count: int = 0
+## Marsh set-dressing: lilypads riding the waterline (frog perches) and cattail reeds rooted in
+## the shallows near each bank. 0 = none (the component retires) — the hub default.
+@export var lilypad_count: int = 0
+@export var reed_count: int = 0
 ## The rescued friend: an oil-matted companion asleep at friend_pos until sprayed clean.
 @export var friend_enabled: bool = true
 @export var friend_pos: Vector2 = Vector2(425.0, 148.0)

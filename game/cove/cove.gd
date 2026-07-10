@@ -41,6 +41,8 @@ func _ready() -> void:
 	_inject($Portal)
 	_inject($DebrisField)
 	_inject($PestField)
+	_inject($LilyPads)
+	_inject($Reeds)
 	_apply_environment()
 	if Settings.arrive_via_portal:
 		Settings.arrive_via_portal = false
