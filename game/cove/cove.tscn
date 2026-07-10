@@ -216,6 +216,13 @@ position = Vector2(408, -119)
 script = ExtResource("41_climb")
 extent = Vector2(14, 99)
 
+[node name="TowerDrape" type="Node2D" parent="."]
+position = Vector2(448, -119)
+script = ExtResource("41_climb")
+extent = Vector2(9, 42)
+strands = 3
+climbable = false
+
 [node name="LandNook3" type="Node2D" parent="."]
 position = Vector2(435, -131)
 script = ExtResource("32_nook")

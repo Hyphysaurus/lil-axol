@@ -50,6 +50,7 @@ var _reticle: Reticle          # aim indicator: shows where spray/bubble/dash po
 var _shake := 0.0              # camera impact shake, kicked by shake() and decayed in _juice
 var _climbing := false         # latched onto a climbable root curtain (designated surfaces only)
 var _climb_wall: Node2D = null # the curtain we're latched to (its ledge_side steers the crest hop)
+var _climb_fx_cd := 0.0        # cadence for the climb rustle + falling leaf motes while moving
 
 const CLIMB_SPEED := 70.0      # px/s up/down a root curtain (a new state — D-0003 numbers untouched)
 const CLIMB_HOP := 0.8         # hop-off jump strength as a fraction of the full jump
@@ -211,7 +212,8 @@ func _physics_process(delta: float) -> void:
 	if not ui and Input.get_axis("move_up", "move_down") < -0.4 and _on_climbable():
 		_climbing = true
 		velocity = Vector2.ZERO
-		Sfx.play("scrub", -14.0, 1.3)   # a soft root-rustle grab
+		_spr.scale = Vector2(1.25, 0.78)   # a grab squash — the latch lands in the body
+		Sfx.play("scrub", -14.0, 1.3)      # a soft root-rustle grab
 		_climb(delta, dir, ui)
 		_juice(delta)
 		return
@@ -284,6 +286,12 @@ func _climb(delta: float, dir: float, ui: bool) -> void:
 	_climb_wall = wall                  # remembered for the crest hop above
 	if absf(v) > 0.1:
 		_anims.play(anim_set.wall_climb, _face)
+		# climbing juice: a soft rustle + a couple of shaken-loose leaf motes on a cadence
+		_climb_fx_cd -= delta
+		if _climb_fx_cd <= 0.0:
+			_climb_fx_cd = 0.32
+			Sfx.play("scrub", -18.0, randf_range(1.25, 1.5))
+			_leaf_motes()
 	else:
 		_anims.play(anim_set.wall_grab, _face)
 
@@ -545,6 +553,30 @@ func _dash_burst(dd: Vector2) -> void:
 	p.scale_amount_max = 1.5
 	p.color = Color(Palette.CYAN, 0.8)   # dash droplet burst
 	p.z_index = 7
+	get_parent().add_child(p)
+	p.finished.connect(p.queue_free)
+
+## A couple of leaf bits shaken loose from the root curtain as the axolotl climbs — they flutter
+## down and fade. Added to the parent (cove frame) so they fall where they were shaken free.
+func _leaf_motes() -> void:
+	var p := CPUParticles2D.new()
+	p.one_shot = true
+	p.emitting = true
+	p.amount = 3
+	p.lifetime = 0.8
+	p.explosiveness = 0.9
+	p.position = _cove_local() + Vector2(_face * 6.0, -2.0)
+	p.direction = Vector2(0.0, 1.0)
+	p.spread = 40.0
+	p.initial_velocity_min = 8.0
+	p.initial_velocity_max = 22.0
+	p.gravity = Vector2(0.0, 60.0)
+	p.damping_min = 10.0
+	p.damping_max = 30.0
+	p.scale_amount_min = 0.8
+	p.scale_amount_max = 1.6
+	p.color = Color(Palette.MOSS.lerp(Palette.LEAF, 0.5), 0.85)
+	p.z_index = 6
 	get_parent().add_child(p)
 	p.finished.connect(p.queue_free)
 

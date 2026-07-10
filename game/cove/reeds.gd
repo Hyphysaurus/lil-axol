@@ -3,7 +3,7 @@ extends Node2D
 ## surface, brown seed heads on some, all swaying in a field-wide wind wave (the GrassLayer
 ## idiom: throttled redraw, a few dozen polygons). Zero reeds = retire.
 
-const REDRAW_HZ := 15.0
+const REDRAW_HZ := 12.0   # sways at 1.4 rad/s - 12Hz reads identical; WebGL pays per canvas rebuild
 
 var _cfg: CoveConfig
 var _reeds: Array = []   # [x, height, phase, has_head] per reed

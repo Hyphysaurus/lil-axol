@@ -3,9 +3,13 @@ extends Node2D
 ## reserved for future perch logic). Self-contained in the cove idiom: injected config, drawn
 ## pads (Apollo greens) bobbing gently on the surface. Zero pads = retire.
 
+const REDRAW_HZ := 15.0   # the bob is 1.3 rad/s — 15Hz is visually identical, and WebGL pays
+                          # per canvas rebuild, so dressing never redraws at frame rate
+
 var _cfg: CoveConfig
 var _pads: Array = []   # [x, radius, phase] per pad
 var _t := 0.0
+var _acc := 0.0
 
 func setup(cfg: CoveConfig) -> void:
 	_cfg = cfg
@@ -26,7 +30,10 @@ func setup(cfg: CoveConfig) -> void:
 
 func _process(delta: float) -> void:
 	_t += delta
-	queue_redraw()                    # a few pads bobbing — a per-frame redraw is cheap
+	_acc += delta
+	if _acc >= 1.0 / REDRAW_HZ:
+		_acc = 0.0
+		queue_redraw()
 
 func _draw() -> void:
 	if _cfg == null:

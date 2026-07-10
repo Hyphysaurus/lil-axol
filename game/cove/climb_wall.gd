@@ -14,13 +14,17 @@ const REDRAW_HZ := 12.0
 ## Which side the ledge at the TOP is on (+1 right, -1 left): cresting the curtain hops the
 ## climber onto it instead of letting them jitter against the strip's upper edge.
 @export var ledge_side := 1.0
+## false = a purely DECORATIVE drape (same art, no grab): dresses ledges and faces so climbable
+## curtains aren't the only roots in the world — the real ones stay special but not arbitrary.
+@export var climbable := true
 
 var _t := 0.0
 var _acc := 0.0
 var _phases: Array = []
 
 func _ready() -> void:
-	add_to_group("climbable")
+	if climbable:
+		add_to_group("climbable")
 	z_index = 3                      # over the land blocks, under the axolotl (z 10)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 5                     # stable strand shapes per scene
@@ -41,6 +45,8 @@ func _process(delta: float) -> void:
 		queue_redraw()               # the roots sway gently, GrassLayer-idiom throttled
 
 func _draw() -> void:
+	# a recessed groove behind the curtain: the roots hang in a carved seam, not painted on the face
+	draw_rect(Rect2(Vector2(-2.0, 0.0), Vector2(extent.x + 4.0, extent.y)), Color(Palette.INK, 0.16))
 	for i in strands:
 		var x := (float(i) + 0.5) / float(strands) * extent.x
 		var phase: float = _phases[i]
@@ -51,10 +57,22 @@ func _draw() -> void:
 			var yy := float(s) / float(segs) * extent.y
 			var loose := yy / extent.y
 			pts.append(Vector2(x + sin(_t * 1.2 + phase + yy * 0.05) * 2.5 * loose, yy))
-		draw_polyline(pts, Palette.LOAM.darkened(0.2), 2.0)
-		# rootlet nubs so the curtain reads grabbable, not just lines
+		# two-tone strand: a dark under-line with a lit face reads as a thick rope of root
+		draw_polyline(pts, Palette.LOAM.darkened(0.35), 3.0)
+		draw_polyline(pts, Palette.LOAM, 1.5)
+		# leaf tufts + rootlet nubs so the curtain reads alive and grabbable
 		for s in range(1, segs, 2):
 			var yy := float(s) / float(segs) * extent.y
 			var px := x + sin(_t * 1.2 + phase + yy * 0.05) * 2.5 * (yy / extent.y)
-			draw_line(Vector2(px, yy), Vector2(px + (3.0 if i % 2 == 0 else -3.0), yy + 2.0),
-				Palette.MOSS, 1.5)
+			var side := 3.5 if (i + s) % 2 == 0 else -3.5
+			draw_line(Vector2(px, yy), Vector2(px + side, yy + 2.0), Palette.MOSS, 1.5)
+			if s % 4 == 1:   # a small two-leaf tuft where a rootlet meets the strand
+				draw_circle(Vector2(px + side, yy + 2.0), 1.8, Palette.LEAF)
+				draw_circle(Vector2(px + side * 0.4, yy + 3.4), 1.4, Palette.MOSS)
+	# the ANCHOR: a dark knot of root mass spilling over the ledge lip at the top — where the
+	# curtain grows from, and the visual promise that the top is a place you can stand
+	for i in strands:
+		var x := (float(i) + 0.5) / float(strands) * extent.x
+		draw_circle(Vector2(x, 1.5), 3.2, Palette.LOAM.darkened(0.3))
+		draw_circle(Vector2(x + 1.0, 0.0), 2.4, Palette.SOIL)
+	draw_rect(Rect2(Vector2(-3.0, -2.5), Vector2(extent.x + 6.0, 3.0)), Palette.SOIL.darkened(0.15))

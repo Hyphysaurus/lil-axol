@@ -92,11 +92,16 @@ func force_open() -> void:
 			_swirl.emitting = true
 	queue_redraw()
 
+var _redraw_acc := 0.0
+
 func _process(delta: float) -> void:
 	if not _open or _crossing or _cfg == null:
 		return
 	_pulse += delta
-	queue_redraw()                          # the open passage breathes a soft beckoning glow
+	_redraw_acc += delta
+	if _redraw_acc >= 1.0 / 12.0:           # the beckoning glow breathes at 2.4 rad/s — 12Hz reads
+		_redraw_acc = 0.0                   # identical, and WebGL pays per canvas rebuild
+		queue_redraw()
 	var axo := get_tree().get_first_node_in_group("player") as Node2D
 	if axo and to_local(axo.global_position).length() <= TRIGGER_RADIUS:
 		_cross()

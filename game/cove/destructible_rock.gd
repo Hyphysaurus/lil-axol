@@ -86,8 +86,12 @@ func _process(delta: float) -> void:
 		s[1] += delta
 	while not _scars.is_empty() and _scars[0][1] > SCAR_LIFE:   # appended in order — oldest first
 		_scars.pop_front()
+	# WEB PERF: canvas-item rebuilds are the expensive part on WebGL, and every intact rock runs
+	# this loop. The slow mineral shimmer only needs ~8Hz; the brief scar fades get 20Hz while
+	# any are alive, then the rock settles back to the cheap cadence.
 	_redraw_acc += delta
-	if _redraw_acc >= 0.05:         # ~20 Hz — keeps the shimmer alive and the scars fading smoothly
+	var period := 0.05 if not _scars.is_empty() else 0.125
+	if _redraw_acc >= period:
 		_redraw_acc = 0.0
 		queue_redraw()
 
