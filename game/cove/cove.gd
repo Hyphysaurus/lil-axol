@@ -16,6 +16,7 @@ extends Node2D
 @export var config: CoveConfig
 
 const IrisWipe := preload("res://game/fx/iris_wipe.gd")
+const CompanionScript := preload("res://game/companion/companion.gd")
 
 var _echo := false
 
@@ -50,6 +51,29 @@ func _ready() -> void:
 	if not _echo:
 		_wire_saves()      # wires FIRST: if a re-seed ever crosses the win gate, it must save/score
 		_apply_saved()
+	_spawn_travellers()    # the party follows everywhere (TotK rule) — after apply, so a restored
+	                       # cove's wake_instant has already re-derived the roster
+
+## THE TRAVELLING PARTY (TotK rule): every rescued partner journeys with you — one companion
+## instance per roster kind that isn't this cove's own friend. They arrive awake at the
+## tidekeeper's side, fanned into follow slots. (An Echo run's New Day resets the roster, so
+## echo replays naturally start partnerless — no extra gating needed.)
+func _spawn_travellers() -> void:
+	var axo := get_node_or_null("Axolotl") as Node2D
+	if axo == null:
+		return
+	var local_kind := -1
+	var friend := _live("Friend")
+	if friend and "friend_kind" in config:
+		local_kind = config.friend_kind
+	var slot := 1                              # slot 0 belongs to the scene's own friend
+	for kind in Settings.run_roster:
+		if kind == local_kind:
+			continue                           # the local friend IS this partner — no double
+		var t := CompanionScript.new()
+		add_child(t)
+		t.setup_traveller(config, kind, slot, axo.position)
+		slot += 1
 
 ## A live (not queued-for-deletion) child by name, or null. Components retire themselves in
 ## setup() (friend_enabled false, no exit configured...) — never poke a retiring node.

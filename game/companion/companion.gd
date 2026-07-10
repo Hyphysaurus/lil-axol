@@ -102,6 +102,34 @@ func _ready() -> void:
 	add_child(_shell_p)
 	z_index = 9
 
+## The travelling PARTY (TotK-style): every rescued partner follows the tidekeeper everywhere —
+## through tunnels, across coves — as its own companion instance. Slot offsets fan the party out
+## behind the player so followers never dogpile; slot 0 is the scene's own friend.
+const SLOT_OFFSETS: Array[Vector2] = [Vector2.ZERO, Vector2(-16.0, -10.0), Vector2(16.0, -14.0), Vector2(-28.0, 6.0)]
+var _slot := 0
+
+## Spawn path for a TRAVELLER: a partner rescued in another cove that journeys with you (the
+## party always follows — TotK rule). No rescue ceremony, no feat, no zzz: it arrives awake,
+## dressed from the companion library, already at the tidekeeper's side.
+func setup_traveller(cfg: CoveConfig, kind: int, slot: int, at: Vector2) -> void:
+	_cfg = cfg
+	_kind = kind
+	_slot = clampi(slot, 0, SLOT_OFFSETS.size() - 1)
+	var Library := preload("res://game/companion/companion_library.gd")
+	if Library.has_kind(kind):
+		var art: Dictionary = Library.ART[kind]
+		frames = art["frames"]
+		anims = art["anims"]
+		_spr.sprite_frames = frames
+		scale = Vector2.ONE * float(art["scale"])
+	position = at + SLOT_OFFSETS[_slot]
+	_state = State.FOLLOWING
+	_zzz.emitting = false
+	_oil_a = 0.0
+	_spr.modulate = clean_tint
+	Settings.roster_include(_kind)
+	queue_redraw()
+
 ## Injected by the Cove composition root.
 func setup(cfg: CoveConfig) -> void:
 	_cfg = cfg
@@ -207,7 +235,9 @@ func _process(delta: float) -> void:
 	# onto land to keep up (swims below the surface, hops/walks above it)
 	var in_water := position.y > _cfg.surface_y + 4.0
 	var lift := FOLLOW_LIFT_WATER if in_water else FOLLOW_LIFT_LAND   # sit ON the blocks on land, lift in water
-	var target := (get_parent() as Node2D).to_local(axo.global_position) + Vector2(0.0, lift)
+	# party formation: each follower aims at its own slot offset so the crew fans out behind the
+	# tidekeeper instead of stacking on one point (TotK-style everybody-follows)
+	var target := (get_parent() as Node2D).to_local(axo.global_position) + Vector2(0.0, lift) + SLOT_OFFSETS[_slot]
 	if _kind == Kind.FROG:
 		# the frog is a SURFACE-AND-LAND creature (spec §9): it rides the waterline and hops the
 		# banks/lilypads — never dives. Clamping the follow target here retires the deep-water

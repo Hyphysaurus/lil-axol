@@ -69,11 +69,14 @@ func _cove_local() -> Vector2:
 	var cove := get_parent() as Node2D
 	return cove.to_local(global_position) if cove else position
 
-## True while the turtle companion is being piloted by joystick (touch shell-spin) — the stick then
+## True while ANY companion is being piloted by joystick (touch shell-spin) — the stick then
 ## steers the shell, so the axolotl yields its controls. Desktop mouse-piloting leaves this false.
+## Iterates the group: with the travelling party there can be several companions in the scene.
 func _companion_locks_input() -> bool:
-	var c := get_tree().get_first_node_in_group("companion")
-	return c != null and c.has_method("wants_input_lock") and c.wants_input_lock()
+	for c in get_tree().get_nodes_in_group("companion"):
+		if c.has_method("wants_input_lock") and c.wants_input_lock():
+			return true
+	return false
 
 func _ready() -> void:
 	add_to_group("player")   # companions and future systems find the tidekeeper here
