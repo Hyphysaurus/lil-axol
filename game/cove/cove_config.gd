@@ -45,6 +45,9 @@ class_name CoveConfig
 ## the shallows near each bank. 0 = none (the component retires) — the hub default.
 @export var lilypad_count: int = 0
 @export var reed_count: int = 0
+## Hidden Field Guide CURIOS (Living Watershed §8), cove-local positions. Each unlocks the card
+## keyed "<id>_<index>" in game/log/field_guide.gd — keep both lists in step. Empty = none.
+@export var curios: Array[Vector2] = []
 ## The rescued friend: an oil-matted companion asleep at friend_pos until sprayed clean.
 @export var friend_enabled: bool = true
 @export var friend_pos: Vector2 = Vector2(425.0, 148.0)

@@ -41,6 +41,7 @@
 [ext_resource type="Script" path="res://game/cove/lily_pads.gd" id="39_lily"]
 [ext_resource type="Script" path="res://game/cove/reeds.gd" id="40_reeds"]
 [ext_resource type="Script" path="res://game/cove/climb_wall.gd" id="41_climb"]
+[ext_resource type="Script" path="res://game/cove/curio_field.gd" id="42_curios"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_sn0t7"]
 size = Vector2(255, 280)
@@ -152,6 +153,9 @@ script = ExtResource("39_lily")
 
 [node name="Reeds" type="Node2D" parent="."]
 script = ExtResource("40_reeds")
+
+[node name="Curios" type="Node2D" parent="."]
+script = ExtResource("42_curios")
 
 [node name="Axolotl" parent="." unique_id=1466163284 instance=ExtResource("2_1gfh3")]
 z_index = 10

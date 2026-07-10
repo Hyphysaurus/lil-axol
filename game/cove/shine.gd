@@ -40,6 +40,7 @@ const FEATS := {
 	&"bank_shot":    ["Bank Shot",    1800.0, 0.34],
 	&"trove":        ["Trove",        1800.0, 0.28],
 	&"spring_clean": ["Spring Clean", 1100.0, 0.22],
+	&"curio":        ["Curio Found",   800.0, 0.18],
 }
 const FLOW_DURATION := 8.0     # seconds of TIDAL FLOW once the meter fills
 const FLOW_MULT := 2.0         # award multiplier while TIDAL FLOW is live
