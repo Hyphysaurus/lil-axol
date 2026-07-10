@@ -9,13 +9,18 @@ const DISPLAY_FONT := preload("res://assets/fonts/LilitaOne.ttf")   # chunky rou
 var _score := 0
 var _shown := 0.0              # rolling display value
 var _mult := 1
+var _material := 0
 var _label: Label
 var _combo: Label
 var _orb: ChargeOrb
+var _material_glyph: MaterialGlyph
 
 func _ready() -> void:
 	layer = 92
+	add_to_group("shine_hud")
 	_build()
+	_material = int(WorldState.get_cove(WorldState.current_id, "material", 0))
+	_refresh_material()
 	var keeper = get_tree().get_first_node_in_group("shine")
 	if keeper:
 		keeper.score_changed.connect(_on_score)
@@ -23,6 +28,22 @@ func _ready() -> void:
 		keeper.bubble_ready.connect(func() -> void: _orb.pulse = 1.0)
 	Settings.ui_lock_changed.connect(func(locked: bool) -> void: visible = not locked)
 	visible = not Settings.ui_locked()
+
+## Called by a collected reclaim_token: n is the new material total for this reach.
+func flash_material(n: int) -> void:
+	_material = n
+	_refresh_material()
+	_pop_material()
+
+func _refresh_material() -> void:
+	_material_glyph.count = _material
+	_material_glyph.visible = _material > 0
+
+## The same scale-pop idiom as the combo badge, so a bank tick reads consistently.
+func _pop_material() -> void:
+	_material_glyph.scale = Vector2(1.5, 1.5)
+	_material_glyph.create_tween().tween_property(_material_glyph, "scale", Vector2.ONE, 0.35) \
+		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 func _on_score(score: int, mult: int) -> void:
 	_score = score
@@ -86,6 +107,11 @@ func _build() -> void:
 	_orb = ChargeOrb.new()
 	row.add_child(_orb)
 
+	_material_glyph = MaterialGlyph.new()
+	_material_glyph.visible = false
+	_material_glyph.pivot_offset = Vector2(22.0, 13.0)   # scale-pop from ~centre
+	row.add_child(_material_glyph)
+
 ## The Bubble Bomb charge, drawn as Mario's bubble sprite: it fades + swells in as it fills, shimmers
 ## when full, and a ring swells off it when it's ready to pop.
 class ChargeOrb extends Control:
@@ -121,3 +147,23 @@ class ChargeOrb extends Control:
 		if pulse > 0.0:   # ready! ring swells off the orb
 			draw_arc(c, 13.0 + 8.0 * (1.0 - pulse), 0.0, TAU, 28,
 				Color(Palette.FOAM, 0.8 * pulse), 2.0, true)
+
+## The banked RECLAIM material tally — a cleaned-barrel ring glyph + count, beside the Shine
+## orb. Only shown once material > 0; redraws on change only (no idle per-frame churn).
+class MaterialGlyph extends Control:
+	const FONT := preload("res://assets/fonts/LilitaOne.ttf")
+	var count := 0:
+		set(v):
+			count = v
+			queue_redraw()
+
+	func _init() -> void:
+		custom_minimum_size = Vector2(44.0, 26.0)
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	func _draw() -> void:
+		var c := Vector2(11.0, size.y * 0.5)
+		draw_arc(c, 7.0, 0.0, TAU, 16, Palette.STEEL, 2.0, true)      # a cleaned barrel ring
+		draw_arc(c, 7.0, -0.9, 0.6, 8, Palette.FOAM, 1.2, true)       # glint
+		draw_string(FONT, Vector2(23.0, size.y * 0.5 + 8.0), "%d" % count,
+			HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color(Palette.FOAM, 0.95))

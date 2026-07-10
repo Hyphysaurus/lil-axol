@@ -140,6 +140,9 @@ func _purify_barrel(b: Dictionary) -> void:
 	var keeper = get_tree().get_first_node_in_group("shine")
 	if keeper and keeper.has_method("feat"):
 		keeper.feat(&"spring_clean", s.global_position + Vector2(0.0, -14.0))   # "Spring Clean" feat
+	var tok := preload("res://game/cove/reclaim_token.gd").new()
+	tok.position = to_local(s.global_position)
+	add_child(tok)
 	Sfx.play("vent_open", -7.0)
 	Sfx.play("chime", -6.0, 1.3)
 	LeakScript._purify_fx(self, s.position + Vector2(0.0, -8.0))

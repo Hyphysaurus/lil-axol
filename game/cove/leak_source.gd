@@ -114,6 +114,9 @@ func _purify() -> void:
 	if keeper and keeper.has_method("feat"):
 		keeper.feat(&"spring_clean", global_position + Vector2(0.0, -18.0))   # "Spring Clean" feat
 	_purify_fx(self, Vector2(0.0, -16.0))
+	var tok := preload("res://game/cove/reclaim_token.gd").new()
+	tok.position = (get_parent() as Node2D).to_local(global_position)
+	get_parent().add_child(tok)   # survives this node's later retirement
 	# the barrel + its oil pool dissolve away instead of vanishing
 	var tw := create_tween().set_parallel(true)
 	tw.tween_property(_spr, "modulate:a", 0.0, 0.45)
