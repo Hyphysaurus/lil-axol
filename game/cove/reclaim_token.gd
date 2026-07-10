@@ -33,7 +33,7 @@ func _collect() -> void:
 		var id: String = root.config.id
 		if not (root.has_method("is_echo") and root.is_echo()):
 			WorldState.mark(id, "material", int(WorldState.get_cove(id, "material", 0)) + 1)
-		get_tree().call_group("shine_hud", "flash_material", int(WorldState.get_cove(id, "material", 0)))
+		get_tree().call_group("shine_hud", "bump_material")   # HUD owns its tally (echo-coherent)
 	Sfx.play("chime", -8.0, 0.9)
 	queue_free()
 

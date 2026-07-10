@@ -19,8 +19,7 @@ func _ready() -> void:
 	layer = 92
 	add_to_group("shine_hud")
 	_build()
-	_material = int(WorldState.get_cove(WorldState.current_id, "material", 0))
-	_refresh_material()
+	_init_material.call_deferred()   # the cove root sets its id in ITS _ready — after ours
 	var keeper = get_tree().get_first_node_in_group("shine")
 	if keeper:
 		keeper.score_changed.connect(_on_score)
@@ -29,9 +28,20 @@ func _ready() -> void:
 	Settings.ui_lock_changed.connect(func(locked: bool) -> void: visible = not locked)
 	visible = not Settings.ui_locked()
 
-## Called by a collected reclaim_token: n is the new material total for this reach.
-func flash_material(n: int) -> void:
-	_material = n
+## Deferred one frame past _ready: children ready before the cove root sets its session id,
+## so reading WorldState.current_id here would show the PREVIOUS cove's bank on any
+## second-or-later entry. Ask the root itself for its config id instead.
+func _init_material() -> void:
+	var root := get_tree().get_first_node_in_group("cove_root")
+	if root and "config" in root:
+		_material = int(WorldState.get_cove(root.config.id, "material", 0))
+	_refresh_material()
+
+## Called by a collected reclaim_token: the HUD owns its displayed count and just ticks it up.
+## Echo runs bump the session tally here while persistence stays untouched (the token guards
+## its WorldState.mark); in normal play both move +1 together, so tally matches record.
+func bump_material() -> void:
+	_material += 1
 	_refresh_material()
 	_pop_material()
 
