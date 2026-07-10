@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="CharacterAnimSet" format=3]
+
+[ext_resource type="Script" uid="uid://b5168jwqbdajb" path="res://game/axolotl/character_anim_set.gd" id="1_anim"]
+
+[resource]
+script = ExtResource("1_anim")
+fright = &"hurt"

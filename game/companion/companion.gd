@@ -51,7 +51,9 @@ const TONGUE_REACH := 56.0     # floating debris within this of the frog gets au
 const TONGUE_COOLDOWN := 0.7   # min seconds between tongue strikes (so it isn't a machine gun)
 
 enum State { SLEEPING, WAKING, FOLLOWING }
-enum Kind { TURTLE, FROG }      # TURTLE = shell-spin demolition; FROG = tongue-grab (config-selected)
+enum Kind { TURTLE, FROG, OTTER, DRAGONFLY }   # TURTLE = shell-spin demolition; FROG = tongue-grab;
+                                # OTTER (herd/haul, slice 6) + DRAGONFLY (survey, slice 4) are
+                                # registered followers — art wired, verbs land with their slices
 
 signal woke   # emitted once when the rescue ceremony completes (WorldState files friend_awake off this)
 

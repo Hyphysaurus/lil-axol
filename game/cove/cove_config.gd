@@ -48,9 +48,10 @@ class_name CoveConfig
 ## The rescued friend: an oil-matted companion asleep at friend_pos until sprayed clean.
 @export var friend_enabled: bool = true
 @export var friend_pos: Vector2 = Vector2(425.0, 148.0)
-## Which companion + verb: TURTLE = shell-bash demolition, FROG = tongue-grab. The art fields below let
-## one companion rig serve both — swap frames/anims/scale per cove, zero code (D-0006 data-driven rig).
-@export_enum("Turtle", "Frog") var friend_kind: int = 0
+## Which companion + verb: TURTLE = shell-spin demolition, FROG = tongue-grab, OTTER + DRAGONFLY =
+## registered followers (their verbs land with their slices). The art fields below let one companion
+## rig serve them all — swap frames/anims/scale per cove, zero code (D-0006 data-driven rig).
+@export_enum("Turtle", "Frog", "Otter", "Dragonfly") var friend_kind: int = 0
 ## Optional per-cove companion art; null = the companion's own @export defaults (the turtle).
 @export var friend_frames: SpriteFrames
 @export var friend_anims: CharacterAnimSet
