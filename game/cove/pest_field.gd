@@ -17,7 +17,14 @@ var _dragons_out := false      # dragonflies released once, when the water turns
 
 func setup(cfg: CoveConfig) -> void:
 	_cfg = cfg
-	set_process(cfg.pest_count > 0 and not WorldState.is_restored(cfg.id))
+	if cfg.pest_count > 0 and WorldState.is_restored(cfg.id):
+		# a RESTORED reach spawns no pests — but its healed-water dragonflies are part of the
+		# "it stays alive" payoff (spec §7): release them straight away, then stay idle
+		_dragons_out = true
+		_release_dragonflies.call_deferred()   # deferred: children spawn after the tree settles
+		set_process(false)
+		return
+	set_process(cfg.pest_count > 0)
 
 func _process(delta: float) -> void:
 	_tick_t -= delta
