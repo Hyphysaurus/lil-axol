@@ -29,10 +29,18 @@ func _draw() -> void:
 		var y := BOTTOM_Y + 60.0 + float(i) * 110.0
 		draw_rect(Rect2(LEFT_EDGE - SPAN, y, RIGHT_EDGE - LEFT_EDGE + SPAN * 2.0, 3.0),
 			Color(Palette.INK, 0.10 + 0.02 * float(i)))
-	# SIDES: dark earth beyond the beach / bank so the horizon continues past the level's edges
-	var side_top := Palette.SOIL.lerp(SEABED_NAVY, 0.45)   # dark cool earth, kin to both neighbours
+	# SIDES: earth beyond the beach / bank so the horizon continues past the level's edges. WARM
+	# near the surface — this is the same dry loam as the block-land in cross-section, just in
+	# shadow; the old cool mix read as a jarring black slab against the warm bank blocks.
+	var side_top := Palette.LOAM.darkened(0.45)
 	_grad(Rect2(LEFT_EDGE - SPAN, GROUND_Y, SPAN, BOTTOM_Y - GROUND_Y), side_top, SEABED_NAVY)
 	_grad(Rect2(RIGHT_EDGE, GROUND_Y, SPAN, BOTTOM_Y - GROUND_Y), side_top, SEABED_NAVY)
+	# a soft AO seam where the lit blocks end and the shadowed earth begins, so the handoff
+	# reads as depth rather than a texture change (darkest at the block edge, fading outward)
+	_hgrad(Rect2(LEFT_EDGE - 7.0, GROUND_Y, 7.0, BOTTOM_Y - GROUND_Y),
+		Color(Palette.INK, 0.0), Color(Palette.INK, 0.22))
+	_hgrad(Rect2(RIGHT_EDGE, GROUND_Y, 7.0, BOTTOM_Y - GROUND_Y),
+		Color(Palette.INK, 0.22), Color(Palette.INK, 0.0))
 
 ## A vertical-gradient rectangle (per-vertex colours top -> bottom).
 func _grad(r: Rect2, top: Color, bottom: Color) -> void:
@@ -40,3 +48,10 @@ func _grad(r: Rect2, top: Color, bottom: Color) -> void:
 		PackedVector2Array([r.position, r.position + Vector2(r.size.x, 0.0),
 			r.position + r.size, r.position + Vector2(0.0, r.size.y)]),
 		PackedColorArray([top, top, bottom, bottom]))
+
+## A horizontal-gradient rectangle (per-vertex colours left -> right).
+func _hgrad(r: Rect2, left: Color, right: Color) -> void:
+	draw_polygon(
+		PackedVector2Array([r.position, r.position + Vector2(r.size.x, 0.0),
+			r.position + r.size, r.position + Vector2(0.0, r.size.y)]),
+		PackedColorArray([left, right, right, left]))

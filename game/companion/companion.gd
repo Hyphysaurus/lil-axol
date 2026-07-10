@@ -25,6 +25,8 @@ const FOLLOW_GAP := 30.0       # stops this far from the player
 const FOLLOW_SPEED := 3.2      # lerp rate toward the follow point
 const FOLLOW_LIFT_WATER := -6.0   # swims a touch below the surface
 const FOLLOW_LIFT_LAND := 3.0     # rests ON the land blocks — the 40px turtle frame sits high on land
+const GROUND_HOLD := -62.0     # highest a follow target may sit: bank-top following (~-59 with the
+                               # deepest slot lift) clears it; a climbing axolotl's height does NOT
                                   # otherwise (it hovered a few px); raise this to drop it further
 const HELP_EVERY := 3.5        # seconds between helper scrubs
 const HELP_RADIUS := 14.0
@@ -244,6 +246,13 @@ func _process(delta: float) -> void:
 		# swim jank at the source; the axolotl remains free to dip under alone.
 		target.y = minf(target.y, _cfg.surface_y - 2.0)
 	target.x = clampf(target.x, _cfg.water_left - 260.0, _cfg.water_right - 8.0)   # onto the BEACH too, not just the water's edge
+	# GROUND HOLD: followers have no gravity — without a ceiling on the follow target they levitate
+	# after a CLIMBING axolotl (frog riding a hovering turtle in the sky). Over water they never
+	# rise above the waterline; over the beach they can reach the bank top but no higher — while
+	# the tidekeeper scales a root curtain, the crew waits below. (After the x clamp: the rule
+	# reads the follower's own footing, not the climber's.)
+	var over_water := target.x > _cfg.water_left - 8.0
+	target.y = maxf(target.y, (_cfg.surface_y - 6.0) if over_water else GROUND_HOLD)
 	target.y = minf(target.y, _cfg.seabed_y)          # never sink through the floor; free to rise ashore
 	var gap := target - position
 	_land_t = maxf(0.0, _land_t - delta)
@@ -355,7 +364,9 @@ func _run_pilot(delta: float) -> void:
 	# face — the portal plug is carved into that bank, so the shell must be able to chew all the way
 	# through it (a tighter bound left an unreachable last column: the un-breakable sliver bug)
 	position.x = clampf(position.x, _cfg.water_left - 260.0, _cfg.water_right + 64.0)
-	position.y = clampf(position.y, _cfg.surface_y - 70.0, _cfg.seabed_y)
+	# ceiling: high enough to smash the bank-tower SUMMIT nook (top ~-143 vs surface -27) — the
+	# tighter -70 bound made that turtle-only cache silently unbreakable, same bug as the sliver
+	position.y = clampf(position.y, _cfg.surface_y - 125.0, _cfg.seabed_y)
 	if absf(_shell_vel.x) > 4.0:
 		_face = signf(_shell_vel.x)
 	# spin the tucked shell (the sprite holds the shelled frame; we rotate it)

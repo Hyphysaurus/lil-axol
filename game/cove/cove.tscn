@@ -216,6 +216,7 @@ position = Vector2(415, -119)
 script = ExtResource("31_land")
 cols = 5
 rows = 10
+surface_row = 10
 
 [node name="BankTowerBody" type="StaticBody2D" parent="."]
 
@@ -236,8 +237,10 @@ strands = 3
 climbable = false
 
 [node name="LandNook3" type="Node2D" parent="."]
-position = Vector2(435, -131)
+position = Vector2(443, -131)
 script = ExtResource("32_nook")
+cols = 3
+rows = 3
 
 [node name="Grass" type="Sprite2D" parent="." unique_id=771000001]
 visible = false

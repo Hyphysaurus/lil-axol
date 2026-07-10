@@ -58,21 +58,29 @@ func _draw() -> void:
 			var loose := yy / extent.y
 			pts.append(Vector2(x + sin(_t * 1.2 + phase + yy * 0.05) * 2.5 * loose, yy))
 		# two-tone strand: a dark under-line with a lit face reads as a thick rope of root
-		draw_polyline(pts, Palette.LOAM.darkened(0.35), 3.0)
-		draw_polyline(pts, Palette.LOAM, 1.5)
-		# leaf tufts + rootlet nubs so the curtain reads alive and grabbable
+		draw_polyline(pts, Palette.LOAM.darkened(0.35), 4.0)
+		draw_polyline(pts, Palette.LOAM, 2.0)
+		# leaf clusters + rootlet nubs — the mass of green is what makes the curtain read lush
+		# and grabbable instead of wiry bare wire
 		for s in range(1, segs, 2):
 			var yy := float(s) / float(segs) * extent.y
 			var px := x + sin(_t * 1.2 + phase + yy * 0.05) * 2.5 * (yy / extent.y)
 			var side := 3.5 if (i + s) % 2 == 0 else -3.5
 			draw_line(Vector2(px, yy), Vector2(px + side, yy + 2.0), Palette.MOSS, 1.5)
-			if s % 4 == 1:   # a small two-leaf tuft where a rootlet meets the strand
-				draw_circle(Vector2(px + side, yy + 2.0), 1.8, Palette.LEAF)
-				draw_circle(Vector2(px + side * 0.4, yy + 3.4), 1.4, Palette.MOSS)
-	# the ANCHOR: a dark knot of root mass spilling over the ledge lip at the top — where the
-	# curtain grows from, and the visual promise that the top is a place you can stand
+			var tip := Vector2(px + side, yy + 2.0)
+			draw_circle(tip, 2.2, Palette.MOSS)                       # cluster base
+			draw_circle(tip + Vector2(side * 0.35, -1.6), 1.9, Palette.LEAF)
+			draw_circle(tip + Vector2(-side * 0.25, 1.6), 1.6, Palette.MOSS)
+			if (i + s) % 3 == 0:   # the odd bright new-growth leaf catches the light
+				draw_circle(tip + Vector2(side * 0.6, 0.4), 1.3, Palette.SPROUT)
+	# the ANCHOR: a mound of root-woven soil hugging the top lip — where the curtain grows from,
+	# and the visual promise that the top is a place you can stand. Knots only, weighted toward
+	# the ledge side: a full-width bar floats in air wherever the strip sits proud of the face.
 	for i in strands:
 		var x := (float(i) + 0.5) / float(strands) * extent.x
 		draw_circle(Vector2(x, 1.5), 3.2, Palette.LOAM.darkened(0.3))
-		draw_circle(Vector2(x + 1.0, 0.0), 2.4, Palette.SOIL)
-	draw_rect(Rect2(Vector2(-3.0, -2.5), Vector2(extent.x + 6.0, 3.0)), Palette.SOIL.darkened(0.15))
+		draw_circle(Vector2(x + ledge_side * 1.2, 0.0), 2.4, Palette.SOIL)
+	var lip_x := extent.x * (0.7 if ledge_side > 0.0 else 0.3)
+	draw_circle(Vector2(lip_x, -1.0), 3.4, Palette.SOIL.darkened(0.15))
+	draw_circle(Vector2(lip_x + ledge_side * 4.0, -1.5), 2.6, Palette.SOIL)
+	draw_circle(Vector2(lip_x + ledge_side * 7.5, -0.5), 2.0, Palette.MOSS)
