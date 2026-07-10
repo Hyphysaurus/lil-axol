@@ -48,6 +48,20 @@ class_name CoveConfig
 ## Hidden Field Guide CURIOS (Living Watershed §8), cove-local positions. Each unlocks the card
 ## keyed "<id>_<index>" in game/log/field_guide.gd — keep both lists in step. Empty = none.
 @export var curios: Array[Vector2] = []
+## Murky invasive fish (tilapia/carp stand-ins) schooling in the deep — the pre-otter Clarity
+## cap and the living face of the pollution. 0 = none (the hub default).
+@export var invasive_count: int = 0
+
+@export_group("Restoration Engine")
+## Which variables count toward the Health meter (normalized blend) — ONLY variables the player
+## can currently move. Hub = just purity (meter identical to the old cleanliness).
+@export var in_play: Array[StringName] = [&"purity"]
+## The win recipe: variable -> minimum value. The &"purity" key is special-cased to read
+## win_threshold (single source of truth). Empty = purity-only (legacy behavior).
+@export var win_recipe: Dictionary = {}
+## What gates vegetation growth: "purity" (reeds/mud-bank rule) or "clarity" (eelgrass, post-otter).
+@export_enum("purity", "clarity") var vegetation_gate: String = "purity"
+
 ## The rescued friend: an oil-matted companion asleep at friend_pos until sprayed clean.
 @export var friend_enabled: bool = true
 @export var friend_pos: Vector2 = Vector2(425.0, 148.0)
