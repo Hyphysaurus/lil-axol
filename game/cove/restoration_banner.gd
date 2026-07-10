@@ -28,6 +28,7 @@ var _root: Control
 var _corner: Control
 var _subline: Label
 var _tally: Label              # final Shine, set the moment the cove is restored
+var _water_sub: Label
 var _fade := 0.0
 var _target := 0.0
 var _hold := 0.0
@@ -43,6 +44,12 @@ func _ready() -> void:
 	var mgr = get_tree().get_first_node_in_group("oil_manager")
 	if mgr and mgr.has_signal("cleanliness"):
 		mgr.cleanliness.connect(_on_clean)
+	_wire_reach.call_deferred()    # reach_state is a sibling: connect after the tree settles
+
+func _wire_reach() -> void:
+	var rs = get_tree().get_first_node_in_group("reach_state")
+	if rs and rs.has_signal("state_changed"):
+		rs.state_changed.connect(func(_s: Dictionary) -> void: _check_restored())
 
 ## Injected by the Cove composition root; only win_threshold is read (null-safe while
 ## components migrate — without config the old 0.999 behavior stands).
@@ -66,8 +73,12 @@ func notify_progress() -> void:
 func _check_restored() -> void:
 	if not WIN_ENABLED or is_restored:
 		return
-	if _last_clean < _win_threshold():
-		return
+	var rs = get_tree().get_first_node_in_group("reach_state")
+	if rs and rs.has_method("recipe_met"):
+		if not rs.recipe_met():
+			return                      # the reach's full recipe (config win_recipe) gates the win
+	elif _last_clean < _win_threshold():
+		return                          # legacy fallback while reach_state is absent
 	for c in get_tree().get_nodes_in_group("companion"):
 		if c.has_method("is_awake") and not c.is_awake():
 			return                 # a friend is still asleep in its corner
@@ -78,6 +89,8 @@ func _check_restored() -> void:
 
 func _celebrate() -> void:
 	is_restored = true             # one-shot: only celebrate the first full restoration
+	if not get_tree().get_nodes_in_group("invasive").is_empty():
+		_water_sub.text = "the water runs clear — but shadows still school in the deep"
 	_target = 1.0
 	_hold = HOLD_SECONDS
 	Sfx.play("win")
@@ -147,6 +160,7 @@ func _build() -> void:
 
 	var sub := Label.new()
 	sub.text = "the water runs clear again"
+	_water_sub = sub                    # swapped at celebrate-time if shadows still school
 	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	sub.add_theme_font_size_override("font_size", 26)
 	sub.add_theme_color_override("font_color", Palette.MIST)
