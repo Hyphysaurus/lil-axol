@@ -43,6 +43,13 @@ const CARDS := {
 		"fact": "Underwater plants anchor eggs, shelter hatchlings, and settle the silt. A reach with rooted greens is a reach that can raise young.",
 		"icon": 2,
 	},
+	"enc_estuary_school": {
+		"name": "Shadow in the Water",
+		"species": "Oreochromis / Cyprinus — introduced",
+		"fact": "Tilapia and carp were released here in the 1970s as a food program. They eat eggs and stir the silt — most of what swims these canals now was never meant to.",
+		"icon": 1,
+		"type": "encounter",
+	},
 }
 
 static func card(id: String) -> Dictionary:
@@ -52,6 +59,6 @@ static func card(id: String) -> Dictionary:
 static func count_for(cove_id: String) -> int:
 	var n := 0
 	for k in CARDS:
-		if (k as String).begins_with(cove_id + "_"):
+		if (k as String).begins_with(cove_id + "_") and CARDS[k].get("type", "curio") == "curio":
 			n += 1
 	return n

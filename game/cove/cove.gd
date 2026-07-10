@@ -46,6 +46,7 @@ func _ready() -> void:
 	_inject($Reeds)
 	_inject($Curios)
 	_inject($ReachState)
+	_inject($InvasiveSchool)
 	_apply_environment()
 	if Settings.arrive_via_portal:
 		Settings.arrive_via_portal = false

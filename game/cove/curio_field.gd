@@ -38,6 +38,7 @@ func setup(cfg: CoveConfig) -> void:
 		c.collected.connect(_on_collected)
 		add_child(c)
 	_build_card()
+	add_to_group("curio_cards")
 
 func _on_collected(cid: String) -> void:
 	var idx := cid.trim_prefix(_cfg.id + "_")
@@ -54,10 +55,14 @@ func _on_collected(cid: String) -> void:
 	for i in total:
 		if bool(WorldState.get_cove(_cfg.id, "curio_" + str(i), false)):
 			found += 1
+	show_card(card, "field guide — %d of %d found in this reach" % [maxi(found, 1), total])
+
+## Show any Field Guide card (curios use it; the invasive school's encounter card too).
+func show_card(card: Dictionary, tally_text: String) -> void:
 	_title.text = card["name"]
 	_species.text = card["species"]
 	_fact.text = card["fact"]
-	_tally.text = "field guide — %d of %d found in this reach" % [maxi(found, 1), total]
+	_tally.text = tally_text
 	_card_t = CARD_HOLD
 	Sfx.play("ui_open", -10.0)
 
