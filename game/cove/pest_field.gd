@@ -17,7 +17,7 @@ var _dragons_out := false      # dragonflies released once, when the water turns
 
 func setup(cfg: CoveConfig) -> void:
 	_cfg = cfg
-	set_process(cfg.pest_count > 0)
+	set_process(cfg.pest_count > 0 and not WorldState.is_restored(cfg.id))
 
 func _process(delta: float) -> void:
 	_tick_t -= delta

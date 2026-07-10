@@ -7,8 +7,8 @@ extends Node2D
 const DEBRIS := preload("res://game/cove/floating_debris.gd")
 
 func setup(cfg: CoveConfig) -> void:
-	if cfg.debris_count <= 0:
-		return
+	if cfg.debris_count <= 0 or WorldState.is_restored(cfg.id):
+		return   # a RESTORED reach reloads restored: no chokes respawn (spec review C2)
 	for i in cfg.debris_count:
 		var d := DEBRIS.new()
 		# spread across the middle of the water span (kept off the shore so it's genuinely out of the

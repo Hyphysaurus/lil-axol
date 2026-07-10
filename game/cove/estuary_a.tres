@@ -22,6 +22,12 @@ pest_count = 6
 lilypad_count = 7
 reed_count = 26
 curios = Array[Vector2]([Vector2(60, 30), Vector2(250, 90), Vector2(-110, 70)])
+invasive_count = 5
+in_play = Array[StringName]([&"purity", &"oxygen"])
+win_recipe = {
+&"oxygen": 0.9,
+&"purity": 0.98
+}
 friend_enabled = true
 friend_pos = Vector2(360, 88)
 friend_kind = 1
