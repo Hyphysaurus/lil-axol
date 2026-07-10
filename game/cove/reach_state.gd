@@ -71,6 +71,11 @@ func get_state() -> Dictionary:
 func health() -> float:
 	return float(get_state().get("health", 0.0))
 
+## The config's in-play variable keys (StringName) — lets HUD readouts (meter pips) know which
+## variables are meaningful for this reach without reaching into _cfg directly.
+func in_play() -> Array:
+	return _cfg.in_play
+
 ## The config win recipe against the live state — the &"purity" key reads win_threshold (single
 ## source of truth with the legacy gate).
 func recipe_met() -> bool:
