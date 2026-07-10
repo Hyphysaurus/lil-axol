@@ -159,7 +159,8 @@ func is_awake() -> bool:
 	return _state != State.SLEEPING
 
 ## Persistence spawn path: start this friend already rescued — no ceremony, no feat, no Shine,
-## straight to FOLLOWING. Mirrors _wake()'s end state (tint, stain, zzz, roster).
+## straight to FOLLOWING. Mirrors _wake()'s end state (tint, stain, zzz) and registers roster
+## membership WITHOUT stealing the active-partner slot.
 func wake_instant() -> void:
 	if _state != State.SLEEPING:
 		return

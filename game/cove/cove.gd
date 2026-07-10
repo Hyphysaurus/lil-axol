@@ -48,8 +48,8 @@ func _ready() -> void:
 		Settings.arrive_via_portal = false
 		_arrive()
 	if not _echo:
+		_wire_saves()      # wires FIRST: if a re-seed ever crosses the win gate, it must save/score
 		_apply_saved()
-		_wire_saves()
 
 ## A live (not queued-for-deletion) child by name, or null. Components retire themselves in
 ## setup() (friend_enabled false, no exit configured...) — never poke a retiring node.
@@ -129,18 +129,19 @@ func _inject(n: Node) -> void:
 		n.setup(config)
 
 ## Per-cove environment overrides (spec §9): the marsh reads green-tea and muddy without forking
-## the scene. Water + soil tints ride shader UNIFORMS (default white = hub untouched — the modulate
-## chain is avoided because it also carries the day/night CanvasModulate these shaders ignore);
-## grass/pollen are plain canvas draws, so the land nodes' modulate tints those. Alpha 0 = unset.
+## the scene. Water + soil tints ride shader UNIFORMS (the modulate chain also carries the
+## day/night CanvasModulate these shaders ignore). ALWAYS written — white when unset — because
+## the water ShaderMaterial is a shared sub-resource cached across cove instances, so an estuary
+## visit would otherwise leak its green onto the hub's water for the rest of the session.
 func _apply_environment() -> void:
-	if config.env_water_tint.a > 0.0:
-		var water := get_node_or_null("Water") as Sprite2D
-		if water and water.material is ShaderMaterial:
-			(water.material as ShaderMaterial).set_shader_parameter("env_tint", config.env_water_tint)
-	if config.env_land_tint.a > 0.0:
-		for n in ["BlockLand", "BlockLandRight"]:
-			var land := get_node_or_null(n)
-			if land:
-				(land as Node2D).modulate = config.env_land_tint
-				if land.has_method("set_env_tint"):
-					land.set_env_tint(config.env_land_tint)
+	var wt := config.env_water_tint if config.env_water_tint.a > 0.0 else Color(1.0, 1.0, 1.0, 1.0)
+	var water := get_node_or_null("Water") as Sprite2D
+	if water and water.material is ShaderMaterial:
+		(water.material as ShaderMaterial).set_shader_parameter("env_tint", wt)
+	var lt := config.env_land_tint if config.env_land_tint.a > 0.0 else Color(1.0, 1.0, 1.0, 1.0)
+	for n in ["BlockLand", "BlockLandRight"]:
+		var land := get_node_or_null(n)
+		if land:
+			(land as Node2D).modulate = lt
+			if land.has_method("set_env_tint"):
+				land.set_env_tint(lt)
