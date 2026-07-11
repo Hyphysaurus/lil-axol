@@ -51,17 +51,19 @@ const MASK_UPLOAD_HZ := 30.0
 
 func _ready() -> void:
 	add_to_group("oil_manager")
-	var wt := get_node_or_null("../Water") as Sprite2D
-	if wt:
-		_water_mat = wt.material as ShaderMaterial
-		_origin = wt.position
-		_size = wt.scale          # the water sprite is a 1px texture scaled to px size -> scale == size
 	_fx = CleanupFX.new()
 	add_child(_fx)
 
 ## Called by the Cove composition root after _ready; the config-dependent build lives here.
+## The Water-rect read moves here from _ready (spec C1) — _ready runs before a mapped reach's
+## ReachMap can resize the water sprite, which would capture a stale origin/size.
 func setup(cfg: CoveConfig) -> void:
 	_cfg = cfg
+	var wt := get_node_or_null("../Water") as Sprite2D
+	if wt:
+		_water_mat = wt.material as ShaderMaterial
+		_origin = wt.position
+		_size = wt.scale          # 1px texture scaled to px size -> scale == size
 	_build_mask()
 	_build_surface()
 	_set_clean()
@@ -70,6 +72,7 @@ func _build_mask() -> void:
 	_mask = Image.create_empty(MASK_W, MASK_H, false, Image.FORMAT_RGBA8)
 	_cov.resize(MASK_W * MASK_H)
 	var surf := _cfg.surface_y
+	var field: ReachField = get_tree().get_first_node_in_group("reach_field")   # one lookup, not 16,896
 	_total = 0.0
 	for my in MASK_H:
 		for mx in MASK_W:
@@ -92,6 +95,8 @@ func _build_mask() -> void:
 			var cov := clampf(in_x * in_y * (0.30 + 0.30 * blot + 0.55 * ramp), 0.0, 1.0)
 			if cov < VIS_FLOOR:
 				cov = 0.0                   # don't birth oil nobody can ever see
+			elif field != null and not field.oil_allowed(Vector2(lx, ly)):
+				cov = 0.0                   # no oil born inside painted terrain (spec C2)
 			_cov[my * MASK_W + mx] = cov
 			_mask.set_pixel(mx, my, Color(cov, 0.0, 0.0, 1.0))
 			_total += _vis(cov)

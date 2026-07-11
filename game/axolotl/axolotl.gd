@@ -29,6 +29,7 @@ const BLINK_MAX := 7.0
 
 var _cfg: CoveConfig            # water geometry, injected by the cove (see setup)
 var _oil_mgr: Node             # oil manager, for the in-oil movement debuff (fetched in setup)
+var _field: ReachField = null   # the water/footing oracle (slice 5); null in standalone-scene runs
 var _anims: AnimationController  # drives _spr from the states the movement code picks
 var _half_h := 9.0             # feet are this far below center (read off the collision shape)
 var _face := 1.0
@@ -67,6 +68,7 @@ func setup(cfg: CoveConfig) -> void:
 	_cfg = cfg
 	# grabbed here (not _ready) because the oil manager joins its group in its own _ready first
 	_oil_mgr = get_tree().get_first_node_in_group("oil_manager")
+	_field = get_tree().get_first_node_in_group("reach_field")
 
 ## Axo position in the cove's (parent) frame — the water bounds are authored there.
 ## Run standalone (Play Current Scene), the parent is the Window, not a cove: fall back
@@ -185,12 +187,25 @@ func _physics_process(delta: float) -> void:
 	var has_water := _cfg != null and _cfg.has_water
 	var submerged := false
 	if has_water:
-		var over_water := local.x > _cfg.water_left and local.x < _cfg.water_right
-		if over_water:
-			if _in_water:
-				submerged = feet > _cfg.surface_y - 2.0   # stay in until fully out
-			else:
-				submerged = feet > _cfg.surface_y + 4.0   # dip in to start
+		if _field != null:
+			# lateral span comes from the field (rect: exactly water_left/water_right — the
+			# hysteresis numbers below stay verbatim, only the boundary QUERY moves to the field).
+			var wb := _field.water_bounds()
+			var over_water := local.x > wb.position.x and local.x < wb.position.x + wb.size.x
+			if over_water:
+				if _in_water:
+					submerged = feet > _field.surface_y() - 2.0   # stay in until fully out
+				else:
+					submerged = feet > _field.surface_y() + 4.0   # dip in to start
+		else:
+			# standalone-scene testability idiom (see _cove_local): no injected field, fall back
+			# to the raw config so the axolotl scene stays runnable/testable on its own.
+			var over_water := local.x > _cfg.water_left and local.x < _cfg.water_right
+			if over_water:
+				if _in_water:
+					submerged = feet > _cfg.surface_y - 2.0   # stay in until fully out
+				else:
+					submerged = feet > _cfg.surface_y + 4.0   # dip in to start
 	if submerged and not _in_water:
 		_climbing = false         # water always takes over — a curtain dipping below the line hands off to swim
 		_enter_water()

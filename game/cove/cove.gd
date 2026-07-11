@@ -29,6 +29,11 @@ func _ready() -> void:
 	_echo = WorldState.echo
 	WorldState.echo = false          # one reload only; consuming it here makes crossings normal
 	WorldState.current_id = config.id
+	# the water/footing oracle — FIRST, so every injected component can find it (slice 5).
+	# Rect-backed here; a map reach's ReachMap upgrades it to the painted mask in its setup.
+	var field := ReachField.new()
+	field.setup_rect(config)
+	add_child(field)
 	_inject($Axolotl)
 	_inject($OilSpill)
 	_inject($CoveLife)
