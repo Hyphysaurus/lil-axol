@@ -29,7 +29,9 @@ var table_row := 0
 var _cfg: CoveConfig
 
 func setup(cfg: CoveConfig) -> void:
-	if cfg.map_terrain == null:
+	if cfg.map_terrain == null or cfg.map_markers == null:
+		if cfg.map_terrain != null and cfg.map_markers == null:
+			push_warning("reach_map: map_terrain set but map_markers missing - retiring")
 		queue_free()                            # classic reach — the rect ReachField stands
 		return
 	classify(cfg)
@@ -46,6 +48,7 @@ func classify(cfg: CoveConfig) -> void:
 	var timg := cfg.map_terrain.get_image()
 	var mimg := cfg.map_markers.get_image()
 	assert(not timg.is_compressed(), "map textures must import lossless (compress mode 0)")
+	assert(not mimg.is_compressed(), "map textures must import lossless (compress mode 0)")
 	gw = timg.get_width(); gh = timg.get_height()
 	grid.resize(gw * gh)
 	table_row = gh
