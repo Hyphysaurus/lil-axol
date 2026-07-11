@@ -43,6 +43,7 @@ var _emptied := false
 var _glow_t := 0.0               # drives the breakable aura's slow pulse
 var _redraw_acc := 0.0           # throttles the pulse redraw to ~10 Hz
 var _scars: Array = []           # [local cell centre, age] — fresh-break craters, fading ~1.2s
+var _lock_tween: Tween           # guards against stacking tweens on rapid blasts
 const SCAR_LIFE := 1.2
 
 func _ready() -> void:
@@ -178,9 +179,11 @@ func blast(world_pos: Vector2, radius: float, _power := 1.0, quiet := false) -> 
 ## rock's own tone_a and eases back over 0.2s — the same "catch the light" language as the
 ## breakable shimmer in _draw(), just a one-shot pulse instead of the idle mineral glint.
 func _flash_locked() -> void:
-	var tw := create_tween()
-	tw.tween_property(self, "modulate", tone_a, 0.1)
-	tw.tween_property(self, "modulate", Color(1.0, 1.0, 1.0, 1.0), 0.1)
+	if _lock_tween and _lock_tween.is_running():
+		_lock_tween.kill()
+	_lock_tween = create_tween()
+	_lock_tween.tween_property(self, "modulate", tone_a, 0.1)
+	_lock_tween.tween_property(self, "modulate", Color(1.0, 1.0, 1.0, 1.0), 0.1)
 
 ## Is any still-solid cell within `radius` of a world point? A cheap, NON-destructive contact test
 ## the turtle uses to start bashing on FIRST CONTACT instead of dashing to a mark aimed deep inside.

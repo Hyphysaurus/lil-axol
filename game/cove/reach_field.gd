@@ -108,6 +108,18 @@ func random_surface_x(rng: RandomNumberGenerator) -> float:
 			return _origin.x + (float(cx) + 0.5) * CELL
 	return water_bounds().get_center().x
 
+## Flip exactly one cell to water (at/below the table) — the exact-cell path _carve_rect needs;
+## carve()'s radius math always sweeps a 3x3 minimum (ceilf >= 1), which can bleed into neighbors.
+func carve_cell(cx: int, cy: int) -> void:
+	if _rect_cfg:
+		return
+	if cx < 0 or cx >= _w or cy < 0 or cy >= _h or cy < _table_row:
+		return
+	var c := _cells[cy * _w + cx]
+	if c == RUBBLE or c == SILT or c == BOULDER:
+		_cells[cy * _w + cx] = WATER
+		_grow_bounds(cx, cy)
+
 ## Broken rock becomes swimmable at/below the table (spec C5 — the legacy rect made carved
 ## tunnels swimmable by construction; the mask must do it explicitly). Rect: no-op.
 ## T5 DECISION (was a NOTE-only carry-over from T2 review): every flipped cell also grows
@@ -130,6 +142,9 @@ func carve(p: Vector2, radius: float) -> void:
 			var c := _cells[ny * _w + nx]
 			if c == RUBBLE or c == SILT or c == BOULDER:
 				_cells[ny * _w + nx] = WATER
-				var cell_rect := Rect2(_origin + Vector2(nx, ny) * CELL, Vector2(CELL, CELL))
-				_bounds_cache = cell_rect if _bounds_cache.size == Vector2.ZERO \
-					else _bounds_cache.merge(cell_rect)
+				_grow_bounds(nx, ny)
+
+func _grow_bounds(cx: int, cy: int) -> void:
+	var cell_rect := Rect2(_origin + Vector2(cx, cy) * CELL, Vector2(CELL, CELL))
+	_bounds_cache = cell_rect if _bounds_cache.size == Vector2.ZERO \
+		else _bounds_cache.merge(cell_rect)

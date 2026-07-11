@@ -323,12 +323,12 @@ func _build_breakables() -> void:
 					if not echo:
 						WorldState.mark(_cfg.id, key, true))
 
-## Every cell of a cleared/pre-cleared seal becomes water — a tiny carve radius per cell keeps this
-## exact (no rounding-driven cell misses at a seal's own edges).
+## Every cell of a cleared/pre-cleared seal becomes water — carve_cell flips exactly one cell,
+## no 3x3 bleed from the radius-based carve() function.
 func _carve_rect(field: ReachField, r: Rect2i) -> void:
 	for cy in range(r.position.y, r.end.y):
 		for cx in range(r.position.x, r.end.x):
-			field.carve(cell_world(cx, cy), 0.1)
+			field.carve_cell(cx, cy)
 
 ## Green (CLIMB) runs become climbable root curtains — one ClimbWall per painted component.
 func _build_climbs() -> void:
