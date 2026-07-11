@@ -202,7 +202,9 @@ func _resize_water() -> void:
 	var b: Rect2 = (get_tree().get_first_node_in_group("reach_field") as ReachField).water_bounds()
 	wt.position = b.position
 	wt.scale = b.size
-	(wt.material as ShaderMaterial).set_shader_parameter("rect_size", b.size)
+	var wm := wt.material as ShaderMaterial
+	if wm:
+		wm.set_shader_parameter("rect_size", b.size)
 
 ## 4-connected components of one cell code, as cell-space rects. Non-rect components warn and
 ## return their bounding box (authoring lint enforces rectangles for seals/gates).

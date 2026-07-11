@@ -89,7 +89,7 @@ shader_parameter/height = 1.0
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_fnfnh"]
 shader = ExtResource("2_6pnl8")
-shader_parameter/rect_size = Vector2(599, 276)
+shader_parameter/rect_size = Vector2(519, 276)
 shader_parameter/overhang = 8.0
 shader_parameter/col_shallow = Color(0.2, 0.58, 0.62, 0.38)
 shader_parameter/col_deep = Color(0.04, 0.13, 0.34, 0.74)

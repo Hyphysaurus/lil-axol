@@ -20,7 +20,7 @@ float hash(vec2 p) {
 
 bool is_solid(vec4 texel) {
 	if (texel.a < 0.5) { return false; }
-	// earth 7A4A23, climb 2E9E3F, silt D2B48C, boulder 56707E read as land mass; the climb
+	// earth 7A4A23, climb 2E9E3F, silt D2B48C, boulder 56707E, rubble 8C8C8C read as land mass; the climb
 	// curtain art + gate rocks draw their own identity on top. Water/air discard.
 	bool water = abs(texel.r - 0.180) < 0.04 && texel.b > 0.9;
 	return !water;
