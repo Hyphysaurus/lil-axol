@@ -11,9 +11,13 @@ const RockScript := preload("res://game/cove/destructible_rock.gd")
 const IrisWipe := preload("res://game/fx/iris_wipe.gd")
 
 const PLUG_COLS := 5
-const PLUG_ROWS := 11
+const PLUG_ROWS := 9           # sized to the carved mouth (72px vs the rim's ~70) — no rubble sticking past rock
 const TRIGGER_RADIUS := 28.0   # how close the axolotl must get to the OPEN passage to cross
 const FADE_TIME := 0.6
+# the throat's vanishing point, in local pre-squash space: each ring steps toward it so the
+# passage recedes INTO the bank, and the portal light lives at its far end — a small bright
+# promise deep in the tunnel, not a wall-sized glow at the mouth plane
+const VANISH := Vector2(16.0, 0.0)
 
 signal opened   # the way is clear (WorldState files portal_cleared off this)
 
@@ -50,10 +54,11 @@ func setup(cfg: CoveConfig) -> void:
 	# (built now, switched on when the way opens)
 	_swirl = CPUParticles2D.new()
 	_swirl.emitting = false
-	_swirl.amount = 14
+	_swirl.amount = 12
 	_swirl.lifetime = 1.4
+	_swirl.position = Vector2(VANISH.x * 0.55, 0.0)   # motes gather at the far end (post-squash x)
 	_swirl.emission_shape = CPUParticles2D.EMISSION_SHAPE_SPHERE
-	_swirl.emission_sphere_radius = 40.0
+	_swirl.emission_sphere_radius = 16.0
 	_swirl.spread = 180.0
 	_swirl.initial_velocity_min = 4.0
 	_swirl.initial_velocity_max = 12.0
@@ -62,8 +67,8 @@ func setup(cfg: CoveConfig) -> void:
 	_swirl.tangential_accel_min = 26.0     # ...while curling around it — an inward spiral
 	_swirl.tangential_accel_max = 44.0
 	_swirl.gravity = Vector2.ZERO
-	_swirl.scale_amount_min = 0.6
-	_swirl.scale_amount_max = 1.6
+	_swirl.scale_amount_min = 0.4
+	_swirl.scale_amount_max = 1.1
 	_swirl.color = Color(Palette.AQUA, 0.75)
 	_swirl.z_index = 3                     # over the mouth, under the axolotl
 	add_child(_swirl)
@@ -125,17 +130,26 @@ func _cross() -> void:
 func _draw() -> void:
 	if _cfg == null:
 		return
-	# THE CARVED TUNNEL MOUTH — a tall dark opening in the bank, always drawn (the rubble plug sits
-	# over it, so every chunk the turtle grinds away reveals more of the throat behind). Concentric
-	# ovals darken toward the centre so the passage reads as going INTO the rock, not painted on it.
+	# THE CARVED TUNNEL MOUTH — a dark opening in the bank, always drawn (the rubble plug sits
+	# over it, so every chunk the turtle grinds away reveals more of the throat behind). Each ring
+	# steps smaller AND toward the vanishing point, so the passage reads as a tunnel receding
+	# into the rock with real depth — not concentric ovals painted on the face.
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2(0.55, 1.0))   # circles -> tall ovals
-	draw_circle(Vector2.ZERO, 47.0, Palette.SOIL.darkened(0.25))            # carved stone rim
-	draw_circle(Vector2.ZERO, 41.0, Palette.INK.lerp(Palette.DEEP, 0.35))   # mouth
-	draw_circle(Vector2.ZERO, 30.0, Palette.INK.lerp(Palette.DEEP, 0.15))   # deeper...
-	draw_circle(Vector2.ZERO, 19.0, Palette.INK)                            # ...the dark throat
+	draw_circle(Vector2.ZERO, 36.0, Palette.SOIL.darkened(0.25))                       # carved stone rim
+	draw_circle(Vector2.ZERO, 31.0, Palette.INK.lerp(Palette.DEEP, 0.4))               # mouth
+	draw_circle(VANISH * 0.35, 23.0, Palette.INK.lerp(Palette.DEEP, 0.25))             # deeper...
+	draw_circle(VANISH * 0.7, 15.0, Palette.INK.lerp(Palette.DEEP, 0.1))               # deeper still...
+	draw_circle(VANISH, 9.0, Palette.INK)                                              # ...the far dark
+	if _glow > 0.01:
+		# THE PORTAL: a small ring of otherwater light at the END of the tunnel — the next reach
+		# glimpsed through the passage. Small and far beats big and loud: it beckons, not shouts.
+		var g := _glow * (0.7 + 0.3 * sin(_pulse * 2.4))
+		draw_circle(VANISH, 8.0, Color(Palette.AQUA, 0.35 * g))       # light spilling into the throat
+		draw_circle(VANISH, 5.0, Color(Palette.AQUA, 0.8 * g))        # the bright far ring
+		draw_circle(VANISH, 2.5, Color(Palette.FOAM, 0.9 * g))        # daylight on the other side
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	if _glow <= 0.01:
 		return
-	var g := _glow * (0.7 + 0.3 * sin(_pulse * 2.4))
-	for i in 3:                             # a soft aqua beckoning glow once the way is open
-		draw_circle(Vector2.ZERO, 10.0 + float(i) * 9.0, Color(Palette.AQUA, 0.14 * g / float(i + 1)))
+	# a faint spill washing out of the mouth onto the bank — the only glow at the mouth plane
+	var g2 := _glow * (0.7 + 0.3 * sin(_pulse * 2.4))
+	draw_circle(Vector2.ZERO, 16.0, Color(Palette.AQUA, 0.08 * g2))
