@@ -8,10 +8,10 @@ incorporated); pending Maram's rulings (§9)
 ## 1. Intent
 
 Turn a painted reach map — two PNGs, 1px = one 8px cell — into a playable reach inside the
-existing cove architecture. Pilot deliverable: **Maram's `marsh_draft` map ships as a real
-third reach** ("canals", naming = ruling 1), reachable from the estuary, restoration playable
-end-to-end on painted terrain. Once maps ingest, a new reach costs a painting session, not a
-scene-building session.
+existing cove architecture. Pilot deliverable (RULED 2026-07-11): **Maram's `marsh_draft`
+map ships as THE CANALS — the game's very first level**, where the turtle's rescue now
+happens; restoration playable end-to-end on painted terrain. Once maps ingest, a new reach
+costs a painting session, not a scene-building session.
 
 ## 2. Non-goals (v1)
 
@@ -177,13 +177,28 @@ slice 5.1, explicitly out of scope.
   painted reach; gains explicit-positions mode — reviewer I6a), curio_field (already
   position-driven), lily_pads (`pad_xs`), and ReachMap-spawned thermal_vents.
 
-### 4.8 The travel loop and the estuary's second exit
+### 4.8 The travel loop — canals FIRST (ruled 2026-07-11)
 
-The estuary's single `exit_*` is **already spent** on the return to the hub (reviewer I1), so
-"estuary gains an onward exit" requires a real mechanism: hand-built `cove.tscn` gains an
-optional **$Portal2** node + `exit2_*` config fields (retires when unset — the existing
-idiom). Estuary: Portal2 at its east bank → canals. Canals (map reach): west portal →
-estuary, east portal dormant. Loop ships: hub ↔ estuary ↔ canals, Shine carrying across.
+**The canals are the game's opening reach.** The project's main scene becomes `canals.tscn`;
+a new game boots at the map's spawn marker (the west shallows, the whole reach readable to
+the east — his composition already stages it).
+
+- **Canals friend = the TURTLE** (`friend_kind = 0`), asleep at the friend marker (70,26) —
+  open water at the mesa's west approach, matted in oil, visible on the first swim east. The
+  first rescue and the shell-spin tutorial move here: the mesa's sealed passage and the
+  bottom-channel seal are the turtle's first teaching walls.
+- Travel chain: **canals ↔ estuary ↔ hub.** Canals west portal → estuary (once its seal is
+  broken — the first level's exit is EARNED); canals east portal dormant (promise). The
+  estuary's single `exit_*` is already spent on the return to the hub (reviewer I1), so
+  hand-built `cove.tscn` gains an optional **$Portal2** + `exit2_*` config (retires when
+  unset): estuary Portal2 (west bank) → canals. Hub unchanged. Shine carries across.
+- **Accepted v1 wrinkle:** the hub still hosts its own hand-built sleeping turtle. With the
+  turtle now rescued first in the canals, the hub's friend slot is fictionally stale —
+  resolved when the hub migrates to a painted map (slice 5.1), where its friend beat gets
+  redesigned. `roster_include` is idempotent, so nothing breaks mechanically; it just reads
+  as a second turtle until then. Flagged, not hidden.
+- Existing saves: WorldState is keyed per reach id; `canals` starts fresh for everyone,
+  hub/estuary records untouched.
 
 ## 5. Config schema additions
 
@@ -236,18 +251,17 @@ Land 1 quad + 1 mask texture · collision ≤ 64 rects (one-time) · ≤ 8 Destr
    hub after visiting canals.
 6. **Scene-space/camera (LOW)** — camera_bounds consumer specified; demolition clamps follow.
 
-## 9. Rulings needed from Maram
+## 9. Rulings — RESOLVED 2026-07-11
 
-1. **Reach name** — "canals" proposed.
-2. **The canals friend** — which kind sleeps there, and WHERE: the mesa crown placement must
-   move to water/near-water (v1 companion rule). Proposal: friend asleep in the sealed mesa
-   passage water (found by blasting the seal — a rescue with a door), dragonfly art already
-   in library if the roster order should advance here.
-3. **Dormant east portal** — confirm "drawn dark, no trigger" reads as promise, not bug.
-4. **Punch list ownership** — portal pixel → (2,41) water, delete 22 stray blues, floater
-   height, friend marker move (ruling 2): Maram in Aseprite, or me via script. Blocks task 7.
-5. **Seal persistence** — confirm: broken painted seals STAY broken across visits (spec'd
-   yes; the alternative — re-carving your own front door every visit — reads as punishment).
+1. **Reach name: "Canals."**
+2. **Canals friend: the TURTLE, and the canals are the game's FIRST LEVEL** (see 4.8; friend
+   marker moved to open water at (70,26) by the punch-list patch).
+3. **Dormant east portal**: ships as spec'd (drawn dark, no trigger) — dormant by default.
+4. **Punch list: DONE via script** (patch committed): portal → (2,41) in tunnel water, 22
+   stray marker-layer blues deleted, floater strips extended 2 cells (dangling roots →
+   graspable), friend moved. Post-patch audit: zero off-legend, all markers legal, all
+   climb strips graspable, no unreachable water.
+5. **Seal persistence: broken seals STAY broken** (WorldState `seal_<i>`, echo-run exempt).
 
 ## 10. Task seeds (for the plan)
 
@@ -259,7 +273,8 @@ Land 1 quad + 1 mask texture · collision ≤ 64 rects (one-time) · ≤ 8 Destr
 5. Breakables: seals (edge 1.5) + locked gates + carve() + seal persistence.
 6. Marker wiring: spawn/arrival entry keys, multi-portal + dormant, shore_pollution &
    lily_pads & vents explicit modes, camera bounds, demolition clamp switch, re-fan snap.
-7. canals_a.tres + estuary Portal2 + travel loop + deploy gate (blocked on ruling 4 fixes).
+7. canals_a.tres (turtle friend, first-level tuning) + main scene → canals + estuary
+   Portal2 + travel loop + deploy gate. Punch-list fixes already landed (ruling 4).
 
 Each task lands behind the parse gate + suites; the slice ships when the canals loop plays
 on lilaxol.vercel.app with hub/estuary byte-identical.
