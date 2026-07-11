@@ -52,6 +52,16 @@ const DIZZY_TIME := 0.55          # brief stun after fully exhausting the shell
 const TONGUE_REACH := 56.0     # floating debris within this of the frog gets auto-snagged
 const TONGUE_COOLDOWN := 0.7   # min seconds between tongue strikes (so it isn't a machine gun)
 
+# --- frog HOP movement: the frog never swims the follow lerp — at the surface it crosses in
+# ballistic hop arcs, landing point to landing point, snapping onto lilypads when one sits near
+# (lily_pads.gd built them as "the frog's hop points"). Anims come from the arc, not from gap
+# guessing — which is what made the old surface-slide read as glitchy swimming ---
+const HOP_RANGE := 52.0        # longest single hop
+const HOP_TIME := 0.32         # seconds per hop arc
+const HOP_APEX := 15.0         # arc height at mid-hop
+const HOP_REST := 0.16         # squat beat between chained hops
+const PAD_SNAP := 18.0         # landing point snaps onto a lilypad within this
+
 enum State { SLEEPING, WAKING, FOLLOWING }
 enum Kind { TURTLE, FROG, OTTER, DRAGONFLY }   # TURTLE = shell-spin demolition; FROG = tongue-grab;
                                 # OTTER (herd/haul, slice 6) + DRAGONFLY (survey, slice 4) are
@@ -75,6 +85,12 @@ var _face := -1.0
 var _lean := Spring.new(0.0, 55.0)   # springy body-lean (skew) into the follow direction — offset juice
 var _tongue_cd := 0.0                # cooldown between auto-tongue strikes
 var _strike_t := 0.0                 # remaining time the tongue clip owns the sprite (over follow anims)
+
+# frog hop state
+var _hop_t := -1.0                   # -1 grounded; 0..1 = progress through the current hop arc
+var _hop_from := Vector2.ZERO
+var _hop_to := Vector2.ZERO
+var _hop_rest := 0.0                 # squat beat left before the next hop may launch
 
 # shell-spin state
 var _piloting := false
@@ -256,35 +272,41 @@ func _process(delta: float) -> void:
 	target.y = minf(target.y, _cfg.seabed_y)          # never sink through the floor; free to rise ashore
 	var gap := target - position
 	_land_t = maxf(0.0, _land_t - delta)
-	# out of water and climbing/dropping toward the target sharply = mid-hop (jump on the way up,
-	# fall on the way down); the follow model has no physics arc, so we read it off the gap
-	var airborne := not in_water and gap.length() > FOLLOW_GAP and absf(gap.y) > 18.0
-	if _was_air and not airborne and not in_water:
-		_land_t = 0.18                               # just touched down -> a brief landing beat
-		_spr.scale = Vector2(1.18, 0.82)             # a little squash on impact
-	_was_air = airborne
 	_strike_t = maxf(0.0, _strike_t - delta)
-	var moving := gap.length() > FOLLOW_GAP
-	if moving:
-		position += gap * clampf(FOLLOW_SPEED * delta, 0.0, 1.0)
-		if absf(gap.x) > 4.0:
-			_face = signf(gap.x)
-	if _strike_t <= 0.0:                               # while a tongue-strike plays, don't override it
+	if _kind == Kind.FROG and position.y <= _cfg.surface_y + 10.0:
+		# the frog at the surface moves in real HOPS (spec §9 — it "hops the banks/lilypads");
+		# only a still-submerged frog (the just-woken friend rising off the seabed) paddles the
+		# generic swim up to the waterline first
+		_frog_hop(delta, target, gap)
+	else:
+		# out of water and climbing/dropping toward the target sharply = mid-hop (jump on the way up,
+		# fall on the way down); the follow model has no physics arc, so we read it off the gap
+		var airborne := not in_water and gap.length() > FOLLOW_GAP and absf(gap.y) > 18.0
+		if _was_air and not airborne and not in_water:
+			_land_t = 0.18                               # just touched down -> a brief landing beat
+			_spr.scale = Vector2(1.18, 0.82)             # a little squash on impact
+		_was_air = airborne
+		var moving := gap.length() > FOLLOW_GAP
 		if moving:
-			if in_water:
-				_anims.play(anims.swim, _face)            # paddling through the water
+			position += gap * clampf(FOLLOW_SPEED * delta, 0.0, 1.0)
+			if absf(gap.x) > 4.0:
+				_face = signf(gap.x)
+		if _strike_t <= 0.0:                               # while a tongue-strike plays, don't override it
+			if moving:
+				if in_water:
+					_anims.play(anims.swim, _face)            # paddling through the water
+				elif _land_t > 0.0:
+					_anims.play(anims.land, _face)            # the touchdown squash owns the sprite briefly
+				elif gap.y < -18.0:
+					_anims.play(anims.jump, _face)            # hopping up out of the water / onto a ledge
+				elif gap.y > 18.0:
+					_anims.play(anims.fall, _face)            # dropping back down toward the water / a lower ledge
+				else:
+					_anims.play(anims.run if gap.length() > 70.0 else anims.walk, _face)   # trotting on land
 			elif _land_t > 0.0:
-				_anims.play(anims.land, _face)            # the touchdown squash owns the sprite briefly
-			elif gap.y < -18.0:
-				_anims.play(anims.jump, _face)            # hopping up out of the water / onto a ledge
-			elif gap.y > 18.0:
-				_anims.play(anims.fall, _face)            # dropping back down toward the water / a lower ledge
+				_anims.play(anims.land, _face)                # landed right at the follow point
 			else:
-				_anims.play(anims.run if gap.length() > 70.0 else anims.walk, _face)   # trotting on land
-		elif _land_t > 0.0:
-			_anims.play(anims.land, _face)                # landed right at the follow point
-		else:
-			_anims.play(anims.swim_idle if in_water else anims.idle, _face)
+				_anims.play(anims.swim_idle if in_water else anims.idle, _face)
 	_spr.scale = _spr.scale.lerp(Vector2.ONE, clampf(9.0 * delta, 0.0, 1.0))   # settle the landing/chomp squash
 	_spr.skew = _lean.update(clampf(gap.x / 70.0, -1.0, 1.0) * TURTLE_SKEW, delta)   # lean into the follow
 	if in_water:
@@ -298,6 +320,51 @@ func _process(delta: float) -> void:
 		var mgr = get_tree().get_first_node_in_group("oil_manager")
 		if mgr and mgr.has_method("oil_at") and mgr.oil_at(global_position) > 0.1:
 			mgr.spray_at(global_position, HELP_RADIUS, 0.35)
+
+## Frog follow movement: chained ballistic hop arcs instead of the swim lerp. Grounded, it rides
+## the waterline (with the pads' own gentle bob); to close a follow gap it springs a bounded arc
+## toward the target, landing on its own footing — the waterline over water (snapped onto a
+## nearby lilypad), the target's ground level ashore.
+func _frog_hop(delta: float, target: Vector2, gap: Vector2) -> void:
+	if _hop_t >= 0.0:                                  # mid-arc: fly the parabola
+		_hop_t = minf(_hop_t + delta / HOP_TIME, 1.0)
+		position = _hop_from.lerp(_hop_to, _hop_t)
+		position.y -= sin(_hop_t * PI) * HOP_APEX
+		if _strike_t <= 0.0:
+			_anims.play(anims.jump if _hop_t < 0.55 else anims.fall, _face)
+		if _hop_t >= 1.0:                              # touchdown
+			_hop_t = -1.0
+			_hop_rest = HOP_REST
+			_land_t = 0.14
+			_spr.scale = Vector2(1.22, 0.78)
+			if position.x > _cfg.water_left - 8.0:     # onto water/pad: a frog-sized plip
+				Sfx.play("splash", -20.0, 1.7)
+		return
+	_hop_rest = maxf(0.0, _hop_rest - delta)
+	if _strike_t <= 0.0:
+		_anims.play(anims.land if _land_t > 0.0 else anims.idle, _face)
+	if position.x > _cfg.water_left - 8.0:             # afloat between hops: ride the waterline
+		var ride := _cfg.surface_y - 2.0 + sin(_t * 1.3) * 1.5   # the lilypads' own bob rate
+		position.y = move_toward(position.y, ride, 40.0 * delta)  # eased, so arriving never pops
+	if gap.length() <= FOLLOW_GAP or _hop_rest > 0.0 or _land_t > 0.0:
+		return
+	# launch the next hop
+	var to := target
+	if gap.length() > HOP_RANGE:
+		to = position + gap.normalized() * HOP_RANGE
+	if to.x > _cfg.water_left - 8.0:
+		var pads := get_tree().get_first_node_in_group("perch")
+		if pads and pads.has_method("nearest_pad_x"):
+			var px: float = pads.nearest_pad_x(to.x, PAD_SNAP)
+			if not is_nan(px) and absf(px - position.x) > 10.0:   # never hop back onto our own pad
+				to.x = px
+		to.y = _cfg.surface_y - 2.0
+	if absf(to.x - position.x) > 4.0:
+		_face = signf(to.x - position.x)
+	_hop_from = position
+	_hop_to = to
+	_hop_t = 0.0
+	Sfx.play("jump", -16.0, 1.5)                       # a small springy squeak off the pad
 
 # --- SHELL-SPIN ---------------------------------------------------------------------------------
 

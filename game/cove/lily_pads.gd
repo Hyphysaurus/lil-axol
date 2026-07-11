@@ -28,6 +28,18 @@ func setup(cfg: CoveConfig) -> void:
 			rng.randf_range(0.0, TAU),
 		])
 
+## The nearest pad's x within `within` of x, or NAN — the frog asks where it can land
+## (the perch logic these pads were reserved for; see companion._frog_hop).
+func nearest_pad_x(x: float, within: float) -> float:
+	var best := NAN
+	var best_d := within
+	for p in _pads:
+		var d: float = absf(float(p[0]) - x)
+		if d <= best_d:
+			best_d = d
+			best = float(p[0])
+	return best
+
 func _process(delta: float) -> void:
 	_t += delta
 	_acc += delta
