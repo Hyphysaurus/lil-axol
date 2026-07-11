@@ -110,9 +110,12 @@ func random_surface_x(rng: RandomNumberGenerator) -> float:
 
 ## Broken rock becomes swimmable at/below the table (spec C5 — the legacy rect made carved
 ## tunnels swimmable by construction; the mask must do it explicitly). Rect: no-op.
-## NOTE: does not refresh _bounds_cache — every seal carve() will touch (Task 5) sits inside the
-## reach's already-classified water span, so this is a no-op in practice; revisit if that stops
-## being true (a carve that widens the span would need to re-run _scan_water_bounds()).
+## T5 DECISION (was a NOTE-only carry-over from T2 review): every flipped cell also grows
+## _bounds_cache in-place, O(1) per cell — cheap because we're already iterating them to flip the
+## code, and correct even for a seal that sits OUTSIDE the already-classified water span (the T2
+## note's "always inside" assumption held for the pilot map but isn't a mask invariant in general).
+## Rejected alternative: re-running _scan_water_bounds() per carve — O(w*h) per bite, too hot for
+## something a blast can call every frame during a shell-spin grind.
 func carve(p: Vector2, radius: float) -> void:
 	if _rect_cfg:
 		return
@@ -127,3 +130,6 @@ func carve(p: Vector2, radius: float) -> void:
 			var c := _cells[ny * _w + nx]
 			if c == RUBBLE or c == SILT or c == BOULDER:
 				_cells[ny * _w + nx] = WATER
+				var cell_rect := Rect2(_origin + Vector2(nx, ny) * CELL, Vector2(CELL, CELL))
+				_bounds_cache = cell_rect if _bounds_cache.size == Vector2.ZERO \
+					else _bounds_cache.merge(cell_rect)

@@ -24,6 +24,8 @@ const RETIRE := ["Beach", "Seabed", "Banks", "BeachRight", "BankTowerBody", "Blo
 
 const LAND_SHADER := preload("res://shaders/reach_land.gdshader")
 const WHITE := preload("res://assets/white.png")
+const RockScript := preload("res://game/cove/destructible_rock.gd")
+const ClimbWallScript := preload("res://game/cove/climb_wall.gd")
 
 var grid := PackedByteArray()
 var gw := 0
@@ -177,6 +179,8 @@ func build() -> void:
 	_build_collision()
 	_build_surround()
 	_resize_water()
+	_build_breakables()
+	_build_climbs()
 
 ## The land visual: ONE quad the size of the whole map, textured with the terrain PNG itself as
 ## a mask (spec 4.2). z 7 — over water(5) + oil film(6), under portals/FX(8, later tasks).
@@ -280,3 +284,57 @@ func component_rects(code: int) -> Array[Rect2i]:
 				push_warning("reach_map: non-rectangular component (code %d) near (%d,%d)" % [code, cx, cy])
 			out.append(rect)
 	return out
+
+## Seals: rubble breaks freely (turtle ram / bubble bomb); silt+boulder gates are LOCKED this
+## slice (blast() bounces off — cozy "not yet", slice 6 unlocks by kind). edge=1.5 forces a FULL
+## rect (the lump-erosion default 0.92 eats through a 2-wide seal — spec I7). Seal ids are ordinal
+## over a FIXED iteration order (code ascending, then component_rects' row-major scan order) —
+## stable for a given painted PNG; repainting a map invalidates that reach's seal saves only
+## (accepted — WorldState keys are per-cove, so it never bleeds into another reach).
+func _build_breakables() -> void:
+	var field: ReachField = get_tree().get_first_node_in_group("reach_field")
+	var idx := 0
+	for entry in [[ReachField.RUBBLE, false, Palette.SLATE, Palette.STEEL],
+			[ReachField.SILT, true, Color8(210, 180, 140), Color8(184, 152, 112)],
+			[ReachField.BOULDER, true, Color8(86, 112, 126), Color8(64, 86, 98)]]:
+		for r in component_rects(entry[0]):
+			var key := "seal_%d" % idx
+			idx += 1
+			var rock = RockScript.new()
+			rock.cols = r.size.x
+			rock.rows = r.size.y
+			rock.edge = 1.5                       # FULL rect: default 0.92 erodes 2-wide seals (spec I7)
+			rock.locked = entry[1]
+			rock.tone_a = entry[2]
+			rock.tone_b = entry[3]
+			rock.position = _cfg.map_origin + Vector2(r.position) * CELL
+			add_child(rock)
+			if not entry[1]:
+				# broken seals STAY broken (ruling 5); echo runs replay them sealed, never persist
+				var root := get_tree().get_first_node_in_group("cove_root")
+				var echo: bool = root != null and root.has_method("is_echo") and root.is_echo()
+				if not echo and bool(WorldState.get_cove(_cfg.id, key, false)):
+					_carve_rect(field, r)
+					rock.queue_free()
+					continue
+				rock.carved.connect(func(p: Vector2, rad: float) -> void: field.carve(p, rad))
+				rock.cleared.connect(func() -> void:
+					_carve_rect(field, r)         # belt & braces: the whole seal is open water now
+					if not echo:
+						WorldState.mark(_cfg.id, key, true))
+
+## Every cell of a cleared/pre-cleared seal becomes water — a tiny carve radius per cell keeps this
+## exact (no rounding-driven cell misses at a seal's own edges).
+func _carve_rect(field: ReachField, r: Rect2i) -> void:
+	for cy in range(r.position.y, r.end.y):
+		for cx in range(r.position.x, r.end.x):
+			field.carve(cell_world(cx, cy), 0.1)
+
+## Green (CLIMB) runs become climbable root curtains — one ClimbWall per painted component.
+func _build_climbs() -> void:
+	for r in component_rects(ReachField.CLIMB):
+		var wall = ClimbWallScript.new()
+		wall.extent = Vector2(r.size) * CELL
+		wall.strands = maxi(2, r.size.x)          # thin strips still read as a curtain
+		wall.position = _cfg.map_origin + Vector2(r.position) * CELL
+		add_child(wall)

@@ -12,6 +12,7 @@ class_name DestructibleRock
 ## source calls `get_tree().call_group("blastable", "blast", world_pos, radius)`.
 
 signal cleared     # fires ONCE when the last cell is demolished (a thermal vent cap listens for this)
+signal carved(world_pos: Vector2, radius: float)   # a bite landed (ReachField flips cells to water)
 
 const CELL := 8.0                 # px per rock cell — smaller = smoother carve, more cells
 
@@ -28,6 +29,11 @@ const CELL := 8.0                 # px per rock cell — smaller = smoother carv
 ## A subtle diegetic "this is breakable" aura — a slow pulse in the rock's own colour. Off for
 ## anything you'd rather not advertise.
 @export var breakable_glow := true
+## A TEASED gate (silt/boulder seal — slice 5): blast() bounces off with a dull thunk + a
+## tone-coloured shimmer instead of carving. The world says "not yet", never "no" (cozy) — slice 6
+## unlocks specific gates by kind. Default false so every existing rock (rubble, vent caps, land
+## nooks) keeps blasting exactly as before.
+@export var locked := false
 
 var _present: Array = []          # rows×cols of bool — is this cell still solid?
 var _shapes: Array = []           # rows×cols of CollisionShape2D (null where eroded at spawn)
@@ -134,6 +140,13 @@ func _draw() -> void:
 ## things that break rubble — the turtle's shell-ram and the bubble bomb. `_power` reserved for later
 ## (multi-hit rubble that cracks before it clears).
 func blast(world_pos: Vector2, radius: float, _power := 1.0, quiet := false) -> int:
+	if locked:
+		# reuse "land" (a soft footfall thud) pitched down for a dull bounce — there's no dedicated
+		# "blocked" SFX bank yet, and "break"/"explode" both read as destruction, which a locked
+		# gate must never imply.
+		Sfx.play("land", -12.0, 0.8)
+		_flash_locked()
+		return 0
 	var local := to_local(world_pos)
 	var removed := 0
 	var center := Vector2.ZERO
@@ -151,6 +164,7 @@ func blast(world_pos: Vector2, radius: float, _power := 1.0, quiet := false) -> 
 	if removed == 0:
 		return 0
 	_remaining -= removed
+	carved.emit(world_pos, radius)   # once per landed bite — a seal listens to carve its water cells
 	if _remaining <= 0 and not _emptied:
 		_emptied = true
 		cleared.emit()             # the cap is fully gone -> the vent beneath can open
@@ -159,6 +173,14 @@ func blast(world_pos: Vector2, radius: float, _power := 1.0, quiet := false) -> 
 	if not quiet:                  # the shell-spin carves continuously and plays its own grind loop
 		Sfx.play("break", -7.0)    # heavy stone smash (bubble bomb / a single ram)
 	return removed
+
+## A brief tone-coloured shimmer for a locked gate's "not yet" bounce: modulate flashes toward the
+## rock's own tone_a and eases back over 0.2s — the same "catch the light" language as the
+## breakable shimmer in _draw(), just a one-shot pulse instead of the idle mineral glint.
+func _flash_locked() -> void:
+	var tw := create_tween()
+	tw.tween_property(self, "modulate", tone_a, 0.1)
+	tw.tween_property(self, "modulate", Color(1.0, 1.0, 1.0, 1.0), 0.1)
 
 ## Is any still-solid cell within `radius` of a world point? A cheap, NON-destructive contact test
 ## the turtle uses to start bashing on FIRST CONTACT instead of dashing to a mark aimed deep inside.
