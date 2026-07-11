@@ -22,11 +22,15 @@ const RETIRE := ["Beach", "Seabed", "Banks", "BeachRight", "BankTowerBody", "Blo
 	"LandNook1", "LandNook2", "LandNook3", "Vent1", "Vent2", "Vent3",
 	"GroundFill", "SeabedBackdrop"]
 
+const LAND_SHADER := preload("res://shaders/reach_land.gdshader")
+const WHITE := preload("res://assets/white.png")
+
 var grid := PackedByteArray()
 var gw := 0
 var gh := 0
 var table_row := 0
 var _cfg: CoveConfig
+var _land_mat: ShaderMaterial
 
 func setup(cfg: CoveConfig) -> void:
 	if cfg.map_terrain == null or cfg.map_markers == null:
@@ -140,7 +144,65 @@ func _retire_handbuilt() -> void:
 
 ## Geometry builders (Tasks 3-6) chain here.
 func build() -> void:
-	pass
+	_build_land()
+	_build_surround()
+	_resize_water()
+
+## The land visual: ONE quad the size of the whole map, textured with the terrain PNG itself as
+## a mask (spec 4.2). z 7 — over water(5) + oil film(6), under portals/FX(8, later tasks).
+func _build_land() -> void:
+	_land_mat = ShaderMaterial.new()
+	_land_mat.shader = LAND_SHADER
+	_land_mat.set_shader_parameter("mask_tex", _cfg.map_terrain)
+	_land_mat.set_shader_parameter("grid", Vector2(gw, gh))
+	_land_mat.set_shader_parameter("surface_row", float(table_row))
+	var quad := Sprite2D.new()
+	quad.name = "MapLand"
+	quad.texture = WHITE
+	quad.centered = false
+	quad.position = _cfg.map_origin
+	quad.scale = Vector2(gw, gh) * CELL
+	quad.material = _land_mat
+	quad.z_index = 7                            # the z-map: over water(5)+film(6), under portals(8)
+	add_child(quad)
+
+## Per-cove environment tint for the land quad. cove.gd's _apply_environment() tint loop matches
+## nodes by name and would otherwise miss this quad (it hangs off ReachMap, not a bare
+## "BlockLand"/"BlockLandRight" node — spec 4.2 reviewer M1), so that loop now includes
+## "ReachMap" itself and calls this.
+func set_env_tint(c: Color) -> void:
+	if _land_mat:
+		_land_mat.set_shader_parameter("env_tint", c)
+
+## Dark earth surround + the backdrop behind translucent water (spec I4): fills the whole map
+## rect below the table AND a margin outside it, GroundFill's palette language, one draw.
+func _build_surround() -> void:
+	var s := Node2D.new()
+	s.name = "MapSurround"
+	s.z_index = 3
+	add_child(s)
+	s.draw.connect(_draw_surround.bind(s))
+	s.queue_redraw()
+
+func _draw_surround(s: Node2D) -> void:
+	var deep := Palette.INK.lerp(Color(0.11, 0.16, 0.23), 0.25)
+	var r := Rect2(_cfg.map_origin, Vector2(gw, gh) * CELL).grow(1400.0)
+	s.draw_rect(r, deep)                                        # far field
+	var below := Rect2(Vector2(_cfg.map_origin.x, _cfg.surface_y),
+		Vector2(float(gw) * CELL, float(gh) * CELL - float(table_row) * CELL))
+	s.draw_rect(below, Color(0.11, 0.16, 0.23))                 # water backdrop
+
+## Sizes the shared Water sprite/shader to the painted map's water bbox (spec 4.5). Sets
+## rect_size here too even though _apply_environment ALWAYS-writes it (Task 3 step 3) — ReachMap
+## setup runs before _apply_environment, so this covers anything that reads the shader before then.
+func _resize_water() -> void:
+	var wt := get_parent().get_node_or_null("Water") as Sprite2D
+	if wt == null:
+		return
+	var b: Rect2 = (get_tree().get_first_node_in_group("reach_field") as ReachField).water_bounds()
+	wt.position = b.position
+	wt.scale = b.size
+	(wt.material as ShaderMaterial).set_shader_parameter("rect_size", b.size)
 
 ## 4-connected components of one cell code, as cell-space rects. Non-rect components warn and
 ## return their bounding box (authoring lint enforces rectangles for seals/gates).

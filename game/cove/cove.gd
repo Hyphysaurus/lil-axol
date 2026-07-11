@@ -170,11 +170,15 @@ func _apply_environment() -> void:
 	var wt := config.env_water_tint if config.env_water_tint.a > 0.0 else Color(1.0, 1.0, 1.0, 1.0)
 	var water := get_node_or_null("Water") as Sprite2D
 	if water and water.material is ShaderMaterial:
-		(water.material as ShaderMaterial).set_shader_parameter("env_tint", wt)
+		var wm := water.material as ShaderMaterial
+		wm.set_shader_parameter("env_tint", wt)
+		# shared sub-resource cached across cove instances: ALWAYS re-assert size, or a canals
+		# visit leaks 944px waves onto the hub (same leak class as env_tint — spec I3)
+		wm.set_shader_parameter("rect_size", water.scale)
 	var lt := config.env_land_tint if config.env_land_tint.a > 0.0 else Color(1.0, 1.0, 1.0, 1.0)
-	for n in ["BlockLand", "BlockLandRight"]:
-		var land := get_node_or_null(n)
-		if land:
+	for n in ["BlockLand", "BlockLandRight", "ReachMap"]:
+		var land := _live(n)      # skip nodes queued_for_deletion — ReachMap frees BlockLand/
+		if land:                  # BlockLandRight on map reaches before this loop runs
 			(land as Node2D).modulate = lt
 			if land.has_method("set_env_tint"):
 				land.set_env_tint(lt)
