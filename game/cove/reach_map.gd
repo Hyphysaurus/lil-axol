@@ -82,6 +82,35 @@ func classify(cfg: CoveConfig) -> void:
 func cell_world(cx: int, cy: int) -> Vector2:   # cell CENTER, cove-local
 	return _cfg.map_origin + Vector2(float(cx) + 0.5, float(cy) + 0.5) * CELL
 
+## Greedy horizontal-run + vertical-extend merge: rows of identical runs fuse downward.
+static func merge_rects(g: PackedByteArray, w: int, h: int, solid: Callable) -> Array[Rect2i]:
+	var used := PackedByteArray(); used.resize(w * h)
+	var out: Array[Rect2i] = []
+	for cy in h:
+		var cx := 0
+		while cx < w:
+			if used[cy * w + cx] == 1 or not solid.call(g[cy * w + cx]):
+				cx += 1
+				continue
+			var x1 := cx
+			while x1 < w and used[cy * w + x1] == 0 and solid.call(g[cy * w + x1]):
+				x1 += 1
+			var y1 := cy + 1
+			while y1 < h:
+				var ok := true
+				for xx in range(cx, x1):
+					if used[y1 * w + xx] == 1 or not solid.call(g[y1 * w + xx]):
+						ok = false
+						break
+				if not ok: break
+				y1 += 1
+			for yy in range(cy, y1):
+				for xx in range(cx, x1):
+					used[yy * w + xx] = 1
+			out.append(Rect2i(cx, cy, x1 - cx, y1 - cy))
+			cx = x1
+	return out
+
 func _water_cell_bounds() -> Rect2i:
 	var minx := gw; var maxx := -1; var miny := gh; var maxy := -1
 	for cy in gh:
@@ -145,6 +174,7 @@ func _retire_handbuilt() -> void:
 ## Geometry builders (Tasks 3-6) chain here.
 func build() -> void:
 	_build_land()
+	_build_collision()
 	_build_surround()
 	_resize_water()
 
@@ -165,6 +195,18 @@ func _build_land() -> void:
 	quad.material = _land_mat
 	quad.z_index = 7                            # the z-map: over water(5)+film(6), under portals(8)
 	add_child(quad)
+
+func _build_collision() -> void:
+	var body := StaticBody2D.new()
+	body.name = "MapCollision"
+	add_child(body)
+	for r in merge_rects(grid, gw, gh, func(c): return c == ReachField.EARTH or c == ReachField.CLIMB):
+		var shape := CollisionShape2D.new()
+		var rect := RectangleShape2D.new()
+		rect.size = Vector2(r.size) * CELL
+		shape.shape = rect
+		shape.position = _cfg.map_origin + (Vector2(r.position) + Vector2(r.size) * 0.5) * CELL
+		body.add_child(shape)
 
 ## Per-cove environment tint for the land quad. cove.gd's _apply_environment() tint loop matches
 ## nodes by name and would otherwise miss this quad (it hangs off ReachMap, not a bare

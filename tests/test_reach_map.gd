@@ -55,6 +55,23 @@ func _init() -> void:
 	_check("water_bounds cache == scan (marsh mask)", field.water_bounds() == scanned)
 	field.free()
 
+	# --- collision merge property: union == solid set, no overlaps ---
+	var rects = ReachMapScript.merge_rects(rm.grid, rm.gw, rm.gh,
+		func(c): return c == 1 or c == 4)       # earth + climb
+	var covered: Dictionary = {}
+	var overlap := false
+	for r in rects:
+		for cy2 in range(r.position.y, r.end.y):
+			for cx2 in range(r.position.x, r.end.x):
+				var k: int = cy2 * rm.gw + cx2
+				if covered.has(k): overlap = true
+				covered[k] = true
+	var solid_n := 0
+	for i in rm.grid.size():
+		if rm.grid[i] == 1 or rm.grid[i] == 4: solid_n += 1
+	_check("merge covers exactly", covered.size() == solid_n and not overlap)
+	_check("merge is compact", rects.size() <= 96)
+
 	print("RESULT: " + ("ALL PASS" if fails == 0 else "%d FAILED" % fails))
 	root.free()
 	quit()
