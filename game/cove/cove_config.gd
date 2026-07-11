@@ -111,3 +111,30 @@ class_name CoveConfig
 @export var exit_pos: Vector2 = Vector2.ZERO
 ## true = a rubble plug blocks it until broken open (turtle ram / bubble bomb); false = already open.
 @export var exit_blocked: bool = true
+
+@export_group("Painted Map (slice 5)")
+## A painted reach: 1px = one 8px cell (see docs field guide + spec 2026-07-11). Null = the
+## classic hand-built reach; every map field below is then ignored and ReachMap retires.
+@export var map_terrain: Texture2D
+@export var map_markers: Texture2D
+## World position of map cell (0,0)'s top-left corner (cove-local frame).
+@export var map_origin := Vector2(-480.0, -200.0)
+## Edge key ("west"/"east"/"top"/"bottom") -> scene path. A painted portal marker on that edge
+## crosses to the scene; an edge portal with no entry here spawns DORMANT (dark, no trigger).
+@export var map_exits: Dictionary = {}
+
+@export_group("Second Exit (hand-built reaches)")
+## Optional second pathway for classic reaches (the estuary's onward door to the canals).
+@export var exit2_enabled: bool = false
+@export var exit2_target: String = ""
+@export var exit2_pos: Vector2 = Vector2.ZERO
+
+# --- runtime expansion (ReachMap fills these at load; plain vars so .tres never saves them) ---
+var has_map := false
+var spawn_pos := Vector2.ZERO
+var pad_xs := PackedFloat32Array()
+var barrel_positions: Array[Vector2] = []
+var vent_positions: Array[Vector2] = []
+var portal_markers: Array[Dictionary] = []   # {pos: Vector2, edge: String} ("" = interior)
+var camera_bounds := Rect2()
+var ground_hold_y := -62.0

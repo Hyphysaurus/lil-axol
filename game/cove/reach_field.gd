@@ -17,16 +17,33 @@ var _cells := PackedByteArray()
 var _w := 0
 var _h := 0
 var _table_row := 0
+# computed ONCE per backing swap — water_bounds() is a per-physics-frame caller (axolotl); an
+# O(w*h) mask scan on every call is too hot (T1 review carry-over).
+var _bounds_cache := Rect2()
 
 func _ready() -> void:
 	add_to_group("reach_field")
 
 func setup_rect(cfg: CoveConfig) -> void:
 	_rect_cfg = cfg
+	_bounds_cache = Rect2(cfg.water_left, cfg.surface_y,
+		cfg.water_right - cfg.water_left, cfg.seabed_y - cfg.surface_y)
 
 func set_mask(origin: Vector2, cells: PackedByteArray, w: int, h: int, table_row: int) -> void:
 	_rect_cfg = null
 	_origin = origin; _cells = cells; _w = w; _h = h; _table_row = table_row
+	_bounds_cache = _scan_water_bounds()
+
+func _scan_water_bounds() -> Rect2:
+	var minx := _w; var maxx := -1; var miny := _h; var maxy := -1
+	for cy in _h:
+		for cx in _w:
+			if _cells[cy * _w + cx] == WATER:
+				minx = mini(minx, cx); maxx = maxi(maxx, cx)
+				miny = mini(miny, cy); maxy = maxi(maxy, cy)
+	if maxx < 0:
+		return Rect2()
+	return Rect2(_origin + Vector2(minx, miny) * CELL, Vector2(maxx - minx + 1, maxy - miny + 1) * CELL)
 
 func _cell_at(p: Vector2) -> int:
 	var cx := int(floorf((p.x - _origin.x) / CELL))
@@ -55,18 +72,7 @@ func surface_y() -> float:
 	return _origin.y + float(_table_row) * CELL
 
 func water_bounds() -> Rect2:
-	if _rect_cfg:
-		return Rect2(_rect_cfg.water_left, _rect_cfg.surface_y,
-			_rect_cfg.water_right - _rect_cfg.water_left, _rect_cfg.seabed_y - _rect_cfg.surface_y)
-	var minx := _w; var maxx := -1; var miny := _h; var maxy := -1
-	for cy in _h:
-		for cx in _w:
-			if _cells[cy * _w + cx] == WATER:
-				minx = mini(minx, cx); maxx = maxi(maxx, cx)
-				miny = mini(miny, cy); maxy = maxi(maxy, cy)
-	if maxx < 0:
-		return Rect2()
-	return Rect2(_origin + Vector2(minx, miny) * CELL, Vector2(maxx - minx + 1, maxy - miny + 1) * CELL)
+	return _bounds_cache
 
 ## y of the first solid top below the waterline at x — where floor-rooted life plants.
 func floor_y_at(x: float) -> float:
@@ -104,6 +110,9 @@ func random_surface_x(rng: RandomNumberGenerator) -> float:
 
 ## Broken rock becomes swimmable at/below the table (spec C5 — the legacy rect made carved
 ## tunnels swimmable by construction; the mask must do it explicitly). Rect: no-op.
+## NOTE: does not refresh _bounds_cache — every seal carve() will touch (Task 5) sits inside the
+## reach's already-classified water span, so this is a no-op in practice; revisit if that stops
+## being true (a carve that widens the span would need to re-run _scan_water_bounds()).
 func carve(p: Vector2, radius: float) -> void:
 	if _rect_cfg:
 		return

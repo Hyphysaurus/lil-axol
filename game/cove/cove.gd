@@ -34,6 +34,7 @@ func _ready() -> void:
 	var field := ReachField.new()
 	field.setup_rect(config)
 	add_child(field)
+	_inject($ReachMap)
 	_inject($Axolotl)
 	_inject($OilSpill)
 	_inject($CoveLife)

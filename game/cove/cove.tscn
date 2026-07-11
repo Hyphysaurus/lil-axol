@@ -44,6 +44,7 @@
 [ext_resource type="Script" path="res://game/cove/curio_field.gd" id="42_curios"]
 [ext_resource type="Script" path="res://game/cove/reach_state.gd" id="43_reach"]
 [ext_resource type="Script" path="res://game/cove/invasive_school.gd" id="44_school"]
+[ext_resource type="Script" path="res://game/cove/reach_map.gd" id="45_reachmap"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_sn0t7"]
 size = Vector2(255, 280)
@@ -146,6 +147,9 @@ shader_parameter/mid_lift = 0.96
 position = Vector2(509, 172)
 script = ExtResource("13_cove")
 config = ExtResource("14_cfg")
+
+[node name="ReachMap" type="Node2D" parent="."]
+script = ExtResource("45_reachmap")
 
 [node name="GroundFill" type="Node2D" parent="."]
 script = ExtResource("38_ground")
