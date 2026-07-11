@@ -196,6 +196,8 @@ func _build_land() -> void:
 	quad.z_index = 7                            # the z-map: over water(5)+film(6), under portals(8)
 	add_child(quad)
 
+## Static collision from the solid mask (earth + climb) — one StaticBody2D, greedy-merged
+## rects (spec §4.3); rubble/gates own their own collision.
 func _build_collision() -> void:
 	var body := StaticBody2D.new()
 	body.name = "MapCollision"
