@@ -19,10 +19,16 @@ var _cur := ""
 var _timer := 0.0
 var _fade := 0.0
 var _bubble_hooked := false
+var _cascade_hooked := false
+var _cascade_bounced := false # tutorial state: the player has bounced this flight-chain
+var _cove_id := ""            # for the once-per-world tutorial mark
 
 func _ready() -> void:
 	layer = 93                 # over the meter/HUD, under the banner (95) + menus (97+)
 	_build()
+
+func setup(cfg: CoveConfig) -> void:
+	_cove_id = cfg.id
 
 ## Queue a hint the first time it's asked for. `id` dedupes it for the session.
 func nudge(id: String, text: String) -> void:
@@ -33,6 +39,7 @@ func nudge(id: String, text: String) -> void:
 
 func _process(delta: float) -> void:
 	_lazy_hook_bubble()
+	_lazy_hook_cascade()
 	_drive_toast(delta)
 	if Settings.title_shown and not Settings.ui_locked():
 		_check_triggers()
@@ -67,6 +74,35 @@ func _lazy_hook_bubble() -> void:
 		keeper.bubble_ready.connect(func() -> void:
 			nudge("bubble", "Bubble Bomb charged! Hold %s to aim, release to blast a wide patch of oil." % _prompt("bubble", "Bomb")))
 		_bubble_hooked = true
+
+## THE CASCADE tutorial: a staged, reactive chain — each step appears the moment it's actionable
+## (a live bubble -> "jump on it!", a bounce -> "kick again!", a kick -> "now dive!"), riding the
+## axolotl's move signals. Taught once per world (WorldState mark), celebrated forever by the
+## "The Cascade!" feat, which the axolotl reports on every completed chain.
+func _lazy_hook_cascade() -> void:
+	if _cascade_hooked:
+		return
+	var player := get_tree().get_first_node_in_group("player")
+	if player == null or not player.has_signal("bubbled"):
+		return
+	_cascade_hooked = true
+	player.bubbled.connect(func() -> void:
+		if not _cascade_done():
+			nudge("cascade0", "Trick time! JUMP onto your own bubble to bounce off it."))
+	player.bounced.connect(func() -> void:
+		_cascade_bounced = true
+		if not _cascade_done():
+			nudge("cascade1", "Bounced! Now press %s again mid-air — a gill-kick!" % _prompt("jump", "Jump")))
+	player.gill_kicked.connect(func() -> void:
+		if _cascade_bounced and not _cascade_done():
+			nudge("cascade2", "Beautiful! Now DIVE into the oil below — a big splash scrubs it clean."))
+	player.dove.connect(func(full_chain: bool) -> void:
+		if full_chain and not _cascade_done():
+			WorldState.mark(_cove_id, "tut_cascade", true)
+			nudge("cascade3", "[b]The Cascade![/b] Bounce, kick, dive — the water remembers."))
+
+func _cascade_done() -> bool:
+	return _cove_id != "" and bool(WorldState.get_cove(_cove_id, "tut_cascade", false))
 
 func _asleep(friend: Node) -> bool:
 	return "_state" in friend and int(friend._state) == 0

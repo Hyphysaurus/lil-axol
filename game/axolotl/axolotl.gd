@@ -63,6 +63,14 @@ const BOUNCE_SCALE := 1.15     # bubble-trampoline launch vs the ground jump
 
 var _air_jump_spent := false   # double jump: one per airtime, refreshed by floor/water/curtain
 var _coyote := 0.0
+var _cascade := 0              # combo: 1 = bounced, 2 = bounced+gill-kicked; a dive at 2 = The Cascade
+
+# movement-move signals: the hint system teaches the Cascade off these; anything else (future
+# feats, tutorial beats) can listen without the axolotl knowing who cares
+signal bubbled                 # a Bubble Bomb was launched
+signal bounced                 # trampolined off our own bubble
+signal gill_kicked             # the mid-air double jump fired
+signal dove(cascade: bool)     # a dive-splash landed (true = it completed the full Cascade)
 
 @onready var _cam: Camera2D = $Camera
 
@@ -274,6 +282,7 @@ func _physics_process(delta: float) -> void:
 	if is_on_floor():
 		_coyote = COYOTE_TIME
 		_air_jump_spent = false
+		_cascade = 0                       # ground breaks the chain; water resolves it (_enter_water)
 	else:
 		_coyote = maxf(0.0, _coyote - delta)
 		velocity.y += tuning.gravity * delta
@@ -288,9 +297,12 @@ func _physics_process(delta: float) -> void:
 			# takeoff, refreshed by floor / water / a climb curtain
 			_air_jump_spent = true
 			velocity.y = tuning.jump_velocity * AIR_JUMP_SCALE
+			if _cascade == 1:
+				_cascade = 2               # bounce -> kick: one dive from The Cascade
 			_spr.scale = Vector2(0.68, 1.32)
 			_gill_kick_fx()
 			Sfx.play("jump", -2.0, 1.25)       # a brighter chirp for the second hop
+			gill_kicked.emit()
 	move_and_slide()
 	if is_on_floor() and not _was_on_floor:
 		_land()
@@ -523,9 +535,18 @@ func _enter_water() -> void:
 		shake(1.0 + 1.5 * impact)
 		_splash(1.2 + 0.8 * impact)
 		Sfx.play("splash", -2.0, 0.85)    # deeper whump for a dive
+		var full_chain := _cascade == 2
+		if full_chain:
+			# THE CASCADE: bubble bounce -> gill-kick -> dive, one flight — the movement combo
+			# the hints teach; the feat banner + Shine celebrate every time it's performed
+			var keeper = get_tree().get_first_node_in_group("shine")
+			if keeper and keeper.has_method("feat"):
+				keeper.feat(&"cascade", global_position)
+		dove.emit(full_chain)
 	else:
 		_splash(1.0)
 		Sfx.play("splash")
+	_cascade = 0
 	_spr.scale = Vector2(0.8, 1.2)    # slip in long and lean
 	velocity.y *= 0.35   # soften the plunge
 
@@ -595,6 +616,7 @@ func _fire_bubble(dir: float) -> void:
 	_bubble = b
 	Sfx.play("splash", -10.0, 1.5)
 	_spr.scale = Vector2(0.8, 1.2)   # a little puff of effort
+	bubbled.emit()
 
 ## Underwater burst kicked off behind a dash: droplets that brake in the water and
 ## bubble upward. One-shot, added to the cove so the trail stays where the dash began.
@@ -654,8 +676,10 @@ func bubble_bounce() -> void:
 	velocity.y = tuning.jump_velocity * BOUNCE_SCALE
 	_air_jump_spent = false
 	_coyote = 0.0
+	_cascade = 1                     # chain opened: gill-kick next, then the dive
 	_spr.scale = Vector2(0.65, 1.35)
 	Sfx.play("jump", -1.0, 1.4)
+	bounced.emit()
 
 ## The mid-air GILL-KICK burst: a tiny ring of aqua droplets flicked off the gills — the double
 ## jump's own signature, so the second hop reads as a move, not a glitch.

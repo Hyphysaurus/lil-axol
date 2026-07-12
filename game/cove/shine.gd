@@ -41,7 +41,8 @@ const FEATS := {
 	&"trove":        ["Trove",        1800.0, 0.28],
 	&"spring_clean": ["Spring Clean", 1100.0, 0.22],
 	&"curio":        ["Curio Found",   800.0, 0.18],
-}
+	&"cascade":      ["The Cascade!", 2400.0, 0.38],   # bubble bounce -> gill-kick -> dive-splash,
+}                                                      # one flight (detected by the axolotl)
 const FLOW_DURATION := 8.0     # seconds of TIDAL FLOW once the meter fills
 const FLOW_MULT := 2.0         # award multiplier while TIDAL FLOW is live
 const DEEP_CLEAN_FRAC := 0.14  # coverage lifted in ONE unbroken combo streak that earns Deep Clean
