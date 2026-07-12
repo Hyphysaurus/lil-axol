@@ -56,6 +56,7 @@ var _climb_fx_cd := 0.0        # cadence for the climb rustle + falling leaf mot
 const CLIMB_SPEED := 70.0      # px/s up/down a root curtain (a new state — D-0003 numbers untouched)
 const CLIMB_HOP := 0.8         # hop-off jump strength as a fraction of the full jump
 const COYOTE_TIME := 0.1       # jump grace after stepping off a ledge — forgiving, not floaty
+const JUMP_BUFFER := 0.12      # a press this early still jumps on landing (eaten-input killer)
 const AIR_JUMP_SCALE := 0.9    # the mid-air gill-kick is a touch softer than the takeoff
 const DIVE_MIN_SPEED := 320.0  # entry fall speed where a dive starts scrubbing (a bank slip doesn't)
 const DIVE_MAX_SPEED := 620.0  # full-power cannonball
@@ -63,6 +64,7 @@ const BOUNCE_SCALE := 1.15     # bubble-trampoline launch vs the ground jump
 
 var _air_jump_spent := false   # double jump: one per airtime, refreshed by floor/water/curtain
 var _coyote := 0.0
+var _jump_buffer := 0.0        # time left for a banked early jump press to fire on landing
 var _cascade := 0              # combo: 1 = bounced, 2 = bounced+gill-kicked; a dive at 2 = The Cascade
 
 # movement-move signals: the hint system teaches the Cascade off these; anything else (future
@@ -286,23 +288,30 @@ func _physics_process(delta: float) -> void:
 	else:
 		_coyote = maxf(0.0, _coyote - delta)
 		velocity.y += tuning.gravity * delta
+	_jump_buffer = maxf(0.0, _jump_buffer - delta)
 	if not ui and Input.is_action_just_pressed("jump"):
-		if is_on_floor() or _coyote > 0.0:
-			velocity.y = tuning.jump_velocity
-			_coyote = 0.0
-			_spr.scale = Vector2(0.72, 1.28)   # takeoff stretch
-			Sfx.play("jump")
-		elif not _air_jump_spent:
-			# the mid-air GILL-KICK (double jump): one per airtime, a touch softer than the
-			# takeoff, refreshed by floor / water / a climb curtain
-			_air_jump_spent = true
-			velocity.y = tuning.jump_velocity * AIR_JUMP_SCALE
-			if _cascade == 1:
-				_cascade = 2               # bounce -> kick: one dive from The Cascade
-			_spr.scale = Vector2(0.68, 1.32)
-			_gill_kick_fx()
-			Sfx.play("jump", -2.0, 1.25)       # a brighter chirp for the second hop
-			gill_kicked.emit()
+		_jump_buffer = JUMP_BUFFER
+	# INPUT DISCIPLINE: a mid-air press with the gill-kick available kicks IMMEDIATELY (responsive);
+	# with the kick already spent, the press BANKS for 0.12s and ground-jumps the instant a floor
+	# (or coyote grace) arrives — the classic "my jump got eaten" landing press, fixed.
+	if _jump_buffer > 0.0 and (is_on_floor() or _coyote > 0.0):
+		_jump_buffer = 0.0
+		velocity.y = tuning.jump_velocity
+		_coyote = 0.0
+		_spr.scale = Vector2(0.72, 1.28)   # takeoff stretch
+		Sfx.play("jump")
+	elif not ui and Input.is_action_just_pressed("jump") and not _air_jump_spent:
+		# the mid-air GILL-KICK (double jump): one per airtime, a touch softer than the
+		# takeoff, refreshed by floor / water / a climb curtain
+		_jump_buffer = 0.0
+		_air_jump_spent = true
+		velocity.y = tuning.jump_velocity * AIR_JUMP_SCALE
+		if _cascade == 1:
+			_cascade = 2               # bounce -> kick: one dive from The Cascade
+		_spr.scale = Vector2(0.68, 1.32)
+		_gill_kick_fx()
+		Sfx.play("jump", -2.0, 1.25)       # a brighter chirp for the second hop
+		gill_kicked.emit()
 	move_and_slide()
 	if is_on_floor() and not _was_on_floor:
 		_land()

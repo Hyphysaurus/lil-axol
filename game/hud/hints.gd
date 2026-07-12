@@ -117,15 +117,11 @@ func _key(action: String) -> String:
 			return (e as InputEventKey).as_text().trim_suffix(" - Physical").trim_suffix(" (Physical)")
 	return action
 
-## Are the on-screen touch controls the active input? Mirrors touch_controls' visibility rule so
-## hints name a BUTTON on a phone (no keyboard to press) and a KEY on a desktop.
+## Are the on-screen touch controls the active input? Delegates to the ONE source of truth
+## (Settings.touch_active) — this used to re-derive it with the pre-fix "a touch panel exists"
+## rule, so a Windows touchscreen laptop got BUTTON names in hints while playing on keys.
 func _touch() -> bool:
-	var mode: int = Settings.get_setting("controls", "touch_mode", 0)
-	if mode == 1:
-		return true
-	if mode == 2:
-		return false
-	return DisplayServer.is_touchscreen_available()
+	return Settings.touch_active()
 
 ## A gold-highlighted prompt for an action: the on-screen button's name on touch, else its key.
 func _prompt(action: String, button_word: String) -> String:
