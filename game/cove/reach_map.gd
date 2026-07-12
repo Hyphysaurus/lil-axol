@@ -26,6 +26,8 @@ const LAND_SHADER := preload("res://shaders/reach_land.gdshader")
 const WHITE := preload("res://assets/white.png")
 const RockScript := preload("res://game/cove/destructible_rock.gd")
 const ClimbWallScript := preload("res://game/cove/climb_wall.gd")
+const PortalScript := preload("res://game/cove/cove_portal.gd")
+const VentScene := preload("res://game/cove/thermal_vent.gd")
 
 var grid := PackedByteArray()
 var gw := 0
@@ -181,6 +183,9 @@ func build() -> void:
 	_resize_water()
 	_build_breakables()
 	_build_climbs()
+	_build_portals()
+	_build_vents()
+	_place_spawn()
 
 ## The land visual: ONE quad the size of the whole map, textured with the terrain PNG itself as
 ## a mask (spec 4.2). z 7 — over water(5) + oil film(6), under portals/FX(8, later tasks).
@@ -338,3 +343,50 @@ func _build_climbs() -> void:
 		wall.strands = maxi(2, r.size.x)          # thin strips still read as a curtain
 		wall.position = _cfg.map_origin + Vector2(r.position) * CELL
 		add_child(wall)
+
+## Painted portal markers become live passages (spec 4.7): an edge wired in cfg.map_exits opens
+## immediately — the painted rubble seal in front (see _build_breakables) is the real gate, not the
+## portal itself — while an unwired edge spawns DORMANT (dark, inert, a promise for a later slice).
+## Map portals persist their "opened" flag the same way the legacy $Portal does (cove.gd
+## _wire_saves/_apply_saved), skipped on an echo run so a score replay never writes state — same
+## idiom as the T5 seal persistence.
+func _build_portals() -> void:
+	var root := get_tree().get_first_node_in_group("cove_root")
+	var echo: bool = root != null and root.has_method("is_echo") and root.is_echo()
+	for m in _cfg.portal_markers:
+		var edge: String = m["edge"]
+		var target: String = _cfg.map_exits.get(edge, "")
+		var p = PortalScript.new()
+		p.position = m["pos"]
+		add_child(p)
+		if target != "" and not echo:
+			# connect BEFORE configure(): a non-dormant portal opens synchronously inside configure()
+			p.opened.connect(func() -> void: WorldState.mark(_cfg.id, "portal_" + edge, true))
+		p.configure(_cfg, target, edge, target == "")
+		if target != "" and not echo and bool(WorldState.get_cove(_cfg.id, "portal_" + edge, false)):
+			p.force_open()          # silent re-open on a restored visit (mirrors cove._apply_saved)
+
+## Painted vent markers become seabed ThermalVents (spec 4.8) — smaller caps than the hub's hand-
+## placed vents (7x5 vs the default 11x7), since a map cell grid reads finer already.
+func _build_vents() -> void:
+	for p in _cfg.vent_positions:
+		var v = VentScene.new()
+		v.cap_cols = 7
+		v.cap_rows = 5
+		v.position = p
+		add_child(v)
+
+## Where the axolotl appears: the entry portal marker for a tunnel crossing (a +20px inward nudge
+## off the mouth so the axo doesn't spawn dead-center in the passage geometry), else the painted
+## spawn marker for a fresh/non-portal load. Runs at the end of build() — after the axolotl exists
+## as Cove's sibling but before cove.gd's own arrival logic reads the (now-consumed) portal flags.
+func _place_spawn() -> void:
+	var axo := get_parent().get_node_or_null("Axolotl") as Node2D
+	if axo == null:
+		return
+	if Settings.arrive_via_portal and Settings.arrive_entry != "":
+		for m in _cfg.portal_markers:
+			if m["edge"] == Settings.arrive_entry:
+				axo.position = get_parent().to_local(to_global(m["pos"])) + Vector2(20.0, 0.0)
+				return
+	axo.position = get_parent().to_local(to_global(_cfg.spawn_pos))

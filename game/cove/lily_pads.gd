@@ -13,20 +13,26 @@ var _acc := 0.0
 
 func setup(cfg: CoveConfig) -> void:
 	_cfg = cfg
-	if cfg.lilypad_count <= 0:
+	if cfg.lilypad_count <= 0 and cfg.pad_xs.is_empty():
 		queue_free()
 		return
 	add_to_group("perch")
 	z_index = 6                       # on the water surface (water 5), under FX (7)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 7                      # stable layout per cove — pads don't reshuffle each visit
-	for i in cfg.lilypad_count:
-		var frac := (float(i) + 0.5) / float(cfg.lilypad_count)
-		_pads.append([
-			lerpf(cfg.water_left + 30.0, cfg.water_right - 40.0, frac) + rng.randf_range(-14.0, 14.0),
-			rng.randf_range(7.0, 12.0),
-			rng.randf_range(0.0, TAU),
-		])
+	if not cfg.pad_xs.is_empty():
+		# a painted map authored exact pad positions — honor them verbatim (only bob radius/phase
+		# stay randomised, so the dressing still breathes without ever drifting off its painted x)
+		for x in cfg.pad_xs:
+			_pads.append([x, rng.randf_range(7.0, 12.0), rng.randf_range(0.0, TAU)])
+	else:
+		for i in cfg.lilypad_count:
+			var frac := (float(i) + 0.5) / float(cfg.lilypad_count)
+			_pads.append([
+				lerpf(cfg.water_left + 30.0, cfg.water_right - 40.0, frac) + rng.randf_range(-14.0, 14.0),
+				rng.randf_range(7.0, 12.0),
+				rng.randf_range(0.0, TAU),
+			])
 
 ## The nearest pad's x within `within` of x, or NAN — the frog asks where it can land
 ## (the perch logic these pads were reserved for; see companion._frog_hop).

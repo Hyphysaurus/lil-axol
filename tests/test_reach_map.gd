@@ -155,6 +155,66 @@ func _process(_delta: float) -> bool:
 	_check("seal persistence: untouched seal still has a live rock", live_rock_at_mesa)
 	root2.free()
 
+	# --- Task 6: lily_pads honors painted pad_xs positions, not the random default layout ---
+	var LilyScript = load("res://game/cove/lily_pads.gd")
+	var lily_root := Node2D.new(); get_root().add_child(lily_root)
+	var lily = LilyScript.new()
+	lily_root.add_child(lily)
+	lily.setup(cfg)                        # cfg.pad_xs already has the 15 marsh markers (harvested above)
+	_check("lily_pads: pad_xs layout count == 15 for the marsh config", lily._pads.size() == 15)
+	lily_root.free()
+
+	var lily2 = LilyScript.new()
+	var cfg_empty = CoveConfigScript.new()  # defaults: lilypad_count 0, pad_xs empty
+	var lily_root2 := Node2D.new(); get_root().add_child(lily_root2)
+	lily_root2.add_child(lily2)
+	lily2.setup(cfg_empty)
+	_check("lily_pads: retires when lilypad_count<=0 AND pad_xs empty", lily2.is_queued_for_deletion())
+	lily_root2.free()
+
+	# --- Task 6: a dormant map portal never triggers a crossing — test the FLAG itself, not a
+	# coincidental side effect of _open never getting set (force _open true and prove _dormant
+	# still gates _process()'s trigger poll ahead of everything else) ---
+	var PortalScript = load("res://game/cove/cove_portal.gd")
+	var portal_root := Node2D.new(); get_root().add_child(portal_root)
+	var dormant_portal = PortalScript.new()
+	portal_root.add_child(dormant_portal)
+	dormant_portal.configure(cfg, "", "west", true)   # target == "" -> dormant, same rule _build_portals uses
+	dormant_portal._open = true                       # forced despite dormant — isolates the _dormant guard
+	var fake_player := Node2D.new()
+	fake_player.add_to_group("player")
+	portal_root.add_child(fake_player)
+	fake_player.global_position = dormant_portal.global_position   # dead center, well inside TRIGGER_RADIUS
+	dormant_portal._process(0.016)
+	_check("dormant portal: no crossing even forced open with the player on top",
+		not dormant_portal._crossing)
+	portal_root.free()
+
+	# --- Task 6: wired map portal persistence — WorldState.mark() round-trips through a reload ---
+	WSHelper.reset_scratch("user://test_reach_map_portal.save")
+	var cfg3 = CoveConfigScript.new()
+	cfg3.id = "canals"
+	cfg3.map_terrain = load("res://assets/maps/marsh_draft_terrain.png")
+	cfg3.map_markers = load("res://assets/maps/marsh_draft_markers.png")
+	cfg3.map_exits = {"west": "res://estuary.tscn"}   # wire the west edge so its portal opens for real
+	var rm3 = ReachMapScript.new()
+	var root3 := Node2D.new(); get_root().add_child(root3)
+	var field3 = ReachFieldScript.new()
+	root3.add_child(field3)                # group "reach_field" membership needs it IN the tree
+	root3.add_child(rm3)
+	rm3.classify(cfg3)
+	field3.set_mask(cfg3.map_origin, rm3.grid, rm3.gw, rm3.gh, rm3.table_row)
+	rm3.build()                            # exercises _build_portals() end to end
+	_check("portal persistence: a wired portal marks WorldState the moment it opens",
+		bool(WSHelper.get_cove(cfg3.id, "portal_west", false)))
+	_check("portal persistence: an unwired edge (east has no map_exits entry) stays unmarked",
+		not bool(WSHelper.get_cove(cfg3.id, "portal_east", false)))
+	root3.free()
+
+	WSHelper.reload_scratch("user://test_reach_map_portal.save")   # a fresh load from disk, same file
+	_check("portal persistence: the mark survived to disk across a reload",
+		bool(WSHelper.get_cove(cfg3.id, "portal_west", false)))
+
 	print("RESULT: " + ("ALL PASS" if fails == 0 else "%d FAILED" % fails))
 	root.free()
 	quit(1 if fails > 0 else 0)

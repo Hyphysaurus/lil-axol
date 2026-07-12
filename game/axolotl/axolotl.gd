@@ -69,6 +69,20 @@ func setup(cfg: CoveConfig) -> void:
 	# grabbed here (not _ready) because the oil manager joins its group in its own _ready first
 	_oil_mgr = get_tree().get_first_node_in_group("oil_manager")
 	_field = get_tree().get_first_node_in_group("reach_field")
+	# map reaches (slice 5) set camera_bounds; classic reaches leave it Rect2() (size.x == 0) and
+	# the Camera2D keeps its scene-authored (unlimited) limits. camera_bounds is authored cove-local
+	# (ReachMap builds it from map_origin, which never accounts for the Cove node's own transform),
+	# but Camera2D.limit_* are WORLD pixels — the cove sits at a non-zero offset in every wrapper
+	# scene (main.tscn: (402, 28)), so convert corner-by-corner through the parent Cove's transform
+	# rather than trusting cove-local == global. Safe to read _cam here even though it's @onready:
+	# setup() is called from the Cove root's _ready(), which runs AFTER every child's own _ready()
+	# (bottom-up tree order) — Axolotl's @onready vars are already populated by then.
+	if _cfg.camera_bounds.size.x > 0.0:
+		var b := _cfg.camera_bounds
+		var tl := (get_parent() as Node2D).to_global(b.position)
+		var br := (get_parent() as Node2D).to_global(b.end)
+		_cam.limit_left = int(tl.x);   _cam.limit_top = int(tl.y)
+		_cam.limit_right = int(br.x);  _cam.limit_bottom = int(br.y)
 
 ## Axo position in the cove's (parent) frame — the water bounds are authored there.
 ## Run standalone (Play Current Scene), the parent is the Window, not a cove: fall back

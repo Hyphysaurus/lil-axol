@@ -56,7 +56,14 @@ func _ready() -> void:
 	_apply_environment()
 	if Settings.arrive_via_portal:
 		Settings.arrive_via_portal = false
-		_arrive()
+		Settings.arrive_entry = ""      # one-shot, same idiom as arrive_via_portal above
+		if config.has_map:
+			# ReachMap._place_spawn() (run earlier, inside _inject($ReachMap)) already positioned the
+			# axolotl at the painted entry portal marker — a map reach's hardcoded left-edge water
+			# reposition below would land it inside solid earth, so only the cosmetic half runs here
+			_arrive_wipe($Axolotl as CharacterBody2D)
+		else:
+			_arrive()
 	if not _echo:
 		_wire_saves()      # wires FIRST: if a re-seed ever crosses the win gate, it must save/score
 		_apply_saved()
@@ -143,12 +150,19 @@ func _exit_tree() -> void:
 	if oil and "current_clean" in oil:
 		WorldState.mark(config.id, "cleanliness", oil.current_clean)
 
-## A tunnel crossing brought us here: the axolotl emerges at THIS cove's passage mouth (the left
-## edge of the water — you exited the last cove travelling right), already swimming, behind an
-## opening iris — the two coves read as one continuous passage.
+## A tunnel crossing brought us here (legacy/classic reach): the axolotl emerges at THIS cove's
+## passage mouth (the left edge of the water — you exited the last cove travelling right), already
+## swimming, behind an opening iris — the two coves read as one continuous passage.
 func _arrive() -> void:
 	var axo := $Axolotl as CharacterBody2D
 	axo.position = Vector2(config.water_left + 34.0, config.surface_y + 46.0)
+	_arrive_wipe(axo)
+
+## The arrival flourish shared by both reach kinds: still-swimming velocity + an opening iris wipe.
+## The legacy path (_arrive above) repositions the axolotl to a hardcoded waterline mouth first; a
+## map reach is already positioned by ReachMap._place_spawn() at the painted entry portal marker,
+## so it calls straight in here with nothing else to do.
+func _arrive_wipe(axo: CharacterBody2D) -> void:
 	var speed: float = axo.tuning.run_speed if axo.tuning else 150.0
 	axo.velocity = Vector2(speed, 0.0)      # still swimming out of the tunnel
 	var wipe := IrisWipe.new()

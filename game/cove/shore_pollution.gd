@@ -31,7 +31,8 @@ func _ready() -> void:
 
 func setup(cfg: CoveConfig) -> void:
 	_cfg = cfg
-	_spawn_splats()
+	if not cfg.has_map:
+		_spawn_splats()      # no legacy shore strip exists on a painted reach — nothing to scatter on
 	_spawn_barrels()
 
 func _spawn_splats() -> void:
@@ -54,45 +55,54 @@ func _spawn_splats() -> void:
 		_splats.append({ "spr": s, "mat": mat, "amount": 1.0 })
 
 func _spawn_barrels() -> void:
+	if not _cfg.barrel_positions.is_empty():
+		# a painted map authored exact barrel x's — honor them verbatim (y always rides the surface
+		# bob below regardless of source, so only x is meaningfully "explicit" here)
+		for i in _cfg.barrel_positions.size():
+			_spawn_one_barrel(_cfg.barrel_positions[i].x, float(i) * 2.3)
+		return
 	# a couple of oil barrels adrift on the surface — pollution washed in
 	for i in 2:
-		var s := Sprite2D.new()
-		s.texture = BARREL
-		s.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-		s.scale = Vector2(0.85, 0.85)
 		var x := lerpf(_cfg.water_left + 90.0, _cfg.water_right - 130.0, 0.3 + 0.45 * float(i))
-		s.position = Vector2(x, _cfg.surface_y - 1.0)
-		s.z_index = 4
-		add_child(s)
-		# a solid body so the axolotl bumps the drifting barrel (default layer = free collision
-		# with the CharacterBody2D axolotl). It lives beside the sprite (not under it) so the
-		# sprite's scale doesn't distort the collision shape; both are bobbed together below.
-		var body := StaticBody2D.new()
-		var col := CollisionShape2D.new()
-		var box := RectangleShape2D.new()
-		box.size = Vector2(BARREL.get_width(), BARREL.get_height()) * 0.85 * 0.8   # derived, no magic size
-		col.shape = box
-		body.add_child(col)
-		body.position = s.position
-		add_child(body)
-		# an OIL SHEEN SLICK spreading onto the water under the drifting barrel (its water interaction)
-		var slick_mat := ShaderMaterial.new()
-		slick_mat.shader = OIL_SHADER
-		slick_mat.set_shader_parameter("amount", 0.8)
-		slick_mat.set_shader_parameter("sheen", 0.6)
-		var slick := Sprite2D.new()
-		slick.texture = WHITE
-		slick.material = slick_mat
-		slick.scale = Vector2(50.0, 15.0)          # a flat oily oval on the surface
-		slick.position = Vector2(x, _cfg.surface_y + 4.0)
-		slick.z_index = 3                          # on the water, under the barrel (z 4)
-		add_child(slick)
-		# oil dripping off the barrel into the water
-		var drip := _barrel_drip()
-		drip.position = Vector2(x + 7.0, _cfg.surface_y - 5.0)
-		add_child(drip)
-		_barrels.append({ "spr": s, "body": body, "slick": slick, "drip": drip, "x": x, "phase": float(i) * 2.3,
-			"cap": 0.0, "capped": false, "cd": 0.0 })
+		_spawn_one_barrel(x, float(i) * 2.3)
+
+func _spawn_one_barrel(x: float, phase: float) -> void:
+	var s := Sprite2D.new()
+	s.texture = BARREL
+	s.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	s.scale = Vector2(0.85, 0.85)
+	s.position = Vector2(x, _cfg.surface_y - 1.0)
+	s.z_index = 4
+	add_child(s)
+	# a solid body so the axolotl bumps the drifting barrel (default layer = free collision
+	# with the CharacterBody2D axolotl). It lives beside the sprite (not under it) so the
+	# sprite's scale doesn't distort the collision shape; both are bobbed together below.
+	var body := StaticBody2D.new()
+	var col := CollisionShape2D.new()
+	var box := RectangleShape2D.new()
+	box.size = Vector2(BARREL.get_width(), BARREL.get_height()) * 0.85 * 0.8   # derived, no magic size
+	col.shape = box
+	body.add_child(col)
+	body.position = s.position
+	add_child(body)
+	# an OIL SHEEN SLICK spreading onto the water under the drifting barrel (its water interaction)
+	var slick_mat := ShaderMaterial.new()
+	slick_mat.shader = OIL_SHADER
+	slick_mat.set_shader_parameter("amount", 0.8)
+	slick_mat.set_shader_parameter("sheen", 0.6)
+	var slick := Sprite2D.new()
+	slick.texture = WHITE
+	slick.material = slick_mat
+	slick.scale = Vector2(50.0, 15.0)          # a flat oily oval on the surface
+	slick.position = Vector2(x, _cfg.surface_y + 4.0)
+	slick.z_index = 3                          # on the water, under the barrel (z 4)
+	add_child(slick)
+	# oil dripping off the barrel into the water
+	var drip := _barrel_drip()
+	drip.position = Vector2(x + 7.0, _cfg.surface_y - 5.0)
+	add_child(drip)
+	_barrels.append({ "spr": s, "body": body, "slick": slick, "drip": drip, "x": x, "phase": phase,
+		"cap": 0.0, "capped": false, "cd": 0.0 })
 
 ## The axolotl's spray reaching us (via the "sprayable" group). Cleans the land splat nearest
 ## the spray point; the water film is handled separately by OilSpill.

@@ -22,3 +22,13 @@ static func reset_scratch(path: String) -> void:
 
 static func mark(id: String, key: String, value: Variant) -> void:
 	WorldState.mark(id, key, value)
+
+static func get_cove(id: String, key: String, default: Variant) -> Variant:
+	return WorldState.get_cove(id, key, default)
+
+## Re-point the WorldState autoload singleton at an EXISTING scratch file and reload it from disk
+## (no delete, unlike reset_scratch above) — proves a mark from an earlier "session" survived to
+## disk rather than only living in the in-memory ConfigFile.
+static func reload_scratch(path: String) -> void:
+	WorldState.save_path = path
+	WorldState.load_file()

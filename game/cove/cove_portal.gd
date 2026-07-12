@@ -28,6 +28,28 @@ var _glow := 0.0               # 0 sealed .. 1 open (the passage beckons once cl
 var _pulse := 0.0
 var _swirl: CPUParticles2D     # inward-spiralling motes: the current flowing into the passage
 
+# --- map-instance mode (slice 5): ReachMap builds these directly via configure(), never setup() ---
+var _exit_to := ""        # instance destination (map reaches); falls back to _cfg.exit_target
+var _entry_key := ""      # save key suffix + arrival identity ("west"/"east"/...)
+var _dormant := false     # a promise, not a door: drawn dark, no swirl, no trigger
+
+## ReachMap's construction path — a painted portal marker, never a scene-authored $Portal (which
+## uses setup() instead; the two never both run on the same instance). No rubble plug of its own:
+## the painted map's seal geometry (see reach_map._build_breakables) is the real gate, so the
+## portal itself is always visually open the moment a destination is wired — an unwired edge
+## spawns dormant (dark, inert) instead.
+func configure(cfg: CoveConfig, exit_to: String, entry_key: String, dormant: bool) -> void:
+	_cfg = cfg
+	_exit_to = exit_to
+	_entry_key = entry_key
+	_dormant = dormant
+	z_index = 8                        # over the map land quad (z-map); legacy stays z2
+	if dormant:
+		_glow = 0.0
+	else:
+		_on_open()                     # painted seals gate map portals; the portal itself is open
+	queue_redraw()                     # draw right away, same idiom as setup()'s trailing redraw
+
 ## Injected by the Cove composition root. No exit configured -> this node just retires.
 func setup(cfg: CoveConfig) -> void:
 	_cfg = cfg
@@ -100,6 +122,8 @@ func force_open() -> void:
 var _redraw_acc := 0.0
 
 func _process(delta: float) -> void:
+	if _dormant:
+		return                          # a promise, not a door: no trigger poll, ever
 	if not _open or _crossing or _cfg == null:
 		return
 	_pulse += delta
@@ -117,15 +141,19 @@ func _process(delta: float) -> void:
 ## this whole scene, so the wipe layer + tween die with it right after the callback fires.
 func _cross() -> void:
 	_crossing = true
+	# a map-instance target (ReachMap.configure) wins; the legacy scene-authored $Portal has no
+	# _exit_to, so it falls back to the single-target cfg field exactly as before
+	var target := _exit_to if _exit_to != "" else _cfg.exit_target
 	var keeper = get_tree().get_first_node_in_group("shine")
 	if keeper and "score" in keeper:
 		Settings.run_score = keeper.score   # the arcade run spans coves (see shine.gd / new_day.gd)
 	Settings.arrive_via_portal = true       # tells the next scene: continue the swim, don't reset
+	Settings.arrive_entry = _entry_key      # which door we crossed through ("" on legacy passages)
 	Sfx.play("chime", -4.0, 1.2)
 	Sfx.play("splash", -10.0, 0.8)          # a low swallow of water as the tunnel takes you
 	var wipe := IrisWipe.new()
 	add_child(wipe)
-	wipe.close(FADE_TIME, func() -> void: get_tree().change_scene_to_file(_cfg.exit_target))
+	wipe.close(FADE_TIME, func() -> void: get_tree().change_scene_to_file(target))
 
 func _draw() -> void:
 	if _cfg == null:
@@ -136,6 +164,11 @@ func _draw() -> void:
 	# into the rock with real depth — not concentric ovals painted on the face.
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2(0.55, 1.0))   # circles -> tall ovals
 	draw_circle(Vector2.ZERO, 36.0, Palette.SOIL.darkened(0.25))                       # carved stone rim
+	if _dormant:
+		# a promise, not a door: mouth only, flat INK throat — no tunnel recession, no glow, no swirl
+		draw_circle(Vector2.ZERO, 31.0, Palette.INK)
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		return
 	draw_circle(Vector2.ZERO, 31.0, Palette.INK.lerp(Palette.DEEP, 0.4))               # mouth
 	draw_circle(VANISH * 0.35, 23.0, Palette.INK.lerp(Palette.DEEP, 0.25))             # deeper...
 	draw_circle(VANISH * 0.7, 15.0, Palette.INK.lerp(Palette.DEEP, 0.1))               # deeper still...
