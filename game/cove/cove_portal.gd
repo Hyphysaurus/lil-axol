@@ -40,6 +40,13 @@ var _glow := 0.0               # 0 sealed .. 1 open (the passage beckons once cl
 var _pulse := 0.0
 var _swirl: CPUParticles2D     # inward-spiralling motes: the current flowing into the passage
 
+## the trigger arms only once the axolotl has been seen OUTSIDE the radius — a portal arrival
+## lands INSIDE the destination door's radius (estuary Portal2 24px, canals nudge 20px vs radius
+## 28) and would instantly re-cross forever. Both setup() and configure() instances (and every
+## legacy scene) share this poll: the axolotl always starts outside a legacy portal's radius, so
+## the latch arms on the first poll there — zero behavior change on those doors.
+var _armed := false
+
 # --- map-instance mode (slice 5): ReachMap builds these directly via configure(), never setup() ---
 var _exit_to := ""        # instance destination (map reaches); falls back to _cfg.exit_target
 var _entry_key := ""      # save key suffix + arrival identity ("west"/"east"/...)
@@ -161,7 +168,14 @@ func _process(delta: float) -> void:
 		_redraw_acc = 0.0                   # identical, and WebGL pays per canvas rebuild
 		queue_redraw()
 	var axo := get_tree().get_first_node_in_group("player") as Node2D
-	if axo and to_local(axo.global_position).length() <= TRIGGER_RADIUS:
+	if axo == null:
+		return
+	var dist := to_local(axo.global_position).length()
+	if not _armed:
+		if dist > TRIGGER_RADIUS:
+			_armed = true
+		return                          # never cross on the same poll that arms — even if outside
+	if dist <= TRIGGER_RADIUS:
 		_cross()
 
 ## Carry the run's Shine into the next scene, iris into tunnel-dark, then swap. The next scene reads
