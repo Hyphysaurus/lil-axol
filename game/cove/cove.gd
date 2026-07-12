@@ -17,6 +17,7 @@ extends Node2D
 
 const IrisWipe := preload("res://game/fx/iris_wipe.gd")
 const CompanionScript := preload("res://game/companion/companion.gd")
+const ReachMapScript := preload("res://game/cove/reach_map.gd")
 
 var _echo := false
 
@@ -55,13 +56,17 @@ func _ready() -> void:
 	_inject($InvasiveSchool)
 	_apply_environment()
 	if Settings.arrive_via_portal:
+		var entry_key := Settings.arrive_entry
 		Settings.arrive_via_portal = false
 		Settings.arrive_entry = ""      # one-shot, same idiom as arrive_via_portal above
 		if config.has_map:
 			# ReachMap._place_spawn() (run earlier, inside _inject($ReachMap)) already positioned the
 			# axolotl at the painted entry portal marker — a map reach's hardcoded left-edge water
-			# reposition below would land it inside solid earth, so only the cosmetic half runs here
-			_arrive_wipe($Axolotl as CharacterBody2D)
+			# reposition below would land it inside solid earth, so only the cosmetic half runs here.
+			# entry_key IS the edge just crossed (cove_portal._cross() stamps it straight from the
+			# marker's edge) — edge_inward() turns that into the swim-out direction, so east/top/
+			# bottom doors send the axolotl IN, not outward/sideways.
+			_arrive_wipe($Axolotl as CharacterBody2D, ReachMapScript.edge_inward(entry_key))
 		else:
 			_arrive()
 	if not _echo:
@@ -161,10 +166,13 @@ func _arrive() -> void:
 ## The arrival flourish shared by both reach kinds: still-swimming velocity + an opening iris wipe.
 ## The legacy path (_arrive above) repositions the axolotl to a hardcoded waterline mouth first; a
 ## map reach is already positioned by ReachMap._place_spawn() at the painted entry portal marker,
-## so it calls straight in here with nothing else to do.
-func _arrive_wipe(axo: CharacterBody2D) -> void:
+## so it calls straight in here with nothing else to do. dir is the swim-out direction — which way
+## "into the map" points from the door just crossed (ReachMap.edge_inward). The legacy classic-reach
+## mouth is always the west edge, so _arrive() above omits dir and gets the RIGHT default —
+## byte-equivalent to the pre-edge-aware behavior.
+func _arrive_wipe(axo: CharacterBody2D, dir: Vector2 = Vector2.RIGHT) -> void:
 	var speed: float = axo.tuning.run_speed if axo.tuning else 150.0
-	axo.velocity = Vector2(speed, 0.0)      # still swimming out of the tunnel
+	axo.velocity = dir * speed              # still swimming, in whatever direction is "into" the reach
 	var wipe := IrisWipe.new()
 	add_child(wipe)
 	wipe.set_closed()

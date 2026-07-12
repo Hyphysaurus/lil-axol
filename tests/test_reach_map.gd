@@ -215,6 +215,27 @@ func _process(_delta: float) -> bool:
 	_check("portal persistence: the mark survived to disk across a reload",
 		bool(WSHelper.get_cove(cfg3.id, "portal_west", false)))
 
+	# --- Task 6 fix: a portal built against an ALREADY-marked WorldState (a revisit — e.g. the
+	# scene reloading and rebuilding its map fresh) reopens SILENTLY — configure()'s already_open
+	# branch sets _open directly and never re-emits opened, so a revisit never replays the
+	# SFX/tween or double-marks WorldState. Mirrors exactly what reach_map._build_portals() derives
+	# (was_open from WorldState.get_cove) and does (connect BEFORE configure), against the west
+	# portal already marked open by the rm3 build above — i.e. this IS "building portals twice
+	# against a marked WorldState", just with the second build's portal instantiated directly so
+	# the counter can be connected before configure() runs.
+	var revisit_counter := {"n": 0}
+	var was_open_west: bool = bool(WSHelper.get_cove(cfg3.id, "portal_west", false))
+	var portal_root4 := Node2D.new(); get_root().add_child(portal_root4)
+	var revisit_portal = PortalScript.new()
+	portal_root4.add_child(revisit_portal)
+	revisit_portal.opened.connect(func() -> void: revisit_counter.n += 1)   # connect BEFORE configure
+	revisit_portal.configure(cfg3, "res://estuary.tscn", "west", false, was_open_west)
+	_check("revisit configure(already_open=true): _open reads true directly (direct property read)",
+		revisit_portal._open == true)
+	_check("revisit configure(): opened never fires on the already-open path (0 emissions)",
+		revisit_counter.n == 0)
+	portal_root4.free()
+
 	print("RESULT: " + ("ALL PASS" if fails == 0 else "%d FAILED" % fails))
 	root.free()
 	quit(1 if fails > 0 else 0)

@@ -37,8 +37,11 @@ var _dormant := false     # a promise, not a door: drawn dark, no swirl, no trig
 ## uses setup() instead; the two never both run on the same instance). No rubble plug of its own:
 ## the painted map's seal geometry (see reach_map._build_breakables) is the real gate, so the
 ## portal itself is always visually open the moment a destination is wired — an unwired edge
-## spawns dormant (dark, inert) instead.
-func configure(cfg: CoveConfig, exit_to: String, entry_key: String, dormant: bool) -> void:
+## spawns dormant (dark, inert) instead. already_open marks a REVISIT — WorldState already has this
+## edge's portal_<edge> flag set — so the map reach was rebuilt fresh (as it is on every scene load)
+## but the way was already cleared on an earlier visit: the state simply IS open, silently (no SFX,
+## no glow tween, no opened re-emit), the same idiom force_open() uses for the legacy $Portal.
+func configure(cfg: CoveConfig, exit_to: String, entry_key: String, dormant: bool, already_open := false) -> void:
 	_cfg = cfg
 	_exit_to = exit_to
 	_entry_key = entry_key
@@ -46,6 +49,11 @@ func configure(cfg: CoveConfig, exit_to: String, entry_key: String, dormant: boo
 	z_index = 8                        # over the map land quad (z-map); legacy stays z2
 	if dormant:
 		_glow = 0.0
+	elif already_open:
+		_open = true                   # silent reopen: the state simply IS open — no fanfare, no re-mark
+		_glow = 1.0
+		if _swirl:
+			_swirl.emitting = true
 	else:
 		_on_open()                     # painted seals gate map portals; the portal itself is open
 	queue_redraw()                     # draw right away, same idiom as setup()'s trailing redraw
