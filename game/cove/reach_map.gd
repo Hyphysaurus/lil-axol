@@ -243,7 +243,11 @@ func _build_collision() -> void:
 	var body := StaticBody2D.new()
 	body.name = "MapCollision"
 	add_child(body)
-	for r in merge_rects(grid, gw, gh, func(c): return c == ReachField.EARTH or c == ReachField.CLIMB):
+	# EARTH only: climb cells must NOT be solid — the hub's curtains are collision-free zones the
+	# axolotl overlaps to latch (climb_wall.has_point ±6px). A solid strip keeps the body outside
+	# its own grab zone forever: the "climbing doesn't work" bug. The earth BEHIND a painted
+	# strip still walls the world, exactly like BankTowerBody behind TowerWall.
+	for r in merge_rects(grid, gw, gh, func(c): return c == ReachField.EARTH):
 		var shape := CollisionShape2D.new()
 		var rect := RectangleShape2D.new()
 		rect.size = Vector2(r.size) * CELL
@@ -271,7 +275,9 @@ func _build_surround() -> void:
 
 func _draw_surround(s: Node2D) -> void:
 	var deep := Palette.INK.lerp(Color(0.11, 0.16, 0.23), 0.25)
-	var r := Rect2(_cfg.map_origin, Vector2(gw, gh) * CELL).grow(1400.0)
+	# grow just past camera_bounds (map + 24px) — the old 1400px apron was ~12MP of pure WebGL
+	# fill-rate the camera could never even pan to (web sluggishness, 2026-07-12 hotfix)
+	var r := Rect2(_cfg.map_origin, Vector2(gw, gh) * CELL).grow(280.0)
 	s.draw_rect(r, deep)                                        # far field
 	var below := Rect2(Vector2(_cfg.map_origin.x, _cfg.surface_y),
 		Vector2(float(gw) * CELL, float(gh) * CELL - float(table_row) * CELL))
@@ -345,7 +351,8 @@ func _build_breakables() -> void:
 			rock.tone_a = entry[2]
 			rock.tone_b = entry[3]
 			rock.position = _cfg.map_origin + Vector2(r.position) * CELL
-			add_child(rock)
+			rock.z_index = 7                      # the land quad's plane: rocks were invisible at
+			add_child(rock)                       # their default z under it — seals looked like land
 			if not entry[1]:
 				# broken seals STAY broken (ruling 5); echo runs replay them sealed, never persist
 				var root := get_tree().get_first_node_in_group("cove_root")
@@ -375,6 +382,8 @@ func _build_climbs() -> void:
 		wall.strands = maxi(2, r.size.x)          # thin strips still read as a curtain
 		wall.position = _cfg.map_origin + Vector2(r.position) * CELL
 		add_child(wall)
+		wall.z_index = 8                          # over the land quad (7): its _ready sets the
+		                                          # legacy z3, which the quad would bury on maps
 
 ## Painted portal markers become live passages (spec 4.7): an edge wired in cfg.map_exits opens
 ## immediately — the painted rubble seal in front (see _build_breakables) is the real gate, not the

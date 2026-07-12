@@ -99,8 +99,10 @@ func _process(_delta: float) -> bool:
 	field.free()
 
 	# --- collision merge property: union == solid set, no overlaps ---
+	# EARTH only: climb cells are collision-free grab zones (hub-curtain rule) — solid strips
+	# kept the axolotl outside its own latch zone (2026-07-12 climbing hotfix)
 	var rects = ReachMapScript.merge_rects(rm.grid, rm.gw, rm.gh,
-		func(c): return c == 1 or c == 4)       # earth + climb
+		func(c): return c == 1)
 	var covered: Dictionary = {}
 	var overlap := false
 	for r in rects:
@@ -111,7 +113,7 @@ func _process(_delta: float) -> bool:
 				covered[k] = true
 	var solid_n := 0
 	for i in rm.grid.size():
-		if rm.grid[i] == 1 or rm.grid[i] == 4: solid_n += 1
+		if rm.grid[i] == 1: solid_n += 1
 	_check("merge covers exactly", covered.size() == solid_n and not overlap)
 	_check("merge is compact", rects.size() <= 96)
 
