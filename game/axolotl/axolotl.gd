@@ -57,6 +57,9 @@ const CLIMB_SPEED := 70.0      # px/s up/down a root curtain (a new state — D-
 const CLIMB_HOP := 0.8         # hop-off jump strength as a fraction of the full jump
 const COYOTE_TIME := 0.1       # jump grace after stepping off a ledge — forgiving, not floaty
 const AIR_JUMP_SCALE := 0.9    # the mid-air gill-kick is a touch softer than the takeoff
+const DIVE_MIN_SPEED := 320.0  # entry fall speed where a dive starts scrubbing (a bank slip doesn't)
+const DIVE_MAX_SPEED := 620.0  # full-power cannonball
+const BOUNCE_SCALE := 1.15     # bubble-trampoline launch vs the ground jump
 
 var _air_jump_spent := false   # double jump: one per airtime, refreshed by floor/water/curtain
 var _coyote := 0.0
@@ -510,8 +513,19 @@ signal submerged_changed(on: bool)   # audio keys the underwater muffle off this
 func _enter_water() -> void:
 	submerged_changed.emit(true)
 	_air_jump_spent = false           # water refreshes the gill-kick, like ground
-	_splash(1.0)
-	Sfx.play("splash")
+	# DIVE-SPLASH: a real cannonball scrubs the slick around the entry point — the verticality
+	# (gill-kick, curtains, floating cliffs) becomes a restoration verb. Gentle slips off a bank
+	# stay a plain splash; the burst scales with entry speed up to a full high-dive.
+	var impact := clampf(inverse_lerp(DIVE_MIN_SPEED, DIVE_MAX_SPEED, velocity.y), 0.0, 1.0)
+	if impact > 0.0:
+		get_tree().call_group("oil_manager", "spray_at",
+			global_position, 26.0 + 22.0 * impact, 0.30 + 0.45 * impact)
+		shake(1.0 + 1.5 * impact)
+		_splash(1.2 + 0.8 * impact)
+		Sfx.play("splash", -2.0, 0.85)    # deeper whump for a dive
+	else:
+		_splash(1.0)
+		Sfx.play("splash")
 	_spr.scale = Vector2(0.8, 1.2)    # slip in long and lean
 	velocity.y *= 0.35   # soften the plunge
 
@@ -629,6 +643,19 @@ func _leaf_motes() -> void:
 	p.z_index = 6
 	get_parent().add_child(p)
 	p.finished.connect(p.queue_free)
+
+## True while swimming — public for the bubble's bounce-pad check (`_in_water` stays private).
+func swimming() -> bool:
+	return _in_water
+
+## Landed on our own live Bubble Bomb: trampoline launch (the bubble pops itself and still
+## scrubs/carves). Refreshes the gill-kick — bubble -> bounce -> gill-kick chains are the toy.
+func bubble_bounce() -> void:
+	velocity.y = tuning.jump_velocity * BOUNCE_SCALE
+	_air_jump_spent = false
+	_coyote = 0.0
+	_spr.scale = Vector2(0.65, 1.35)
+	Sfx.play("jump", -1.0, 1.4)
 
 ## The mid-air GILL-KICK burst: a tiny ring of aqua droplets flicked off the gills — the double
 ## jump's own signature, so the second hop reads as a move, not a glitch.

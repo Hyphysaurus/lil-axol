@@ -71,6 +71,16 @@ func _physics_process(delta: float) -> void:
 		return
 	_t += delta
 	position += _aim * SPEED * delta
+	# BOUNCE PAD: land on your own bubble from above and it pops UNDER you — a placeable
+	# trampoline whose detonation still scrubs oil and carves rock (and the longer it flew,
+	# the bigger that blast: a held bounce is also a bigger clean).
+	var axo := get_tree().get_first_node_in_group("player")
+	if axo is CharacterBody2D and axo.has_method("bubble_bounce") and not axo.swimming():
+		var d: Vector2 = axo.global_position - global_position
+		if d.length() < R + 10.0 and d.y < 0.0 and axo.velocity.y > 30.0:
+			axo.bubble_bounce()
+			_pop()
+			return
 	# keep it in the cove: detonate if it overstays or leaves the water column. The ceiling is a
 	# fixed offset off the waterline on legacy (hand-tuned to the hub's rect reach); a painted map
 	# can extend well above that (a tower reach), so there the map's own camera bounds ARE the
