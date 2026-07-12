@@ -74,6 +74,7 @@ func _process(_delta: float) -> bool:
 	_check("shore_xs == independent re-derive (marsh)", cfg.shore_xs == shore_expect)
 	# transcribed against the real marsh_draft PNGs: 3 shore columns at world x 108/228/380
 	_check("shore_xs harvest count sanity (marsh)", cfg.shore_xs.size() == 3)
+	_check("shore_xs exact values", cfg.shore_xs == PackedFloat32Array([108.0, 228.0, 380.0]))
 
 	# --- Task 7: ground_hold_y derived value sanity — the marsh has real standable ledges above
 	# the table row, so the derived ceiling must differ from _derive_ground_hold()'s "no ledge

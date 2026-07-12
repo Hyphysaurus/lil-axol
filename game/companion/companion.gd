@@ -271,7 +271,7 @@ func _process(delta: float) -> void:
 	var hold: float = _cfg.ground_hold_y if "ground_hold_y" in _cfg else GROUND_HOLD
 	var over_water := _field != null and _field.is_water(Vector2(target.x, _cfg.surface_y + 6.0))
 	target.y = maxf(target.y, (_cfg.surface_y - 6.0) if over_water else hold)
-	target.y = minf(target.y, _cfg.seabed_y)
+	target.y = minf(target.y, _cfg.seabed_y - 0.5)   # half-px inside the boundary: is_water is strict, and a target parked exactly ON seabed_y would read as buried and wrongly project to the surface — estuary's seabed_y sits far above its real floor
 	if _field != null and target.y > _cfg.surface_y + 4.0 and not _field.is_water(target):
 		target.y = _cfg.surface_y - 2.0           # column blocked below: wait at the surface
 	var gap := target - position
