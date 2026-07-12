@@ -195,6 +195,7 @@ func _retire_handbuilt() -> void:
 ## Geometry builders (Tasks 3-6) chain here.
 func build() -> void:
 	_build_land()
+	_hook_cleanliness.call_deferred()
 	_build_collision()
 	_build_surround()
 	_resize_water()
@@ -221,6 +222,20 @@ func _build_land() -> void:
 	quad.material = _land_mat
 	quad.z_index = 7                            # the z-map: over water(5)+film(6), under portals(8)
 	add_child(quad)
+
+## Restoration -> the land quad's oil stain, mirroring block_land.gd's _hook() idiom (same
+## group, same signal, same current_clean seed): reach_land.gdshader defaults `oil` to 1.0 and
+## nothing else ever drove it, so a painted map's soil stayed oil-stained forever even after full
+## restoration. Deferred off _build_land() so the oil manager is in its group by the time we look.
+## No per-frame cost — the uniform is written on signal only.
+func _hook_cleanliness() -> void:
+	var mgr = get_tree().get_first_node_in_group("oil_manager")
+	if mgr == null:
+		return
+	if mgr.has_signal("cleanliness"):
+		mgr.cleanliness.connect(func(v: float) -> void: _land_mat.set_shader_parameter("oil", 1.0 - v))
+	if "current_clean" in mgr:
+		_land_mat.set_shader_parameter("oil", 1.0 - mgr.current_clean)
 
 ## Static collision from the solid mask (earth + climb) — one StaticBody2D, greedy-merged
 ## rects (spec §4.3); rubble/gates own their own collision.
