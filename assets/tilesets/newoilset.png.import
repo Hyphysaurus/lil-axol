@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://qfikvkd403i2"
-path="res://.godot/imported/newoilset.png-126e05f813a2f1075e43eb81964d27bd.ctex"
+path="res://.godot/imported/newoilset.png-01900e46ea845109a210ccba6bbe065b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://newoilset.png"
-dest_files=["res://.godot/imported/newoilset.png-126e05f813a2f1075e43eb81964d27bd.ctex"]
+source_file="res://assets/tilesets/newoilset.png"
+dest_files=["res://.godot/imported/newoilset.png-01900e46ea845109a210ccba6bbe065b.ctex"]
 
 [params]
 

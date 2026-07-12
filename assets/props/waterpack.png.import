@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://n5ydd4pkdigb"
-path="res://.godot/imported/waterpack.png-c1412b4d6305667d58380b8fc64fab56.ctex"
+path="res://.godot/imported/waterpack.png-45bfdc2946d2850df0aa82468f7bccd1.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://waterpack.png"
-dest_files=["res://.godot/imported/waterpack.png-c1412b4d6305667d58380b8fc64fab56.ctex"]
+source_file="res://assets/props/waterpack.png"
+dest_files=["res://.godot/imported/waterpack.png-45bfdc2946d2850df0aa82468f7bccd1.ctex"]
 
 [params]
 
