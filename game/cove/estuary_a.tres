@@ -42,3 +42,6 @@ exit_enabled = true
 exit_target = "res://main.tscn"
 exit_pos = Vector2(385, 45)
 exit_blocked = false
+exit2_enabled = true
+exit2_target = "res://canals.tscn"
+exit2_pos = Vector2(-120, 40)

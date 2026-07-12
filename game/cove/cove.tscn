@@ -384,6 +384,11 @@ script = ExtResource("25_audio")
 [node name="Portal" type="Node2D" parent="."]
 script = ExtResource("34_portal")
 
+[node name="Portal2" type="Node2D" parent="."]
+script = ExtResource("34_portal")
+use_second_exit = true
+entry_key_out = "west"
+
 [node name="DebrisField" type="Node2D" parent="."]
 script = ExtResource("35_debris")
 

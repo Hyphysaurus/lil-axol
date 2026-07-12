@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="CoveConfig" load_steps=4 format=3 uid="uid://b0canals0cfg01"]
+
+[ext_resource type="Script" path="res://game/cove/cove_config.gd" id="1_cfg"]
+[ext_resource type="Texture2D" uid="uid://ns1eyj1vutfd" path="res://assets/maps/marsh_draft_terrain.png" id="2_terr"]
+[ext_resource type="Texture2D" uid="uid://cae2rwcouw6ap" path="res://assets/maps/marsh_draft_markers.png" id="3_mark"]
+
+[resource]
+script = ExtResource("1_cfg")
+id = "canals"
+map_terrain = ExtResource("2_terr")
+map_markers = ExtResource("3_mark")
+map_exits = {
+"west": "res://estuary.tscn"
+}
+friend_kind = 0
+spill_left = 200.0
+spill_right = 640.0
+clean_rate = 1.4
+kelp_count = 5
+fish_count = 6
+debris_count = 0
+pest_count = 0
+lilypad_count = 0
+invasive_count = 0
+in_play = Array[StringName]([&"purity"])
+win_threshold = 0.98
+leak_enabled = true
+exit_enabled = false

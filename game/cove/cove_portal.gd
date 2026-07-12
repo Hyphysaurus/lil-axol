@@ -21,6 +21,18 @@ const VANISH := Vector2(16.0, 0.0)
 
 signal opened   # the way is clear (WorldState files portal_cleared off this)
 
+## Scene-authored second exit (slice 5 T8): when true, setup() reads exit2_enabled/exit2_target/
+## exit2_pos instead of the classic exit_*/exit_blocked fields — cove.tscn's shared $Portal2 node
+## sets this true so it can carry the estuary's onward door to the canals without a second scene
+## fork. false (every other cove) retires Portal2 the instant exit2_enabled is false (the default).
+@export var use_second_exit := false
+## Overrides _entry_key for a setup()-path portal (configure()'s map portals set _entry_key
+## directly and never read this). Wired per-node in cove.tscn: Portal2 carries "west" so crossing
+## the estuary's second door stamps Settings.arrive_entry = "west" — the canals' painted west
+## portal marker edge_inward()'s crossings arrive facing right, matching the classic mouth.
+## Harmless on every other cove's Portal2 (it retires before _cross() could ever read this).
+@export var entry_key_out := ""
+
 var _cfg: CoveConfig
 var _open := false
 var _crossing := false
@@ -59,14 +71,21 @@ func configure(cfg: CoveConfig, exit_to: String, entry_key: String, dormant: boo
 	queue_redraw()                     # draw right away, same idiom as setup()'s trailing redraw
 
 ## Injected by the Cove composition root. No exit configured -> this node just retires.
+## use_second_exit swaps which CoveConfig fields this instance reads (see the export doc above);
+## either way the resolved target is cached into _exit_to so _cross() (shared by both exit kinds)
+## never has to branch on use_second_exit itself.
 func setup(cfg: CoveConfig) -> void:
 	_cfg = cfg
-	if not cfg.exit_enabled or cfg.exit_target.is_empty():
+	var enabled: bool = cfg.exit2_enabled if use_second_exit else cfg.exit_enabled
+	var target: String = cfg.exit2_target if use_second_exit else cfg.exit_target
+	if not enabled or target.is_empty():
 		queue_free()
 		return
-	position = cfg.exit_pos
+	_exit_to = target
+	_entry_key = entry_key_out
+	position = cfg.exit2_pos if use_second_exit else cfg.exit_pos
 	z_index = 2
-	if cfg.exit_blocked:
+	if not use_second_exit and cfg.exit_blocked:
 		# a rubble plug over the passage — reuses the destructible-rock system (breaks on turtle ram or
 		# bubble bomb; "blastable", not "sprayable", so spray alone won't open the way)
 		var rock = RockScript.new()
@@ -79,7 +98,9 @@ func setup(cfg: CoveConfig) -> void:
 		add_child(rock)
 		rock.cleared.connect(_on_open)
 	else:
-		_on_open()                          # an already-open passage (e.g. a return route)
+		# an already-open passage: the classic unblocked case, OR ANY second exit — exit2 is a
+		# discovered doorway, never a cave-in, so it's plugless the moment it's enabled (spec §4.8)
+		_on_open()
 	# the whirlpool of motes spiralling INTO the mouth — the current flowing through the passage
 	# (built now, switched on when the way opens)
 	_swirl = CPUParticles2D.new()

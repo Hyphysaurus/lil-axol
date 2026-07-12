@@ -15,7 +15,7 @@ ss2d/version="3.3.1"
 [application]
 
 config/name="LilAxol"
-run/main_scene="uid://kp4ulvda52rd"
+run/main_scene="uid://bcanals0scn01"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
 

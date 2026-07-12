@@ -1,0 +1,26 @@
+[gd_scene format=3 uid="uid://bcanals0scn01"]
+
+[ext_resource type="PackedScene" uid="uid://npmxewd65pxb" path="res://game/cove/cove.tscn" id="1_cove"]
+[ext_resource type="Script" path="res://game/hud/title_card.gd" id="2_title"]
+[ext_resource type="Script" path="res://game/hud/rest_card.gd" id="3_rest"]
+[ext_resource type="Script" path="res://game/hud/settings_menu.gd" id="4_settings"]
+[ext_resource type="Script" path="res://game/hud/credits_card.gd" id="5_credits"]
+[ext_resource type="Resource" path="res://game/cove/canals_a.tres" id="6_cfg"]
+
+[node name="Canals" type="Node2D"]
+
+[node name="Cove" parent="." instance=ExtResource("1_cove")]
+position = Vector2(402, 28)
+config = ExtResource("6_cfg")
+
+[node name="TitleCard" type="CanvasLayer" parent="."]
+script = ExtResource("2_title")
+
+[node name="RestCard" type="CanvasLayer" parent="."]
+script = ExtResource("3_rest")
+
+[node name="SettingsMenu" type="CanvasLayer" parent="."]
+script = ExtResource("4_settings")
+
+[node name="CreditsCard" type="CanvasLayer" parent="."]
+script = ExtResource("5_credits")

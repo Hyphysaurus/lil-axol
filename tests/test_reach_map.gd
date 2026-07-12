@@ -259,6 +259,23 @@ func _process(_delta: float) -> bool:
 		revisit_counter.n == 0)
 	portal_root4.free()
 
+	# --- Task 8: canals_a.tres smoke check — loads the actual on-disk resource a real scene
+	# instances (every check above exercises reach_map.gd's LOGIC against a hand-built cfg, never
+	# the authored .tres itself, so a typo'd path/field here would slip past every prior check) ---
+	var canals_cfg = load("res://game/cove/canals_a.tres")
+	_check("canals_a.tres: id", canals_cfg.id == "canals")
+	_check("canals_a.tres: map_terrain wired", canals_cfg.map_terrain != null)
+	_check("canals_a.tres: map_markers wired", canals_cfg.map_markers != null)
+	_check("canals_a.tres: west exit wired to the estuary",
+		canals_cfg.map_exits.get("west", "") == "res://estuary.tscn")
+	_check("canals_a.tres: friend_kind is the turtle (0)", canals_cfg.friend_kind == 0)
+
+	# --- Task 8: estuary_a.tres exit2 smoke check — the onward door to the canals, symmetric
+	# with the canals_a.tres check above (both halves of the travel-chain seam wired on disk) ---
+	var estuary_cfg = load("res://game/cove/estuary_a.tres")
+	_check("estuary_a.tres: exit2 enabled", estuary_cfg.exit2_enabled == true)
+	_check("estuary_a.tres: exit2 targets the canals", estuary_cfg.exit2_target == "res://canals.tscn")
+
 	print("RESULT: " + ("ALL PASS" if fails == 0 else "%d FAILED" % fails))
 	root.free()
 	quit(1 if fails > 0 else 0)
