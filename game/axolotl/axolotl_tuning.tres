@@ -6,7 +6,7 @@
 script = ExtResource("1_tuning")
 walk_speed = 90.0
 run_speed = 150.0
-jump_velocity = -300.0
+jump_velocity = -270.0
 gravity = 760.0
 swim_h = 60.0
 swim_v = 54.0

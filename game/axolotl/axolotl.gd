@@ -55,6 +55,11 @@ var _climb_fx_cd := 0.0        # cadence for the climb rustle + falling leaf mot
 
 const CLIMB_SPEED := 70.0      # px/s up/down a root curtain (a new state — D-0003 numbers untouched)
 const CLIMB_HOP := 0.8         # hop-off jump strength as a fraction of the full jump
+const COYOTE_TIME := 0.1       # jump grace after stepping off a ledge — forgiving, not floaty
+const AIR_JUMP_SCALE := 0.9    # the mid-air gill-kick is a touch softer than the takeoff
+
+var _air_jump_spent := false   # double jump: one per airtime, refreshed by floor/water/curtain
+var _coyote := 0.0
 
 @onready var _cam: Camera2D = $Camera
 
@@ -263,12 +268,26 @@ func _physics_process(delta: float) -> void:
 		velocity.x = _face * tuning.dash_speed   # the dash owns X; gravity still applies
 	else:
 		velocity.x = dir * (tuning.run_speed if running else tuning.walk_speed)
-	if not is_on_floor():
+	if is_on_floor():
+		_coyote = COYOTE_TIME
+		_air_jump_spent = false
+	else:
+		_coyote = maxf(0.0, _coyote - delta)
 		velocity.y += tuning.gravity * delta
-	if not ui and Input.is_action_just_pressed("jump") and is_on_floor():
-		velocity.y = tuning.jump_velocity
-		_spr.scale = Vector2(0.72, 1.28)   # takeoff stretch
-		Sfx.play("jump")
+	if not ui and Input.is_action_just_pressed("jump"):
+		if is_on_floor() or _coyote > 0.0:
+			velocity.y = tuning.jump_velocity
+			_coyote = 0.0
+			_spr.scale = Vector2(0.72, 1.28)   # takeoff stretch
+			Sfx.play("jump")
+		elif not _air_jump_spent:
+			# the mid-air GILL-KICK (double jump): one per airtime, a touch softer than the
+			# takeoff, refreshed by floor / water / a climb curtain
+			_air_jump_spent = true
+			velocity.y = tuning.jump_velocity * AIR_JUMP_SCALE
+			_spr.scale = Vector2(0.68, 1.32)
+			_gill_kick_fx()
+			Sfx.play("jump", -2.0, 1.25)       # a brighter chirp for the second hop
 	move_and_slide()
 	if is_on_floor() and not _was_on_floor:
 		_land()
@@ -290,6 +309,7 @@ func _on_climbable() -> Node2D:
 func _climb(delta: float, dir: float, ui: bool) -> void:
 	_sitting = false
 	_idle_t = 0.0
+	_air_jump_spent = false          # a curtain refreshes the gill-kick: hop off, kick, chain
 	var v := 0.0 if ui else Input.get_axis("move_up", "move_down")
 	velocity = Vector2(0.0, v * CLIMB_SPEED)
 	move_and_slide()
@@ -489,6 +509,7 @@ signal submerged_changed(on: bool)   # audio keys the underwater muffle off this
 
 func _enter_water() -> void:
 	submerged_changed.emit(true)
+	_air_jump_spent = false           # water refreshes the gill-kick, like ground
 	_splash(1.0)
 	Sfx.play("splash")
 	_spr.scale = Vector2(0.8, 1.2)    # slip in long and lean
@@ -607,6 +628,28 @@ func _leaf_motes() -> void:
 	p.color = Color(Palette.MOSS.lerp(Palette.LEAF, 0.5), 0.85)
 	p.z_index = 6
 	get_parent().add_child(p)
+	p.finished.connect(p.queue_free)
+
+## The mid-air GILL-KICK burst: a tiny ring of aqua droplets flicked off the gills — the double
+## jump's own signature, so the second hop reads as a move, not a glitch.
+func _gill_kick_fx() -> void:
+	var p := CPUParticles2D.new()
+	p.one_shot = true
+	p.emitting = true
+	p.amount = 10
+	p.lifetime = 0.4
+	p.explosiveness = 1.0
+	p.spread = 180.0
+	p.direction = Vector2(0.0, 1.0)         # flicked downward as the kick pushes up
+	p.initial_velocity_min = 40.0
+	p.initial_velocity_max = 90.0
+	p.gravity = Vector2(0.0, 240.0)
+	p.scale_amount_min = 0.8
+	p.scale_amount_max = 1.6
+	p.color = Color(Palette.AQUA, 0.85)
+	p.position = position + Vector2(0.0, 6.0)
+	p.z_index = 8
+	get_parent().add_child(p)               # left behind in the world, not carried with us
 	p.finished.connect(p.queue_free)
 
 func _dust() -> void:
