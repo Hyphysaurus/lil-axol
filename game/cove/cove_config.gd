@@ -138,3 +138,7 @@ var vent_positions: Array[Vector2] = []
 var portal_markers: Array[Dictionary] = []   # {pos: Vector2, edge: String} ("" = interior)
 var camera_bounds := Rect2()
 var ground_hold_y := -62.0
+## Water-at-the-table columns with an earth neighbor — the marsh's bank edges, harvested by
+## ReachMap.classify() (spec 4.6/slice5 T7). Reeds root here on a painted map instead of the
+## legacy rect's fixed left/right bands. Empty on legacy (and on a map with no clean shore cell).
+var shore_xs := PackedFloat32Array()

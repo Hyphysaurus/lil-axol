@@ -70,6 +70,7 @@ enum Kind { TURTLE, FROG, OTTER, DRAGONFLY }   # TURTLE = shell-spin demolition;
 signal woke   # emitted once when the rescue ceremony completes (WorldState files friend_awake off this)
 
 var _cfg: CoveConfig
+var _field: ReachField = null      # the water/footing oracle (slice 5); set in setup()/setup_traveller()
 var _kind := Kind.TURTLE
 var _state := State.SLEEPING
 var _spr: AnimatedSprite2D
@@ -131,6 +132,7 @@ var _slot := 0
 ## dressed from the companion library, already at the tidekeeper's side.
 func setup_traveller(cfg: CoveConfig, kind: int, slot: int, at: Vector2) -> void:
 	_cfg = cfg
+	_field = get_tree().get_first_node_in_group("reach_field")
 	_kind = kind
 	_slot = clampi(slot, 0, SLOT_OFFSETS.size() - 1)
 	var Library := preload("res://game/companion/companion_library.gd")
@@ -151,6 +153,7 @@ func setup_traveller(cfg: CoveConfig, kind: int, slot: int, at: Vector2) -> void
 ## Injected by the Cove composition root.
 func setup(cfg: CoveConfig) -> void:
 	_cfg = cfg
+	_field = get_tree().get_first_node_in_group("reach_field")
 	if not cfg.friend_enabled:
 		queue_free()
 		return
@@ -262,15 +265,19 @@ func _process(delta: float) -> void:
 		# swim jank at the source; the axolotl remains free to dip under alone.
 		target.y = minf(target.y, _cfg.surface_y - 2.0)
 	target.x = clampf(target.x, _cfg.water_left - 260.0, _cfg.water_right - 8.0)   # onto the BEACH too, not just the water's edge
-	# GROUND HOLD: followers have no gravity — without a ceiling on the follow target they levitate
-	# after a CLIMBING axolotl (frog riding a hovering turtle in the sky). Over water they never
-	# rise above the waterline; over the beach they can reach the bank top but no higher — while
-	# the tidekeeper scales a root curtain, the crew waits below. (After the x clamp: the rule
-	# reads the follower's own footing, not the climber's.)
-	var over_water := target.x > _cfg.water_left - 8.0
-	target.y = maxf(target.y, (_cfg.surface_y - 6.0) if over_water else GROUND_HOLD)
-	target.y = minf(target.y, _cfg.seabed_y)          # never sink through the floor; free to rise ashore
+	# GROUND HOLD, field-true: over actual water never rise above the line; elsewhere hold at
+	# the reach's bank ceiling (derived on maps, hub const on legacy). A follow target must
+	# never sit inside earth: project it back to the waterline of its column when it does.
+	var hold: float = _cfg.ground_hold_y if "ground_hold_y" in _cfg else GROUND_HOLD
+	var over_water := _field != null and _field.is_water(Vector2(target.x, _cfg.surface_y + 6.0))
+	target.y = maxf(target.y, (_cfg.surface_y - 6.0) if over_water else hold)
+	target.y = minf(target.y, _cfg.seabed_y)
+	if _field != null and target.y > _cfg.surface_y + 4.0 and not _field.is_water(target):
+		target.y = _cfg.surface_y - 2.0           # column blocked below: wait at the surface
 	var gap := target - position
+	if gap.length() > 300.0:                      # lost the tidekeeper across a maze wall: re-fan
+		position = target
+		gap = Vector2.ZERO
 	_land_t = maxf(0.0, _land_t - delta)
 	_strike_t = maxf(0.0, _strike_t - delta)
 	if _kind == Kind.FROG and position.y <= _cfg.surface_y + 10.0:
@@ -359,6 +366,8 @@ func _frog_hop(delta: float, target: Vector2, gap: Vector2) -> void:
 			if not is_nan(px) and absf(px - position.x) > 10.0:   # never hop back onto our own pad
 				to.x = px
 		to.y = _cfg.surface_y - 2.0
+		if _field != null and not _field.is_water(Vector2(to.x, _cfg.surface_y + 4.0)) and to.x > _cfg.water_left - 8.0:
+			to.x = position.x   # don't hop onto a column with no water or ground — stay put this beat
 	if absf(to.x - position.x) > 4.0:
 		_face = signf(to.x - position.x)
 	_hop_from = position
@@ -427,13 +436,19 @@ func _run_pilot(delta: float) -> void:
 		var head := _shell_vel.normalized() if _shell_vel.length() > 1.0 else Vector2(_face, 0.0)
 		_shell_vel = head * SHELL_SPEED * SHELL_MIN_FRAC
 	position += _shell_vel * delta
-	# stay inside the reach: the water, a beach-width of land on the left, and INTO the right bank's
-	# face — the portal plug is carved into that bank, so the shell must be able to chew all the way
-	# through it (a tighter bound left an unreachable last column: the un-breakable sliver bug)
-	position.x = clampf(position.x, _cfg.water_left - 260.0, _cfg.water_right + 64.0)
-	# ceiling: high enough to smash the bank-tower SUMMIT nook (top ~-143 vs surface -27) — the
-	# tighter -70 bound made that turtle-only cache silently unbreakable, same bug as the sliver
-	position.y = clampf(position.y, _cfg.surface_y - 125.0, _cfg.seabed_y)
+	# stay inside the reach: on a painted map the camera bounds ARE the reach (grown in 8px so the
+	# shell never rides the map edge). Legacy keeps the exact hand-tuned numbers: the water, a
+	# beach-width of land on the left, and INTO the right bank's face — the portal plug is carved
+	# into that bank, so the shell must be able to chew all the way through it (a tighter bound left
+	# an unreachable last column: the un-breakable sliver bug) — and a ceiling high enough to smash
+	# the bank-tower SUMMIT nook (top ~-143 vs surface -27; a tighter -70 bound made that turtle-only
+	# cache silently unbreakable, same bug as the sliver).
+	if "camera_bounds" in _cfg and _cfg.camera_bounds.size.x > 0.0:
+		var b := _cfg.camera_bounds.grow(-8.0)
+		position = Vector2(clampf(position.x, b.position.x, b.end.x), clampf(position.y, b.position.y, b.end.y))
+	else:
+		position.x = clampf(position.x, _cfg.water_left - 260.0, _cfg.water_right + 64.0)
+		position.y = clampf(position.y, _cfg.surface_y - 125.0, _cfg.seabed_y)
 	if absf(_shell_vel.x) > 4.0:
 		_face = signf(_shell_vel.x)
 	# spin the tucked shell (the sprite holds the shelled frame; we rotate it)

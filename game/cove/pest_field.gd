@@ -12,11 +12,14 @@ const DRAGONS_AT := 0.6        # cleanliness where pests give way to dragonflies
 const HOVER := 16.0            # how far above the waterline the swarm hovers
 
 var _cfg: CoveConfig
+var _field: ReachField = null
+var _rng := RandomNumberGenerator.new()
 var _tick_t := 0.0
 var _dragons_out := false      # dragonflies released once, when the water turns
 
 func setup(cfg: CoveConfig) -> void:
 	_cfg = cfg
+	_field = get_tree().get_first_node_in_group("reach_field")
 	if cfg.pest_count > 0 and WorldState.is_restored(cfg.id):
 		# a RESTORED reach spawns no pests — but its healed-water dragonflies are part of the
 		# "it stays alive" payoff (spec §7): release them straight away, then stay idle
@@ -56,9 +59,12 @@ func _process(delta: float) -> void:
 	add_child(fly)
 
 ## Sample a handful of spots along the water and return one with real oil under it (NAN = none found).
+## Field-true x on a painted map (spec 4.6/T7) — guaranteed an actual open-water column instead of
+## an interpolated bbox point that might land on painted land; legacy keeps the exact randf_range.
 func _find_dirty_x(mgr) -> float:
 	for i in 6:
-		var x := randf_range(_cfg.water_left + 40.0, _cfg.water_right - 40.0)
+		var x := _field.random_surface_x(_rng) if (_cfg.has_map and _field != null) \
+			else randf_range(_cfg.water_left + 40.0, _cfg.water_right - 40.0)
 		var probe := to_global(Vector2(x, _cfg.surface_y + 14.0))
 		if mgr.has_method("oil_at") and mgr.oil_at(probe) > 0.15:
 			return x
@@ -69,7 +75,11 @@ func _release_dragonflies() -> void:
 	for i in _cfg.pest_count:
 		var fly := PestFly.new()
 		fly.mode = PestFly.Mode.DRAGONFLY
-		var t := (float(i) + 0.5) / float(_cfg.pest_count)
-		fly.position = Vector2(lerpf(_cfg.water_left + 30.0, _cfg.water_right - 30.0, t),
-			_cfg.surface_y - HOVER - fmod(float(i) * 5.3, 10.0))
+		var x: float
+		if _cfg.has_map and _field != null:
+			x = _field.random_surface_x(_rng)
+		else:
+			var t := (float(i) + 0.5) / float(_cfg.pest_count)
+			x = lerpf(_cfg.water_left + 30.0, _cfg.water_right - 30.0, t)
+		fly.position = Vector2(x, _cfg.surface_y - HOVER - fmod(float(i) * 5.3, 10.0))
 		add_child(fly)

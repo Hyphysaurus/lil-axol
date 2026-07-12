@@ -45,6 +45,7 @@ const CORAL_TEX := [
 const SAMPLE_DEPTH := 20.0        # px below the waterline where the oil film is sampled
 
 var _cfg: CoveConfig
+var _field: ReachField = null     # the water/footing oracle (slice 5); field-true seabed placement
 var _oil: Node                    # oil manager (oil_at), for the local reveal
 var _clean := 0.0
 var _life := 0.0
@@ -61,6 +62,7 @@ var _coral: Array = []            # { node, x } — seabed reef props, revealed 
 ## Called by the Cove composition root after _ready; config-dependent spawn lives here.
 func setup(cfg: CoveConfig) -> void:
 	_cfg = cfg
+	_field = get_tree().get_first_node_in_group("reach_field")
 	_spawn_kelp()
 	_spawn_fish()
 	_spawn_bubbles()
@@ -130,6 +132,9 @@ func _spawn_kelp() -> void:
 		var h := 70.0 + float((i * 29) % 45)
 		var x := lerpf(_cfg.water_left + 20.0, _cfg.water_right - 30.0, float(i) / float(maxi(_cfg.kelp_count - 1, 1)))
 		x += sin(float(i) * 9.3) * 22.0
+		# field-true floor on a painted map (spec 4.6/T7) — the map's floor isn't flat, so a single
+		# seabed_y would float/bury kelp off-terrain; legacy's rect floor is already flat seabed_y.
+		var floor_y: float = _field.floor_y_at(x) if (_field != null and _cfg.has_map) else _cfg.seabed_y
 		var s := Sprite2D.new()
 		s.texture = WHITE
 		var m: ShaderMaterial = mat.duplicate()   # per-blade material: each reveals on its own
@@ -137,12 +142,14 @@ func _spawn_kelp() -> void:
 		s.material = m
 		s.centered = false
 		s.scale = Vector2(w, h)
-		s.position = Vector2(x - w * 0.5, _cfg.seabed_y - h)   # base sits on the seabed
+		s.position = Vector2(x - w * 0.5, floor_y - h)   # base sits on the seabed
 		s.z_index = 3                                          # over seabed, under the water tint
 		add_child(s)
 		_kelp.append({ "mat": m, "x": x })
 
 func _spawn_fish() -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 29
 	for i in _cfg.fish_count:
 		var s := Sprite2D.new()
 		s.texture = FISH_TEX[i % FISH_TEX.size()]           # cycle through the school's species
@@ -153,8 +160,13 @@ func _spawn_fish() -> void:
 		s.scale = Vector2.ONE * (disp / 32.0)
 		s.modulate.a = 0.0                    # hidden until the water overhead heals (local reveal)
 		s.z_index = 4
-		s.position = Vector2(lerpf(_cfg.water_left, _cfg.water_right, float(i) / float(_cfg.fish_count)),
-			lerpf(_cfg.surface_y + 24.0, _cfg.seabed_y - 24.0, fmod(float(i) * 0.37, 1.0)))
+		# field-true spawn point on a painted map (spec 4.6/T7) — a lerp across the water bbox can
+		# land on painted land in a non-rectangular pond; legacy's rect keeps the exact lerp spread.
+		if _field != null and _cfg.has_map:
+			s.position = _field.random_water_cell(rng)
+		else:
+			s.position = Vector2(lerpf(_cfg.water_left, _cfg.water_right, float(i) / float(_cfg.fish_count)),
+				lerpf(_cfg.surface_y + 24.0, _cfg.seabed_y - 24.0, fmod(float(i) * 0.37, 1.0)))
 		add_child(s)
 		var vel := Vector2(28.0 + float(i % 3) * 10.0, 0.0)
 		if i % 2 == 0:
@@ -226,7 +238,9 @@ func _spawn_crab() -> void:
 	_crab.scale = Vector2.ONE * (20.0 / 32.0)     # ~20px crab on the seabed floor
 	_crab.z_index = 4
 	_crab.modulate.a = 0.0                         # reveals with the heal like the fish
-	_crab.position = Vector2((_cfg.water_left + _cfg.water_right) * 0.5, _cfg.seabed_y - 6.0)
+	var cx := (_cfg.water_left + _cfg.water_right) * 0.5
+	var floor_y: float = _field.floor_y_at(cx) if (_field != null and _cfg.has_map) else _cfg.seabed_y
+	_crab.position = Vector2(cx, floor_y - 6.0)
 	add_child(_crab)
 	_crab.play(&"walk")
 
@@ -295,12 +309,13 @@ func _spawn_coral() -> void:
 		var h := float(tex.get_height()) * sc
 		var x := lerpf(_cfg.water_left + 40.0, _cfg.water_right - 40.0, (float(i) + 0.5) / float(n))
 		x += sin(float(i) * 5.7) * 28.0
+		var floor_y: float = _field.floor_y_at(x) if (_field != null and _cfg.has_map) else _cfg.seabed_y
 		var s := Sprite2D.new()
 		s.texture = tex
 		s.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		s.centered = false
 		s.scale = Vector2(sc, sc)
-		s.position = Vector2(x - w * 0.5, _cfg.seabed_y - h)   # base rests on the seabed line
+		s.position = Vector2(x - w * 0.5, floor_y - h)   # base rests on the seabed line
 		s.modulate.a = 0.0
 		s.z_index = 3                                # among the kelp, behind the fish
 		add_child(s)

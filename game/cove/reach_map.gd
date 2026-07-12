@@ -81,6 +81,7 @@ func classify(cfg: CoveConfig) -> void:
 	cfg.seabed_y = cfg.map_origin.y + float(wb.end.y) * CELL
 	cfg.camera_bounds = Rect2(cfg.map_origin, Vector2(gw, gh) * CELL).grow(24.0)
 	cfg.ground_hold_y = _derive_ground_hold()
+	cfg.shore_xs = _harvest_shore_xs()
 	_harvest(mimg)
 
 func cell_world(cx: int, cy: int) -> Vector2:   # cell CENTER, cove-local
@@ -133,6 +134,22 @@ func _derive_ground_hold() -> float:
 					and grid[(cy + 1) * gw + cx] == ReachField.EARTH:
 				return _cfg.map_origin.y + float(cy - 4) * CELL
 	return -62.0
+
+## Water-at-the-table columns (the still waterline row) with an earth neighbor on either side —
+## the marsh's shore/bank edges (spec 4.6). reeds.gd roots here on a painted map instead of the
+## legacy rect's fixed left/right bands (companion Task 7).
+func _harvest_shore_xs() -> PackedFloat32Array:
+	var xs := PackedFloat32Array()
+	if table_row >= gh:
+		return xs
+	for cx in gw:
+		if grid[table_row * gw + cx] != ReachField.WATER:
+			continue
+		var left_earth := cx > 0 and grid[table_row * gw + cx - 1] == ReachField.EARTH
+		var right_earth := cx < gw - 1 and grid[table_row * gw + cx + 1] == ReachField.EARTH
+		if left_earth or right_earth:
+			xs.append(cell_world(cx, table_row).x)
+	return xs
 
 func _harvest(mimg: Image) -> void:
 	_cfg.curios = []

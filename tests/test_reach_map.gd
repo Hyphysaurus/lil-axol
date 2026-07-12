@@ -59,6 +59,28 @@ func _process(_delta: float) -> bool:
 	_check("seal components", seals.size() == 5)
 	_check("camera bounds", cfg.camera_bounds.size.x >= 960.0)
 
+	# --- Task 7: shore_xs harvest (water at the table row with an earth neighbor) — the marsh's
+	# bank edges reeds.gd roots into on a painted map. Independently re-derive against the SAME
+	# classified grid (same "don't trust a bare magic number" idiom as the water_bounds cache
+	# check below) rather than only asserting a transcribed count.
+	var shore_expect := PackedFloat32Array()
+	for cx in rm.gw:
+		if rm.grid[rm.table_row * rm.gw + cx] != ReachFieldScript.WATER:
+			continue
+		var le: bool = cx > 0 and rm.grid[rm.table_row * rm.gw + cx - 1] == ReachFieldScript.EARTH
+		var re: bool = cx < rm.gw - 1 and rm.grid[rm.table_row * rm.gw + cx + 1] == ReachFieldScript.EARTH
+		if le or re:
+			shore_expect.append(rm.cell_world(cx, rm.table_row).x)
+	_check("shore_xs == independent re-derive (marsh)", cfg.shore_xs == shore_expect)
+	# transcribed against the real marsh_draft PNGs: 3 shore columns at world x 108/228/380
+	_check("shore_xs harvest count sanity (marsh)", cfg.shore_xs.size() == 3)
+
+	# --- Task 7: ground_hold_y derived value sanity — the marsh has real standable ledges above
+	# the table row, so the derived ceiling must differ from _derive_ground_hold()'s "no ledge
+	# found" fallback (the legacy hub const, -62.0); transcribed exact value below.
+	_check("ground_hold_y derived, not the legacy fallback (marsh)", cfg.ground_hold_y != -62.0)
+	_check("ground_hold_y sanity (marsh)", is_equal_approx(cfg.ground_hold_y, -192.0))
+
 	# MANDATORY carry-over from T1 review: water_bounds() must be a cached member set ONCE in
 	# set_mask() (O(w*h) scan is too hot for a per-physics-frame caller like the axolotl) — prove
 	# the cache equals an independent scan of the SAME marsh grid classify() just produced.

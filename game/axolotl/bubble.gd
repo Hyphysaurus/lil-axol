@@ -71,9 +71,15 @@ func _physics_process(delta: float) -> void:
 		return
 	_t += delta
 	position += _aim * SPEED * delta
-	# keep it in the cove: detonate if it overstays or leaves the water column
-	var out := _cfg != null and (position.y < _cfg.surface_y - 44.0 \
-		or position.x < _cfg.water_left - 24.0 or position.x > _cfg.water_right + 24.0)
+	# keep it in the cove: detonate if it overstays or leaves the water column. The ceiling is a
+	# fixed offset off the waterline on legacy (hand-tuned to the hub's rect reach); a painted map
+	# can extend well above that (a tower reach), so there the map's own camera bounds ARE the
+	# ceiling — a map-safe demolition clamp, same idiom as companion.gd's pilot clamp.
+	var out := false
+	if _cfg != null:
+		var ceiling: float = (_cfg.camera_bounds.position.y + 16.0) if _cfg.has_map else (_cfg.surface_y - 44.0)
+		out = position.y < ceiling \
+			or position.x < _cfg.water_left - 24.0 or position.x > _cfg.water_right + 24.0
 	if _t >= MAX_TIME or out:
 		_pop()
 		return

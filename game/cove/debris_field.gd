@@ -9,12 +9,21 @@ const DEBRIS := preload("res://game/cove/floating_debris.gd")
 func setup(cfg: CoveConfig) -> void:
 	if cfg.debris_count <= 0 or WorldState.is_restored(cfg.id):
 		return   # a RESTORED reach reloads restored: no chokes respawn (spec review C2)
+	# field-true placement on a painted map only (spec 4.6/T7) — legacy keeps the exact lerp so a
+	# hand-built reach's layout never shifts.
+	var field: ReachField = get_tree().get_first_node_in_group("reach_field")
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 19
 	for i in cfg.debris_count:
 		var d := DEBRIS.new()
 		# spread across the middle of the water span (kept off the shore so it's genuinely out of the
 		# axolotl's reach — a job for the frog), with staggered depth near the surface
-		var t := (float(i) + 0.5) / float(cfg.debris_count)
-		var x := lerpf(cfg.water_left + 70.0, cfg.water_right - 60.0, t)
+		var x: float
+		if cfg.has_map and field != null:
+			x = field.random_surface_x(rng)     # guaranteed an actual open-water column
+		else:
+			var t := (float(i) + 0.5) / float(cfg.debris_count)
+			x = lerpf(cfg.water_left + 70.0, cfg.water_right - 60.0, t)
 		var y := cfg.surface_y + 8.0 + fmod(float(i) * 37.0, 40.0)
 		d.position = Vector2(x, y)
 		add_child(d)

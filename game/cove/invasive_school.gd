@@ -26,6 +26,9 @@ func setup(cfg: CoveConfig) -> void:
 	add_to_group("sprayable")   # custom spray_at: scatter, never delete
 	z_index = 6
 	_met = bool(WorldState.get_cove(cfg.id, "enc_school", false))
+	# field-true anchors on a painted map only (spec 4.6/T7) — legacy keeps the exact lerp+jitter so
+	# a hand-built reach's school layout never shifts.
+	var field: ReachField = get_tree().get_first_node_in_group("reach_field")
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 13
 	for i in cfg.invasive_count:
@@ -36,9 +39,13 @@ func setup(cfg: CoveConfig) -> void:
 		s.scale = Vector2(1.15, 1.15)                          # a touch bigger than the natives
 		s.add_to_group("invasive")
 		add_child(s)
-		var t := (float(i) + 0.5) / float(cfg.invasive_count)
-		var anchor := Vector2(lerpf(cfg.water_left + 80.0, cfg.water_right - 90.0, t),
-			cfg.seabed_y - 14.0 - rng.randf_range(0.0, 10.0))
+		var anchor: Vector2
+		if cfg.has_map and field != null:
+			anchor = field.random_water_cell(rng)   # guaranteed an actual water cell
+		else:
+			var t := (float(i) + 0.5) / float(cfg.invasive_count)
+			anchor = Vector2(lerpf(cfg.water_left + 80.0, cfg.water_right - 90.0, t),
+				cfg.seabed_y - 14.0 - rng.randf_range(0.0, 10.0))
 		s.position = anchor
 		_fish.append({"node": s, "anchor": anchor, "phase": rng.randf_range(0.0, TAU), "scatter": 0.0})
 
