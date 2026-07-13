@@ -297,9 +297,11 @@ func _resize_water() -> void:
 	if wm:
 		wm.set_shader_parameter("rect_size", b.size)
 
-## 4-connected components of one cell code, as cell-space rects. Non-rect components warn and
-## return their bounding box (authoring lint enforces rectangles for seals/gates).
-func component_rects(code: int) -> Array[Rect2i]:
+## 4-connected components of one cell code, as cell-space rects. Non-rect components return
+## their bounding box; they WARN only when rectangularity actually matters (seals/gates become
+## bounding-box DestructibleRocks, so a non-rect seal changes gameplay — a climb curtain's
+## bounding box is exactly what a curtain wants, so freehand strips stay lint-quiet).
+func component_rects(code: int, warn_nonrect := true) -> Array[Rect2i]:
 	var seen := PackedByteArray(); seen.resize(gw * gh)
 	var out: Array[Rect2i] = []
 	for cy in gh:
@@ -323,7 +325,7 @@ func component_rects(code: int) -> Array[Rect2i]:
 						seen[n.y * gw + n.x] = 1
 						stack.push_back(n)
 			var rect := Rect2i(minx, miny, maxx - minx + 1, maxy - miny + 1)
-			if count != rect.size.x * rect.size.y:
+			if warn_nonrect and count != rect.size.x * rect.size.y:
 				push_warning("reach_map: non-rectangular component (code %d) near (%d,%d)" % [code, cx, cy])
 			out.append(rect)
 	return out
@@ -376,7 +378,7 @@ func _carve_rect(field: ReachField, r: Rect2i) -> void:
 
 ## Green (CLIMB) runs become climbable root curtains — one ClimbWall per painted component.
 func _build_climbs() -> void:
-	for r in component_rects(ReachField.CLIMB):
+	for r in component_rects(ReachField.CLIMB, false):   # freehand strips welcome (see above)
 		var wall = ClimbWallScript.new()
 		wall.extent = Vector2(r.size) * CELL
 		wall.strands = maxi(2, r.size.x)          # thin strips still read as a curtain
