@@ -74,6 +74,15 @@ func classify(cfg: CoveConfig) -> void:
 			if code == ReachField.WATER and cy < table_row:
 				table_row = cy
 	cfg.has_map = true
+	# table_row only ever moves DOWN from its gh seed when a WATER cell is found, so table_row
+	# still reading gh here means the map painted zero WATER cells (a dry reach) — without this
+	# guard _water_cell_bounds() below returns an inverted Rect2i (minx=gw > maxx=-1 clamped by
+	# maxi/mini into a negative size), which then derives water_left > water_right and a seabed_y
+	# ABOVE surface_y. Reset table_row to the map top so surface_y lands sanely too.
+	cfg.has_water = table_row < gh
+	if not cfg.has_water:
+		push_warning("reach_map: no water cells - dry reach")
+		table_row = 0
 	cfg.surface_y = cfg.map_origin.y + float(table_row) * CELL
 	var wb := _water_cell_bounds()
 	cfg.water_left = cfg.map_origin.x + float(wb.position.x) * CELL
@@ -123,6 +132,8 @@ func _water_cell_bounds() -> Rect2i:
 			if grid[cy * gw + cx] == ReachField.WATER:
 				minx = mini(minx, cx); maxx = maxi(maxx, cx)
 				miny = mini(miny, cy); maxy = maxi(maxy, cy)
+	if maxx < 0:
+		return Rect2i(0, 0, gw, gh)         # dry map: no WATER cells — fall back to the whole map rect
 	return Rect2i(minx, miny, maxx - minx + 1, maxy - miny + 1)
 
 ## Highest DRY standable earth top (air above earth, above the table), minus a 4-cell margin:
@@ -151,10 +162,22 @@ func _harvest_shore_xs() -> PackedFloat32Array:
 			xs.append(cell_world(cx, table_row).x)
 	return xs
 
+## Sentinel-reset spawn/friend/leak to Vector2.INF before scanning so a map that paints NONE of
+## them never silently inherits whatever the cfg already held (hub-tuned .tres defaults, or a
+## PREVIOUS classify() call's positions on a reused cfg). spawn is load-bearing — every reach needs
+## somewhere to place the axolotl — so a still-INF spawn after the scan gets a real fallback (water
+## bbox center at the table) and a loud warning. friend/leak are legitimately optional (a map with
+## no rescued friend / no leak just doesn't paint one): unmarked, they quietly fall back to
+## whatever the cfg already held BEFORE this call — no warning, same as before this fix.
 func _harvest(mimg: Image) -> void:
 	_cfg.curios = []
 	_cfg.pad_xs = PackedFloat32Array()
 	_cfg.barrel_positions = []; _cfg.vent_positions = []; _cfg.portal_markers = []
+	var friend_default := _cfg.friend_pos
+	var leak_default := _cfg.leak_pos
+	_cfg.spawn_pos = Vector2.INF
+	_cfg.friend_pos = Vector2.INF
+	_cfg.leak_pos = Vector2.INF
 	for cy in gh:
 		for cx in gw:
 			var px := mimg.get_pixel(cx, cy)
@@ -177,6 +200,13 @@ func _harvest(mimg: Image) -> void:
 				&"barrel": _cfg.barrel_positions.append(pos)
 				&"vent":   _cfg.vent_positions.append(pos)
 				&"portal": _cfg.portal_markers.append({"pos": pos, "edge": _edge_of(cx, cy)})
+	if _cfg.spawn_pos == Vector2.INF:
+		push_warning("reach_map: no spawn marker painted - falling back to water-bbox center")
+		_cfg.spawn_pos = Vector2((_cfg.water_left + _cfg.water_right) * 0.5, _cfg.surface_y)
+	if _cfg.friend_pos == Vector2.INF:
+		_cfg.friend_pos = friend_default
+	if _cfg.leak_pos == Vector2.INF:
+		_cfg.leak_pos = leak_default
 
 func _edge_of(cx: int, cy: int) -> String:
 	if cx <= 2: return "west"

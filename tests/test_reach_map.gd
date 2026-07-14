@@ -278,6 +278,126 @@ func _process(_delta: float) -> bool:
 	_check("estuary_a.tres: exit2 enabled", estuary_cfg.exit2_enabled == true)
 	_check("estuary_a.tres: exit2 targets the canals", estuary_cfg.exit2_target == "res://canals.tscn")
 
+	# --- Robustness pack item 1: zero-water map guard — a painted map with NO water cells must
+	# not derive an inverted water bbox / nonsense surface_y off table_row's unmoved gh seed.
+	# Textures built at RUNTIME (ImageTexture.create_from_image over a filled Image) rather than
+	# loaded from disk, per the brief — no asset needed for a synthetic all-earth map. ---
+	var dry_img := Image.create(8, 8, false, Image.FORMAT_RGBA8)
+	dry_img.fill(Color8(122, 74, 35, 255))       # EARTH legend color, full alpha — an all-earth map
+	var dry_terrain := ImageTexture.create_from_image(dry_img)
+	var dry_marker_img := Image.create(8, 8, false, Image.FORMAT_RGBA8)
+	dry_marker_img.fill(Color(0, 0, 0, 0))       # no markers at all
+	var dry_markers := ImageTexture.create_from_image(dry_marker_img)
+	var dry_cfg = CoveConfigScript.new()
+	dry_cfg.id = "dry_test"
+	dry_cfg.map_terrain = dry_terrain
+	dry_cfg.map_markers = dry_markers
+	var dry_rm = ReachMapScript.new()
+	var dry_root := Node2D.new(); get_root().add_child(dry_root); dry_root.add_child(dry_rm)
+	dry_rm.classify(dry_cfg)
+	_check("dry map: has_water false", dry_cfg.has_water == false)
+	_check("dry map: table_row reset to the map top", dry_rm.table_row == 0)
+	_check("dry map: water_left < water_right (not inverted)", dry_cfg.water_left < dry_cfg.water_right)
+	_check("dry map: seabed_y > surface_y (not inverted)", dry_cfg.seabed_y > dry_cfg.surface_y)
+	_check("dry map: water bbox == the whole map rect",
+		is_equal_approx(dry_cfg.water_left, dry_cfg.map_origin.x) and
+		is_equal_approx(dry_cfg.water_right, dry_cfg.map_origin.x + 8.0 * 8.0))
+	_check("dry map: surface_y == the map top", is_equal_approx(dry_cfg.surface_y, dry_cfg.map_origin.y))
+	_check("dry map: seabed_y == the map bottom",
+		is_equal_approx(dry_cfg.seabed_y, dry_cfg.map_origin.y + 8.0 * 8.0))
+	dry_root.free()
+
+	# --- Robustness pack item 2: _harvest marker resets — a map that paints NEITHER spawn NOR
+	# friend/leak must not silently inherit whatever the cfg already held (stale hub-tuned .tres
+	# defaults). spawn is load-bearing: unmarked, it falls back to the water bbox center at the
+	# table AND warns. friend/leak are legitimately optional: unmarked, they quietly keep whatever
+	# the cfg already held going in — proven here with pre-set sentinel values standing in for a
+	# .tres-authored default. ---
+	var wet_img := Image.create(8, 8, false, Image.FORMAT_RGBA8)
+	wet_img.fill(Color8(122, 74, 35, 255))       # EARTH rows 0..3
+	for wcy in range(4, 8):
+		for wcx in range(8):
+			wet_img.set_pixel(wcx, wcy, Color8(46, 111, 242, 255))   # WATER rows 4..7
+	var wet_terrain := ImageTexture.create_from_image(wet_img)
+	var nomark_img := Image.create(8, 8, false, Image.FORMAT_RGBA8)
+	nomark_img.fill(Color(0, 0, 0, 0))            # no spawn/friend/leak markers painted
+	var nomark_markers := ImageTexture.create_from_image(nomark_img)
+	var nomark_cfg = CoveConfigScript.new()
+	nomark_cfg.id = "nomark_test"
+	nomark_cfg.map_terrain = wet_terrain
+	nomark_cfg.map_markers = nomark_markers
+	nomark_cfg.friend_pos = Vector2(111.0, 222.0)   # stands in for a .tres-authored default
+	nomark_cfg.leak_pos = Vector2(333.0, 444.0)
+	var nomark_rm = ReachMapScript.new()
+	var nomark_root := Node2D.new(); get_root().add_child(nomark_root); nomark_root.add_child(nomark_rm)
+	nomark_rm.classify(nomark_cfg)
+	var expect_spawn := Vector2((nomark_cfg.water_left + nomark_cfg.water_right) * 0.5, nomark_cfg.surface_y)
+	_check("harvest: unmarked spawn falls back to the water-bbox center at the table",
+		nomark_cfg.spawn_pos == expect_spawn)
+	_check("harvest: unmarked friend keeps the pre-set cfg default (not clobbered/zeroed)",
+		nomark_cfg.friend_pos == Vector2(111.0, 222.0))
+	_check("harvest: unmarked leak keeps the pre-set cfg default (not clobbered/zeroed)",
+		nomark_cfg.leak_pos == Vector2(333.0, 444.0))
+	nomark_root.free()
+
+	# marsh pilot regression: spawn/friend already asserted at "spawn"/"friend" above; leak was
+	# never independently checked — pin it here so the sentinel reset/restore dance never silently
+	# drops a real painted marker (transcribed against the marsh_draft_markers.png leak pixel at
+	# cell (62,52), independently re-derived via cell_world rather than a bare literal).
+	_check("harvest: marsh leak still harvests its painted marker position",
+		cfg.leak_pos == rm.cell_world(62, 52))
+
+	# --- Robustness pack item 4: seal blast -> WorldState mark, end to end — fully clearing an
+	# UNLOCKED map seal must fire the WorldState mark AND leave every one of its cells swimmable.
+	# Scratch-save idiom (WSHelper.reset_scratch) — the real user save is never touched. ---
+	WSHelper.reset_scratch("user://test_reach_map_sealblast.save")
+	var cfg4 = CoveConfigScript.new()
+	cfg4.id = "canals"
+	cfg4.map_terrain = load("res://assets/maps/marsh_draft_terrain.png")
+	cfg4.map_markers = load("res://assets/maps/marsh_draft_markers.png")
+	var rm4 = ReachMapScript.new()
+	var root4 := Node2D.new(); get_root().add_child(root4)
+	var field4 = ReachFieldScript.new()
+	root4.add_child(field4)              # group "reach_field" membership needs it IN the tree
+	root4.add_child(rm4)
+	rm4.classify(cfg4)
+	field4.set_mask(cfg4.map_origin, rm4.grid, rm4.gw, rm4.gh, rm4.table_row)
+	rm4.build()                          # exercises _build_breakables() end to end
+
+	# RUBBLE components get seal ordinals FIRST (_build_breakables processes
+	# [RUBBLE, SILT, BOULDER] in that order, idx starting at 0), so the first entry in
+	# component_rects(RUBBLE) is always "seal_0" — locate it live instead of hardcoding a rect.
+	var rubble_rects = rm4.component_rects(ReachFieldScript.RUBBLE)
+	_check("seal blast setup: the marsh has at least one RUBBLE seal", rubble_rects.size() > 0)
+	var target_rect: Rect2i = rubble_rects[0]
+	var seal_key := "seal_0"
+	var target_pos: Vector2 = cfg4.map_origin + Vector2(target_rect.position) * 8.0
+	var seal_rock = null
+	for child in rm4.get_children():
+		if is_instance_of(child, RockScript) and not child.locked and child.position == target_pos:
+			seal_rock = child
+	_check("seal blast: located a live unlocked seal rock", seal_rock != null)
+
+	# a Dictionary, not a bare bool — GDScript lambdas capture primitive locals BY VALUE, so a bare
+	# bool reassigned inside the closure would only mutate the closure's own copy (same idiom as
+	# revisit_counter above, which hit this exact gotcha first).
+	var cleared_flag := {"fired": false}
+	seal_rock.cleared.connect(func() -> void: cleared_flag.fired = true)
+	for scy in range(target_rect.position.y, target_rect.end.y):
+		for scx in range(target_rect.position.x, target_rect.end.x):
+			seal_rock.blast(rm4.cell_world(scx, scy), 3.0)   # per-cell hit — a shell-spin's cadence
+	_check("seal blast: cleared fires once every cell is gone", cleared_flag.fired)
+	_check("seal blast: WorldState marks the seal cleared",
+		bool(WSHelper.get_cove(cfg4.id, seal_key, false)))
+
+	var all_water := true
+	for scy in range(target_rect.position.y, target_rect.end.y):
+		for scx in range(target_rect.position.x, target_rect.end.x):
+			if not field4.is_water(rm4.cell_world(scx, scy)):
+				all_water = false
+	_check("seal blast: every cell of the cleared seal reads water", all_water)
+	root4.free()
+
 	print("RESULT: " + ("ALL PASS" if fails == 0 else "%d FAILED" % fails))
 	root.free()
 	quit(1 if fails > 0 else 0)

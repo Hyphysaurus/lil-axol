@@ -34,5 +34,33 @@ func _init() -> void:
 	rectf.carve(Vector2(0, 0), 10.0)            # rect: no-op, no crash
 	_check("rect carve noop", rectf.is_water(Vector2(0, 0)))
 	rectf.free(); maskf.free()
+	_test_carve_cell_contract()
 	print("RESULT: " + ("ALL PASS" if fails == 0 else "%d FAILED" % fails))
 	quit()
+
+## carve_cell(cx,cy) must flip EXACTLY one cell — the fixed 3x3-bleed regression guard. carve()'s
+## radius math always sweeps a minimum 3x3 (ceilf(radius/CELL) >= 1 even for a tiny radius), which
+## is why carve_cell exists as the exact-cell path _carve_rect needs. A 3x3 rubble block on an
+## otherwise-air field, carved at its center cell only: the center must read water and all 8
+## neighbors (still part of the same block) must stay solid.
+func _test_carve_cell_contract() -> void:
+	var w := 5; var h := 5
+	var cells := PackedByteArray(); cells.resize(w * h)   # AIR(0) background
+	for cy in range(1, 4):
+		for cx in range(1, 4):
+			cells[cy * w + cx] = ReachFieldScript.RUBBLE  # solid 3x3 rubble block, center cell (2,2)
+	var origin := Vector2.ZERO
+	var f = ReachFieldScript.new()
+	f.set_mask(origin, cells, w, h, 0)     # table_row 0: nothing blocks the carve
+	f.carve_cell(2, 2)
+	_check("carve_cell: center flips to water",
+		f.is_water(origin + Vector2(2.5, 2.5) * ReachFieldScript.CELL))
+	var neighbors_solid := true
+	for dy in range(-1, 2):
+		for dx in range(-1, 2):
+			if dx == 0 and dy == 0:
+				continue
+			if f.is_water(origin + Vector2(2.5 + dx, 2.5 + dy) * ReachFieldScript.CELL):
+				neighbors_solid = false
+	_check("carve_cell: all 8 neighbors still rubble-solid (no 3x3 bleed)", neighbors_solid)
+	f.free()
