@@ -698,6 +698,16 @@ func _leaf_motes() -> void:
 func swimming() -> bool:
 	return _in_water
 
+## A find deserves a beat (diegetic pass): on land the axolotl settles into its sit to STUDY the
+## curio before the Field Guide card appears — the card becomes its own journal page, not a popup.
+## In water there's no sit clip, so a small wonder-wiggle marks the moment instead. The sit ends
+## the way it always does — any input stands back up (see the sit-and-watch idle).
+func study() -> void:
+	if _in_water:
+		_spr.scale = Vector2(1.18, 0.85)
+		return
+	_sitting = true
+
 ## Landed on our own live Bubble Bomb: trampoline launch (the bubble pops itself and still
 ## scrubs/carves). Refreshes the gill-kick — bubble -> bounce -> gill-kick chains are the toy.
 func bubble_bounce() -> void:

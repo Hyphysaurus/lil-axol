@@ -56,6 +56,8 @@ func _ready() -> void:
 	_inject($ReachState)
 	_inject($InvasiveSchool)
 	_inject($Hints)      # needs the cove id for the once-per-world Cascade tutorial mark
+	_inject($ScoutDragonfly)
+	_inject($FeatEcho)
 	_apply_environment()
 	if Settings.arrive_via_portal:
 		var entry_key := Settings.arrive_entry

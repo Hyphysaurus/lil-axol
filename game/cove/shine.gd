@@ -17,6 +17,7 @@ signal score_changed(score: int, mult: int)
 signal charge_changed(frac: float)
 signal bubble_ready
 signal feat_called(title: String, points: int)   # a named feat landed -> the callout banner shows it
+signal feat_echoed(at: Vector2)                   # ...and WHERE, for the world's own celebration (feat_echo)
 signal flow_changed(frac: float, active: bool)    # Flow meter fill (0..1) + whether TIDAL FLOW is live
 
 const DISPLAY_FONT := preload("res://assets/fonts/LilitaOne.ttf")   # chunky rounded font for the "+N" pops
@@ -157,6 +158,7 @@ func feat(id: StringName, at: Vector2) -> void:
 	_pop_acc += pts
 	_pop_at = at
 	feat_called.emit(str(f[0]), int(pts))
+	feat_echoed.emit(at)                 # the pond celebrates too (ripple ring + leaping glints)
 	Sfx.play("whimsy", -1.0, 1.35)      # a bright feat sting over the normal chimes
 	if not _flow_active:                 # feats during TIDAL FLOW just score double; they don't refill
 		_flow = minf(1.0, _flow + float(f[2]))

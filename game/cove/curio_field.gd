@@ -55,6 +55,12 @@ func _on_collected(cid: String) -> void:
 	for i in total:
 		if bool(WorldState.get_cove(_cfg.id, "curio_" + str(i), false)):
 			found += 1
+	# the SIT-AND-SKETCH beat (diegetic pass): the tidekeeper settles to study the find first;
+	# the card fades in a moment later, reading as its own journal page instead of a popup
+	var axo := get_tree().get_first_node_in_group("player")
+	if axo and axo.has_method("study"):
+		axo.study()
+	await get_tree().create_timer(0.7).timeout
 	show_card(card, "field guide — %d of %d found in this reach" % [maxi(found, 1), total])
 
 ## Show any Field Guide card (curios use it; the invasive school's encounter card too).
