@@ -65,6 +65,13 @@ const STEP_MAX := 10.0         # walk-up ledge height: painted maps stair EVERYT
 							   # and a CharacterBody2D stops dead at any riser — one cell must
 							   # never need a jump (it read as "terrain is impassable")
 
+# --- VENT UPDRAFT (restoration reshapes traversal): every thermal vent you crack open installs
+# a permanent warm column in the reach — swim into it and it carries you, cresting into a gentle
+# geyser-loft through the surface. External force layered on the swim; D-0003 tuning untouched.
+const UPDRAFT_HALF_W := 16.0   # column half-width (matches the plume)
+const UPDRAFT_ACCEL := 1000.0  # fights the swim lerp to an equilibrium rise of ~140 px/s
+const UPDRAFT_MAX_RISE := 200.0
+
 var _air_jump_spent := false   # double jump: one per airtime, refreshed by floor/water/curtain
 var _coyote := 0.0
 var _jump_buffer := 0.0        # time left for a banked early jump press to fire on landing
@@ -442,6 +449,21 @@ func _swim(delta: float, dir: float) -> void:
 		tv.y = (spring + sin(_t * tuning.bob_freq) * tuning.bob_amp * near_surface) * surf_pull
 
 	velocity = velocity.lerp(tv, clampf(tuning.swim_lerp * slow * delta, 0.0, 1.0))
+
+	# --- vent updraft: inside an OPEN vent's warm column, rise — and near the surface the
+	# column keeps its momentum (hop grace), lofting you out like a gentle geyser. Ride up,
+	# gill-kick at the crest, cannonball back down: the vent becomes a fountain of play.
+	var cove2 := get_parent() as Node2D
+	if cove2:
+		var cl2 := _cove_local()
+		for vent in get_tree().get_nodes_in_group("thermal_vent"):
+			if vent is Node2D and vent.has_method("is_vent_open") and vent.is_vent_open():
+				var vl := cove2.to_local((vent as Node2D).global_position)
+				if absf(cl2.x - vl.x) < UPDRAFT_HALF_W and cl2.y < vl.y:
+					velocity.y = maxf(velocity.y - UPDRAFT_ACCEL * delta, -UPDRAFT_MAX_RISE)
+					if depth < 12.0:
+						_hop_grace = 0.25   # crest the surface instead of pancaking under it
+					break
 
 	# buoyancy alone never flings the axo out...
 	if depth <= 0.0 and velocity.y < 0.0 and _hop_grace <= 0.0:
