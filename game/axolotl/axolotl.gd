@@ -61,6 +61,9 @@ const AIR_JUMP_SCALE := 0.9    # the mid-air gill-kick is a touch softer than th
 const DIVE_MIN_SPEED := 320.0  # entry fall speed where a dive starts scrubbing (a bank slip doesn't)
 const DIVE_MAX_SPEED := 620.0  # full-power cannonball
 const BOUNCE_SCALE := 1.15     # bubble-trampoline launch vs the ground jump
+const STEP_MAX := 10.0         # walk-up ledge height: painted maps stair EVERYTHING in 8px cells,
+							   # and a CharacterBody2D stops dead at any riser — one cell must
+							   # never need a jump (it read as "terrain is impassable")
 
 var _air_jump_spent := false   # double jump: one per airtime, refreshed by floor/water/curtain
 var _coyote := 0.0
@@ -313,11 +316,27 @@ func _physics_process(delta: float) -> void:
 		Sfx.play("jump", -2.0, 1.25)       # a brighter chirp for the second hop
 		gill_kicked.emit()
 	move_and_slide()
+	_try_step_up(dir)
 	if is_on_floor() and not _was_on_floor:
 		_land()
 	_was_on_floor = is_on_floor()
 	_animate_land(running, spraying, delta)
 	_juice(delta)
+
+## STEP-ASSIST: walking into a riser no taller than STEP_MAX with clear headroom steps the body
+## up onto it instead of stopping dead. test_move uses our own collider, so anything that would
+## overlap at the raised position (a taller wall, a ceiling) correctly refuses the step.
+func _try_step_up(dir: float) -> void:
+	if absf(dir) < 0.1 or not is_on_floor() or not is_on_wall():
+		return
+	var raised := global_transform
+	raised.origin += Vector2(0.0, -STEP_MAX)
+	if test_move(global_transform, Vector2(0.0, -STEP_MAX)):
+		return                              # no headroom to lift
+	if test_move(raised, Vector2(signf(dir) * 3.0, 0.0)):
+		return                              # still a wall up there: a real wall, not a step
+	global_position += Vector2(signf(dir) * 2.0, -STEP_MAX)
+	apply_floor_snap()                      # settle onto the step instead of floating a beat
 
 ## The climbable strip under the axolotl right now, or null. (Designated surfaces only — a couple
 ## per scene, so polling the group is cheap.)
