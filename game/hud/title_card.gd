@@ -10,6 +10,8 @@ const DISPLAY_FONT := preload("res://assets/fonts/LilitaOne.ttf")   # chunky rou
 var _root: Control
 var _fade := 1.0
 var _leaving := false
+var _new_tide: Button = null   # the wash-away button (returning worlds only); two-tap confirm
+var _tide_armed := false
 
 func _ready() -> void:
 	layer = 97                     # over banner (95) + NewDay (96), under settings (99) + PostFX (100)
@@ -47,6 +49,27 @@ func _begin() -> void:
 		return
 	_leaving = true
 	Sfx.play("chime", -6.0, 1.25)
+
+## NEW TIDE, two-tap: the first press arms the button ("wash it all away?"), the second commits.
+## Any other choice (continue / settings / credits) leaves the world untouched — no modal, no
+## fail-state energy, just a deliberate second tap (the cozy confirm).
+func _confirm_new_tide() -> void:
+	if _leaving:
+		return
+	if not _tide_armed:
+		_tide_armed = true
+		_new_tide.text = "wash it all away?"
+		_new_tide.add_theme_color_override("font_color", Palette.GOLD)
+		Sfx.play("scrub", -12.0, 0.8)
+		return
+	WorldState.wipe()
+	Settings.roster_reset()
+	Settings.run_score = 0.0
+	Settings.arrive_via_portal = false
+	Settings.arrive_entry = ""
+	Settings.title_shown = false        # the reloaded world greets like a first launch
+	Sfx.play("splash", -4.0, 0.9)       # the tide takes it
+	get_tree().reload_current_scene()
 
 func _open_settings() -> void:
 	var menu := get_node_or_null("../SettingsMenu")
@@ -104,9 +127,16 @@ func _build() -> void:
 	vb.add_child(sub)
 
 	vb.add_child(_spacer(26.0))
-	var begin := _button("begin", _begin)
-	vb.add_child(begin)
-	begin.grab_focus.call_deferred()   # pad/keyboard can navigate from here
+	# returning tidekeeper: the world remembers, so offer the choice — continue it, or wash it
+	# all away and start a new tide. A brand-new world just gets "begin".
+	var returning := WorldState.has_progress()
+	var first := _button("continue" if returning else "begin", _begin)
+	vb.add_child(first)
+	first.grab_focus.call_deferred()   # pad/keyboard can navigate from here
+	if returning:
+		vb.add_child(_spacer(4.0))
+		_new_tide = _button("new tide", _confirm_new_tide)
+		vb.add_child(_new_tide)
 	vb.add_child(_spacer(4.0))
 	vb.add_child(_button("settings", _open_settings))
 	vb.add_child(_spacer(4.0))

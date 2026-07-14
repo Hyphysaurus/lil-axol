@@ -55,3 +55,21 @@ func mark(id: String, key: String, value: Variant) -> void:
 
 func is_restored(id: String) -> bool:
 	return bool(get_cove(id, "restored", false))
+
+## Any world memory at all? Drives the title's continue / new-tide split — a brand-new player
+## sees a single "begin"; a returning one gets the choice. True when any cove section exists.
+func has_progress() -> bool:
+	for s in _cfg.get_sections():
+		if s.begins_with("cove_"):
+			return true
+	return false
+
+## NEW TIDE: wash the whole world away — deliberate, player-chosen, offered at the title only.
+## Deletes the save and starts a fresh memory; the caller resets session state and reloads.
+## A .bad quarantine file (if any) is left alone — it's evidence, not progress.
+func wipe() -> void:
+	if FileAccess.file_exists(save_path):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(save_path))
+	_cfg = ConfigFile.new()
+	_cfg.set_value("meta", "version", SAVE_VERSION)
+	echo = false

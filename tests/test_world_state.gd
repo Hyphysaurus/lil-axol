@@ -11,6 +11,7 @@ func _init() -> void:
 	_test_fresh_defaults()
 	_test_round_trip()
 	_test_corrupt_quarantine()
+	_test_new_tide()
 	print("RESULT: %s" % ("FAIL x%d" % _fails if _fails > 0 else "ALL PASS"))
 	quit(1 if _fails > 0 else 0)
 
@@ -52,6 +53,22 @@ func _test_round_trip() -> void:
 	_check("round: other cove isolated", b.is_restored("estuary") == false)
 	_check("round: other cove key persists", bool(b.get_cove("estuary", "friend_awake", false)))
 	b.free()
+
+## NEW TIDE (title screen): has_progress drives the continue/new-tide split; wipe() washes the
+## save away and leaves a fresh, versioned store.
+func _test_new_tide() -> void:
+	var path := "user://test_ws_tide.save"
+	var ws := _fresh(path)
+	_check("tide: fresh world has no progress", ws.has_progress() == false)
+	ws.mark("canals", "seal_2", true)
+	_check("tide: a mark counts as progress", ws.has_progress())
+	ws.wipe()
+	_check("tide: wipe clears progress", ws.has_progress() == false)
+	_check("tide: wipe removes the file", FileAccess.file_exists(path) == false)
+	_check("tide: wiped store still answers defaults", ws.is_restored("canals") == false)
+	ws.mark("canals", "seal_2", true)
+	_check("tide: world records again after the wipe", ws.has_progress())
+	ws.free()
 
 func _test_corrupt_quarantine() -> void:
 	var path := "user://test_ws_bad.save"
