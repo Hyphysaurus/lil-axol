@@ -48,6 +48,12 @@ var _scrub_snd_cd := 0.0       # slower than _spark_cd so the pops tick, not mac
 var _mask_dirty := false
 var _upload_cd := 0.0
 const MASK_UPLOAD_HZ := 30.0
+## True only WHILE set_clean_fraction() is re-seeding cleanliness from a save (reload/portal-hop),
+## false the rest of the time (including every live spray_at() scrub). Milestone listeners that
+## award something on the `cleanliness` signal (Shine's Shine bonus, the HUD meter's notch pulse)
+## read this to tell "a save jumped the value" apart from "the player actually scrubbed it there" —
+## without it, re-entering a partially-cleaned cove replays every already-earned milestone (D-0007).
+var is_seeding := false
 
 func _ready() -> void:
 	add_to_group("oil_manager")
@@ -237,7 +243,9 @@ func oil_at(world_pos: Vector2) -> float:
 ## bug this function exists to avoid). Instead we binary-search the uniform scale factor `keep`
 ## whose resulting visible-weighted remainder actually equals (1-f) of _total, then apply that
 ## keep — same uniform-scale mechanic as before, just solved for the right target. Recomputes the
-## milestone cursor so re-seeded progress doesn't replay milestone bursts/chimes.
+## milestone cursor so re-seeded progress doesn't replay milestone bursts/chimes, and raises
+## is_seeding around the cleanliness emission so OTHER milestone listeners (Shine, the HUD meter)
+## can silently seed their own cursors too instead of re-awarding (D-0007).
 func set_clean_fraction(f: float) -> void:
 	f = clampf(f, 0.0, 1.0)
 	if _mask == null or f <= 0.0:
@@ -254,7 +262,9 @@ func set_clean_fraction(f: float) -> void:
 			_mask.set_pixel(mx, my, Color(nr, 0.0, 0.0, 1.0))
 			_remaining += _vis(nr)
 	_mask_tex.update(_mask)
-	_set_clean()
+	is_seeding = true             # this jump is a reload re-seed, not live scrubbing — listeners
+	_set_clean()                  # must not treat the cleanliness signal as newly-earned progress
+	is_seeding = false
 	_milestone = 0
 	for m in MILESTONES:
 		if current_clean >= float(m):

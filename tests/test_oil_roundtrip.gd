@@ -33,6 +33,34 @@ func _process(_delta: float) -> bool:
 		var err := absf(restored - saved)
 		_check("round trip saved=%.4f -> restored=%.4f (|err| %.4f <= 0.02)" % [saved, restored, err], err <= 0.02)
 
+	# --- Edge cases (reviewer's Minor: missing permanent assertions for set_clean_fraction's own
+	# documented short-circuits + the win-threshold boundary the whole round trip exists to protect) ---
+
+	# f=0.0 is a documented no-op (`if _mask == null or f <= 0.0: return`): a freshly built mask
+	# (current_clean == 0.0 from setup()'s own _set_clean()) must stay untouched.
+	var oil_zero = _spawn_oil(OilSpillScript, CoveConfigScript)
+	oil_zero.set_clean_fraction(0.0)
+	_check("f=0.0 is a no-op: current_clean stays 0.0", is_equal_approx(oil_zero.current_clean, 0.0))
+
+	# f=1.0 short-circuits _solve_keep's target<=0.0 branch straight to keep=0.0 (no bisection) —
+	# this is the WorldState.is_restored() spawn path (cove.gd._apply_saved), so it must land on
+	# EXACTLY 1.0, not an approximation close to it, or a "fully restored" cove could still show
+	# lingering oil.
+	var oil_one = _spawn_oil(OilSpillScript, CoveConfigScript)
+	oil_one.set_clean_fraction(1.0)
+	_check("f=1.0 restores to EXACTLY 1.0 (is_restored spawn path)", oil_one.current_clean == 1.0)
+
+	# Win-boundary membership: _solve_keep's bisection only ever UNDER-restores by a tiny epsilon
+	# (hi starts at 1.0 and only shrinks — see _solve_keep), never over-restores past the saved
+	# fraction, so a value comfortably on one side of win_threshold (CoveConfig default 0.98) must
+	# restore to the SAME side, never crossing it.
+	var restored_975 := _reload_with(OilSpillScript, CoveConfigScript, 0.975)
+	_check("win boundary: saved 0.975 (below win_threshold 0.98) restores still below it",
+		restored_975 < 0.98)
+	var restored_985 := _reload_with(OilSpillScript, CoveConfigScript, 0.985)
+	_check("win boundary: saved 0.985 (above win_threshold 0.98) restores still at/above it",
+		restored_985 >= 0.98)
+
 	print("RESULT: " + ("ALL PASS" if fails == 0 else "%d FAILED" % fails))
 	quit()
 	return true

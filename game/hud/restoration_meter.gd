@@ -21,6 +21,7 @@ var _pulse_at := 0.0           # x-fraction of the notch that pulsed
 var _milestone := 0
 var _health := 0.0             # latest reach_state health, drives the MAIN bar when present
 var _reach: Node               # the reach_state group node, once deferred-wired (else null)
+var _mgr: Node                 # the oil manager — kept so _on_clean can read its is_seeding flag
 var _gauge: Gauge
 var _label: Label
 
@@ -29,6 +30,7 @@ func _ready() -> void:
 	_build()
 	var mgr = get_tree().get_first_node_in_group("oil_manager")
 	if mgr and mgr.has_signal("cleanliness"):
+		_mgr = mgr
 		mgr.cleanliness.connect(_on_clean)
 	if mgr and "current_clean" in mgr:
 		_clean = mgr.current_clean
@@ -48,6 +50,15 @@ func _wire_reach() -> void:
 
 func _on_clean(v: float) -> void:
 	_clean = v
+	if _mgr and "is_seeding" in _mgr and _mgr.is_seeding:
+		# a reload re-seed jump (OilSpill.set_clean_fraction), not live scrubbing — seed the
+		# milestone cursor silently so a revisited cove doesn't re-flash the notch pulse for
+		# progress already earned (cosmetic sibling of Shine's reload-replay guard, D-0007).
+		_milestone = 0
+		for m in MILESTONES:
+			if v >= m:
+				_milestone += 1
+		return
 	if _milestone < MILESTONES.size() and v >= float(MILESTONES[_milestone]):
 		_pulse_at = float(MILESTONES[_milestone])
 		_milestone += 1

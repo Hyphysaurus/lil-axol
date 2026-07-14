@@ -58,6 +58,7 @@ var _charge := 0.0
 var _ready_fired := false
 var _trickle_acc := 0.0        # 4Hz accumulator for the ambient bubble recharge
 var _milestone := 0
+var _mgr: Node                 # the oil manager — kept so _on_clean can read its is_seeding flag
 var _pop_acc := 0.0
 var _pop_at := Vector2.ZERO
 var _pop_cd := 0.0
@@ -77,6 +78,7 @@ func _ready() -> void:
 	score = Settings.run_score   # resume the run's total if we arrived here through a pathway
 	var mgr = get_tree().get_first_node_in_group("oil_manager")
 	if mgr:
+		_mgr = mgr
 		if mgr.has_signal("scrubbed"):
 			mgr.scrubbed.connect(_on_scrubbed)
 		if mgr.has_signal("cleanliness"):
@@ -99,6 +101,17 @@ func _on_scrubbed(frac: float, at: Vector2) -> void:
 func _on_clean(v: float) -> void:
 	# escalating MILESTONE bonuses at 25/50/75% — a real reward (2.5k/5k/7.5k) with a celebratory
 	# chime + a big "+N" pop, so hitting a quarter reads as an event, not a rounding error.
+	if _mgr and "is_seeding" in _mgr and _mgr.is_seeding:
+		# this cleanliness value arrived from a reload re-seed (OilSpill.set_clean_fraction), not
+		# live scrubbing — a scene-local Shine's _milestone cursor always resets to 0 on load, so
+		# without this guard every cove revisit with saved progress >= 25% replays every crossed
+		# milestone's Shine + chime (score farm via reload/portal-hop, D-0007). Seed the cursor to
+		# match instead of awarding — same idiom as OilSpill's own milestone-cursor recompute.
+		_milestone = 0
+		for m in [0.25, 0.5, 0.75]:
+			if v >= m:
+				_milestone += 1
+		return
 	while _milestone < 3 and v >= [0.25, 0.5, 0.75][_milestone]:
 		_milestone += 1
 		var reward := 2500.0 * float(_milestone) * _flow_mult()
