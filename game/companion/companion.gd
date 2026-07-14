@@ -62,10 +62,30 @@ const HOP_APEX := 15.0         # arc height at mid-hop
 const HOP_REST := 0.16         # squat beat between chained hops
 const PAD_SNAP := 18.0         # landing point snaps onto a lilypad within this
 
+# --- the shared partner-action button, keyed by who's ACTIVE (spec REVIEW AMENDMENT, Critical —
+# the Kirby rule: one button, verbs keyed by who travels with you). Plain consts, not an enum: no
+# code in this repo reaches a nested enum through a load()/preload()'d script reference — flat
+# consts (ReachField.WATER's own pattern) are the proven, tested idiom. ---
+const VERB_NONE := 0
+const VERB_SHELL := 1
+const VERB_SURVEY := 2
+
+# --- SURVEY (dragonfly, non-interactive — she flies herself): press → ~1.8s spiral-out sweep →
+# a 6s world-wide REVEAL → an optional ~2.5s hover over the reach's worst-oxygen point → back to
+# following. Cooldown ~10s, shown on the PartnerHud portrait. ---
+const SURVEY_SWEEP_TIME := 1.8         # spiral-out duration (the scout's flight language reused)
+const SURVEY_SWEEP_RADIUS := 180.0     # how far out the spiral reaches
+const SURVEY_REVEAL_SECONDS := 6.0     # group "surveyable" reveal window
+const SURVEY_COOLDOWN := 10.0          # between presses
+const SURVEY_FINISH_FLY := 0.6         # short hop to the worst-oxygen point after the sweep
+const SURVEY_FINISH_HOVER := 2.5       # she hovers there before handing back to following
+const SURVEY_DENSITY_RADIUS := 90.0    # neighborhood radius for the worst-oxygen density pick
+
 enum State { SLEEPING, WAKING, FOLLOWING }
 enum Kind { TURTLE, FROG, OTTER, DRAGONFLY }   # TURTLE = shell-spin demolition; FROG = tongue-grab;
                                 # OTTER (herd/haul, slice 6) + DRAGONFLY (survey, slice 4) are
                                 # registered followers — art wired, verbs land with their slices
+enum SurveyPhase { NONE, SWEEP, FINISH }   # the dragonfly's non-interactive sweep state machine
 
 signal woke   # emitted once when the rescue ceremony completes (WorldState files friend_awake off this)
 
@@ -106,6 +126,16 @@ var _shell_p: CPUParticles2D       # electric energy trail behind the spinning s
 var _crunch_cd := 0.0              # throttles the per-bite crunch SFX (no machine-gun)
 var _meaty_cd := 0.0               # throttles hitstop so only spaced-out hits freeze the frame
 var _flash := 0.0                  # white impact flash on the shell sprite, decays fast
+
+# survey state (dragonfly)
+var _survey_phase := SurveyPhase.NONE
+var _survey_t := 0.0
+var _survey_cd := 0.0
+var _survey_origin := Vector2.ZERO
+var _survey_finish_start := Vector2.ZERO
+var _survey_finish_pos := Vector2.ZERO
+var _survey_has_finish := false
+var _shell_was_held := false           # edge-detect for Survey's press-fire (shares _shell_held())
 
 func _ready() -> void:
 	add_to_group("sprayable")          # receives the player's spray hits
@@ -229,6 +259,18 @@ func wake_instant() -> void:
 func wants_input_lock() -> bool:
 	return _piloting and _steer_axis
 
+## Public read for the roster/HUD/Survey machinery: which Kind this instance is.
+func kind() -> int:
+	return _kind
+
+## For the PartnerHud cooldown ring (throttled 4Hz poll, spec REVIEW AMENDMENT — real plumbing,
+## no per-frame path): 0..1 charge fraction, or -1 if this instance has no Survey cooldown to show
+## right now (not the dragonfly, or not yet following).
+func survey_hud_charge() -> float:
+	if _kind != Kind.DRAGONFLY or _state != State.FOLLOWING:
+		return -1.0
+	return survey_charge_frac(_survey_cd)
+
 func _process(delta: float) -> void:
 	_t += delta
 	if _state == State.SLEEPING:
@@ -239,15 +281,29 @@ func _process(delta: float) -> void:
 	if _piloting:
 		_run_pilot(delta)                 # shell-spin demolition (the frog isn't piloted)
 		return
+	if _survey_phase != SurveyPhase.NONE:
+		_run_survey(delta)                 # the dragonfly's non-interactive sweep (she flies herself)
+		return
 	# recharge the shell between spins; tick down any dizzy lock
 	_dizzy_t = maxf(0.0, _dizzy_t - delta)
 	if _stamina < 1.0:
 		_stamina = minf(1.0, _stamina + delta / REFILL_SECONDS)
 		queue_redraw()
-	# start a spin: HOLD Shell (turtle only) with enough charge, when no menu is up
-	if _kind == Kind.TURTLE and _dizzy_t <= 0.0 and _stamina >= START_MIN \
-			and not Settings.ui_locked() and _shell_held():
+	_survey_cd = cooldown_tick(_survey_cd, delta)
+	var held := _shell_held()
+	var pressed := held and not _shell_was_held
+	_shell_was_held = held
+	# the shared partner-action button, keyed by who's ACTIVE: only the rescued partner currently
+	# travelling with you answers it, even while a non-active rescued partner is mid-follow right
+	# beside you (spec REVIEW AMENDMENT, Critical). With this gate, Survey needs no tap/hold
+	# disambiguation — it fires on PRESS, zero latency, shell-identical feel.
+	var verb := verb_for(_kind, Settings.run_active)
+	if verb == VERB_SHELL and _dizzy_t <= 0.0 and _stamina >= START_MIN \
+			and not Settings.ui_locked() and held:
 		_begin_pilot()
+		return
+	if verb == VERB_SURVEY and _survey_cd <= 0.0 and not Settings.ui_locked() and pressed:
+		_begin_survey()
 		return
 	var axo := get_tree().get_first_node_in_group("player") as Node2D
 	if axo == null:
@@ -374,6 +430,44 @@ func _frog_hop(delta: float, target: Vector2, gap: Vector2) -> void:
 	_hop_to = to
 	_hop_t = 0.0
 	Sfx.play("jump", -16.0, 1.5)                       # a small springy squeak off the pad
+
+# --- pure gate + math (headless-testable, no scene/Input needed) -------------------------------
+
+## The shared partner-action button, keyed by who's ACTIVE (spec REVIEW AMENDMENT, Critical).
+static func verb_for(kind: int, active_kind: int) -> int:
+	if kind != active_kind:
+		return VERB_NONE
+	if kind == Kind.TURTLE:
+		return VERB_SHELL
+	if kind == Kind.DRAGONFLY:
+		return VERB_SURVEY
+	return VERB_NONE
+
+static func cooldown_tick(cd: float, delta: float) -> float:
+	return maxf(0.0, cd - delta)
+
+## 0 = just fired, 1 = ready — mirrors the shell-spin stamina ring's fill-as-it-charges reading.
+static func survey_charge_frac(cd: float) -> float:
+	return 1.0 - cd / SURVEY_COOLDOWN
+
+## The worst-oxygen finish (spec REVIEW AMENDMENT, Important — reach_state's oxygen is a single
+## scalar with no positional data, so this is NEW WORK: the densest neighborhood among the reach's
+## live "grabbable" chokes (debris/pests) by point count within `radius`). Pure + static; the
+## instance wrapper below supplies the real group scan.
+static func densest_point(points: Array, radius: float) -> Vector2:
+	if points.is_empty():
+		return Vector2.INF
+	var best: Vector2 = points[0]
+	var best_n := -1
+	for p in points:
+		var n := 0
+		for q in points:
+			if (p as Vector2).distance_to(q as Vector2) <= radius:
+				n += 1
+		if n > best_n:
+			best_n = n
+			best = p
+	return best
 
 # --- SHELL-SPIN ---------------------------------------------------------------------------------
 
@@ -531,6 +625,75 @@ func _end_pilot(exhausted: bool) -> void:
 		_dizzy_t = DIZZY_TIME
 		Sfx.play("chirp", -12.0, 0.8)   # a little dizzy peep
 	queue_redraw()
+
+# --- SURVEY (dragonfly, non-interactive: she flies herself) ------------------------------------
+
+## Press Survey. Non-interactive from here — _run_survey drives the whole sweep.
+func _begin_survey() -> void:
+	_survey_phase = SurveyPhase.SWEEP
+	_survey_t = 0.0
+	_survey_cd = SURVEY_COOLDOWN
+	_survey_origin = position
+	_survey_has_finish = false
+	Sfx.play("chime", -6.0, 1.6)
+
+## The sweep state machine: spiral out (~1.8s, radius ~180 — the scout's flight language reused),
+## fire the reveal, then (if the reach has a worst-oxygen spot) fly to it and hover ~2.5s.
+func _run_survey(delta: float) -> void:
+	_survey_t += delta
+	match _survey_phase:
+		SurveyPhase.SWEEP:
+			var frac := clampf(_survey_t / SURVEY_SWEEP_TIME, 0.0, 1.0)
+			var ang := frac * TAU * 2.2
+			var rad := SURVEY_SWEEP_RADIUS * frac
+			position = _survey_origin + Vector2(cos(ang) * rad, sin(ang) * rad * 0.55)
+			if absf(cos(ang)) > 0.05:
+				_face = signf(cos(ang))
+			_anims.play(anims.swim, _face)          # her cruising flight clip (fly_forward)
+			if frac >= 1.0:
+				_survey_phase = SurveyPhase.FINISH
+				_survey_t = 0.0
+				get_tree().call_group("surveyable", "reveal", SURVEY_REVEAL_SECONDS)
+				_survey_finish_pos = _pick_survey_finish()
+				_survey_has_finish = _survey_finish_pos != Vector2.INF
+				_survey_finish_start = position
+		SurveyPhase.FINISH:
+			if not _survey_has_finish:
+				_end_survey()
+				return
+			if _survey_t <= SURVEY_FINISH_FLY:
+				var f := clampf(_survey_t / SURVEY_FINISH_FLY, 0.0, 1.0)
+				position = _survey_finish_start.lerp(_survey_finish_pos, f)
+				_anims.play(anims.swim, _face)
+			else:
+				position = _survey_finish_pos + Vector2(0.0, sin(_t * 5.0) * 6.0)
+				_anims.play(anims.swim_idle, _face)
+				if _survey_t >= SURVEY_FINISH_FLY + SURVEY_FINISH_HOVER:
+					_end_survey()
+	queue_redraw()
+
+## Worst-oxygen finish: densest cluster of live "grabbable" chokes; fallback the uncapped leak;
+## fallback Vector2.INF (no finish — the sweep ends after the reveal alone, spec §3).
+func _pick_survey_finish() -> Vector2:
+	var pts: Array = []
+	for g in get_tree().get_nodes_in_group("grabbable"):
+		if g is Node2D:
+			pts.append((g as Node2D).global_position)
+	var densest := densest_point(pts, SURVEY_DENSITY_RADIUS)
+	if densest != Vector2.INF:
+		return densest
+	var leak := get_tree().get_first_node_in_group("leak")
+	if leak and not (leak as Node).is_queued_for_deletion():
+		return (leak as Node2D).global_position
+	return Vector2.INF
+
+func _end_survey() -> void:
+	_survey_phase = SurveyPhase.NONE
+	_survey_t = 0.0
+	_fire_first_survey()
+	queue_redraw()
+
+func _fire_first_survey() -> void: pass  ## replaced in Task 3
 
 ## The frog auto-snags any floating debris that drifts within tongue reach WHILE it follows you — bring
 ## it near the muck and it cleans it (no command, no darting). A cooldown paces the strikes; the tongue
