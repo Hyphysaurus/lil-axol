@@ -133,6 +133,21 @@ foreach ($m in $marks) {
 		$below = if ($y + 1 -lt $MH) { [string]$T[($y + 1), $x] } else { '.' }
 		if ($below -ne 'W') { $stat += "not directly above water (below=$($nameT[$below]))" }
 	}
+	if ($k -eq 'U') {
+		# Survey rule (slice 4 spec): every curio must sit within spray reach (~4 cells) of an
+		# open water/air cell, or the dragonfly's reveal is a tease that can never be collected
+		$reachable = $false
+		for ($dy = -4; $dy -le 4 -and -not $reachable; $dy++) {
+			for ($dx = -4; $dx -le 4; $dx++) {
+				if ($dx * $dx + $dy * $dy -gt 16) { continue }
+				$nx = $x + $dx; $ny = $y + $dy
+				if ($nx -lt 0 -or $nx -ge $MW -or $ny -lt 0 -or $ny -ge $MH) { continue }
+				$c2 = [string]$T[$ny, $nx]
+				if ($c2 -eq 'W' -or $c2 -eq '.') { $reachable = $true; break }
+			}
+		}
+		if (-not $reachable) { $stat += "curio beyond spray reach of open space (Survey tease rule)" }
+	}
 	$s = if ($stat.Count) { $stat -join '; ' } else { 'ok' }
 	"{0,-8} ({1,3},{2,2})  {3}" -f $nameM[$k], $x, $y, $s
 }

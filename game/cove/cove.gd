@@ -111,7 +111,6 @@ func _apply_saved() -> void:
 	var id := config.id
 	var friend := _live("Friend")
 	var portal := _live("Portal")
-	var portal2 := _live("Portal2")
 	var oil := _live("OilSpill")
 	if WorldState.is_restored(id):
 		var banner := _live("RestorationBanner")
@@ -123,8 +122,8 @@ func _apply_saved() -> void:
 			oil.set_clean_fraction(1.0)
 		if portal and portal.has_method("force_open"):
 			portal.force_open()
-		if portal2 and portal2.has_method("force_open") and config.exit2_enabled:
-			portal2.force_open()
+		# NOTE: Portal2 needs no restore path — exit2 is plugless BY SPEC (a discovered doorway,
+		# never a cave-in), so it self-opens in setup() on every load; there is nothing to remember.
 		var leak := _live("LeakSource")
 		if leak:
 			leak.queue_free()                  # a healed cove's leak stays capped
@@ -138,9 +137,6 @@ func _apply_saved() -> void:
 			oil.set_clean_fraction(f)
 	if portal and portal.has_method("force_open") and bool(WorldState.get_cove(id, "portal_cleared", false)):
 		portal.force_open()
-	if portal2 and portal2.has_method("force_open") and config.exit2_enabled \
-			and bool(WorldState.get_cove(id, "portal2_cleared", false)):
-		portal2.force_open()
 
 ## Milestone saves: each signal writes one flag the moment it's earned.
 func _wire_saves() -> void:
@@ -151,9 +147,8 @@ func _wire_saves() -> void:
 	var portal := _live("Portal")
 	if portal and portal.has_signal("opened"):
 		portal.opened.connect(func() -> void: WorldState.mark(id, "portal_cleared", true))
-	var portal2 := _live("Portal2")
-	if portal2 and portal2.has_signal("opened") and config.exit2_enabled:
-		portal2.opened.connect(func() -> void: WorldState.mark(id, "portal2_cleared", true))
+	# (Portal2 deliberately unwired: it opens synchronously in setup() BEFORE this runs, so a
+	# mark here could never fire — and a plugless door has no cleared-state to persist anyway.)
 	var friend := _live("Friend")
 	if friend and friend.has_signal("woke"):
 		friend.woke.connect(func() -> void: WorldState.mark(id, "friend_awake", true))
