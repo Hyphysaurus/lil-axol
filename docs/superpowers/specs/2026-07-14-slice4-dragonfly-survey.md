@@ -91,9 +91,9 @@ Plus the standing gates: all suites, three scene boots, reach-2 ingest audit gre
 - **Reveal-through-terrain rendering** on the land quad (z 7): revealed glints need a
   temporary layer ABOVE 7 without breaking the z-map — pin: reveals render at z 8 (portal/FX
   plane), duration-bounded. Verify WebGL cost: reveals are ≤ a dozen small glows, 6s, rare.
-- **One-button verb collision:** if BOTH turtle and dragonfly behaviors ever trigger on hold
-  vs tap, define: HOLD = shell (turtle active), TAP = survey (dragonfly active) — the active
-  partner disambiguates; never both.
+- **One-button verb collision:** RESOLVED by §3's amendment — the active-partner gate means
+  only one partner ever listens to the button; no hold/tap timing exists or is needed. (An
+  earlier draft's HOLD-vs-TAP policy is superseded; kept here only so old reads don't confuse.)
 - **Reach 2 doesn't exist yet** — tasks 1–3 (verb, reveals, scout hand-off) are testable on
   the canals with a dev roster; the unlock task blocks on Maram's map.
 
