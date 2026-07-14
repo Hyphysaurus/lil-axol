@@ -229,14 +229,20 @@ func oil_at(world_pos: Vector2) -> float:
 	return _cov[my * MASK_W + mx]
 
 ## Jump the whole spill to a cleanliness fraction (0 = untouched, 1 = fully clean) — the
-## persistence spawn path (WorldState). Scales every cell uniformly; the visibility floor
-## applies, so thin residue snaps clean exactly as scrubbing would. Recomputes the milestone
-## cursor so re-seeded progress doesn't replay milestone bursts/chimes.
+## persistence spawn path (WorldState). current_clean/_remaining are VISIBILITY-weighted
+## (_vis() remaps raw coverage through the non-linear VIS_FLOOR/VIS_FULL ramp — see
+## _build_mask), so scaling raw coverage by a flat (1-f) does NOT leave (1-f) of the visible
+## total behind: cells scaled below VIS_FLOOR vanish from the visible sum entirely, so a uniform
+## scale over-culls and a saved fraction comes back far short of itself on reload (the round-trip
+## bug this function exists to avoid). Instead we binary-search the uniform scale factor `keep`
+## whose resulting visible-weighted remainder actually equals (1-f) of _total, then apply that
+## keep — same uniform-scale mechanic as before, just solved for the right target. Recomputes the
+## milestone cursor so re-seeded progress doesn't replay milestone bursts/chimes.
 func set_clean_fraction(f: float) -> void:
 	f = clampf(f, 0.0, 1.0)
 	if _mask == null or f <= 0.0:
 		return
-	var keep := 1.0 - f
+	var keep := _solve_keep((1.0 - f) * _total)
 	_remaining = 0.0
 	for my in MASK_H:
 		for mx in MASK_W:
@@ -253,6 +259,32 @@ func set_clean_fraction(f: float) -> void:
 	for m in MILESTONES:
 		if current_clean >= float(m):
 			_milestone += 1
+
+## Inverts _vis()'s non-linear remap for set_clean_fraction: finds the uniform scale `s` (applied
+## to every cell's raw coverage) whose resulting visible-weighted sum lands on `target`. The
+## visible sum is monotonic non-decreasing in `s` (raising s only raises each cell's raw coverage,
+## and _vis() is itself monotonic non-decreasing), so plain bisection is exact and cheap — 20
+## halvings on the 192x88 grid is ~338k _vis() calls, negligible next to a single mask rebuild.
+func _solve_keep(target: float) -> float:
+	if target <= 0.0:
+		return 0.0
+	var lo := 0.0
+	var hi := 1.0
+	for _i in 20:
+		var mid := (lo + hi) * 0.5
+		if _visible_sum_at(mid) < target:
+			lo = mid
+		else:
+			hi = mid
+	return hi
+
+## Sum of _vis(cov * scale) across the whole grid — the visible-weighted remainder a uniform
+## `scale` would leave behind, used only by _solve_keep's bisection.
+func _visible_sum_at(scale: float) -> float:
+	var sum := 0.0
+	for c in _cov:
+		sum += _vis(c * scale)
+	return sum
 
 ## Progress weight of a coverage value — matches the film shader's visibility ramp, so the
 ## meter and the win can never demand oil the player cannot find. Raw coverage (oil_at)
