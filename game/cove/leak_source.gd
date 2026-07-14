@@ -29,10 +29,14 @@ var _body: StaticBody2D          # the barrel's physical collider — freed when
 var _capped := false
 var _cap_t := 0.0
 var _spray_cd := 0.0            # was the barrel sprayed very recently? (drives the cap meter)
+var _reveal_t := 0.0
+var _survey_motes: CPUParticles2D   # a rising trail while Survey reveals the leak — ADDS to, never
+                                     # replaces, the barrel's own constant drip
 
 func _ready() -> void:
 	add_to_group("sprayable")
 	add_to_group("leak")         # so the hint system can nudge the player toward capping it
+	add_to_group("surveyable")
 	z_index = 4                  # over the water/oil, under FX
 	_spr = Sprite2D.new()
 	_spr.texture = BARREL
@@ -47,6 +51,8 @@ func _ready() -> void:
 	add_child(_ring)
 	_pool = _make_pool()         # an oil-shader pool at the barrel's base (real oil, not a flat blob)
 	add_child(_pool)
+	_survey_motes = _make_survey_motes()
+	add_child(_survey_motes)
 
 ## Give the barrel a physical body so the axolotl collides with it. A StaticBody2D on the
 ## DEFAULT collision layer is exactly what the beach and seabed already use, so the axolotl
@@ -85,7 +91,22 @@ func spray_at(world_pos: Vector2, _radius: float, delta: float) -> void:
 	if _cap_t >= CAP_SECONDS:
 		_purify()
 
+## Survey's reveal contract: a temporary drip-rate pulse + rising motes over the source — nothing
+## new is drawn (the existing drip/pool already sell "this leaks"); Survey just intensifies the
+## tell for the window. A capped (already-purified) leak ignores it — there's nothing left to point at.
+func reveal(duration: float) -> void:
+	if _capped:
+		return
+	_reveal_t = duration
+	_drip.speed_scale = 2.2
+	_survey_motes.emitting = true
+
 func _process(delta: float) -> void:
+	if _reveal_t > 0.0:
+		_reveal_t = maxf(0.0, _reveal_t - delta)
+		if _reveal_t <= 0.0:
+			_drip.speed_scale = 1.0
+			_survey_motes.emitting = false
 	if _capped:
 		return
 	# trickle fresh oil back into the water at the shoreline, down-right from the barrel
@@ -176,6 +197,25 @@ func _make_drip() -> CPUParticles2D:
 	p.scale_amount_min = 0.8
 	p.scale_amount_max = 1.6
 	p.color = Color(Palette.INK, 0.9)   # dark oil droplets (on-palette darkest navy)
+	return p
+
+## A rising trail of pale motes over the leak while Survey reveals it. Off (not emitting) until
+## reveal() flips it on; created once in _ready() rather than lazily so reveal() never allocates.
+func _make_survey_motes() -> CPUParticles2D:
+	var p := CPUParticles2D.new()
+	p.emitting = false
+	p.amount = 8
+	p.lifetime = 1.1
+	p.position = Vector2(0.0, -10.0)
+	p.direction = Vector2(0.0, -1.0)
+	p.spread = 14.0
+	p.gravity = Vector2(0.0, -18.0)
+	p.initial_velocity_min = 10.0
+	p.initial_velocity_max = 22.0
+	p.scale_amount_min = 0.5
+	p.scale_amount_max = 1.1
+	p.color = Color(Palette.CYAN, 0.85)
+	p.z_index = 8
 	return p
 
 ## Small fill-ring over the barrel while you spray it, so neutralizing reads as deliberate.

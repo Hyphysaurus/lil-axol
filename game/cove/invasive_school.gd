@@ -17,6 +17,24 @@ var _cfg: CoveConfig
 var _fish: Array = []          # per fish: {node, anchor: Vector2, phase: float, scatter: float}
 var _t := 0.0
 var _met := false
+var _reveal_t := 0.0
+var _reveal_bases: Array = []   # [{node: Sprite2D, base: Color}, ...] — captured per reveal() call
+
+## Survey's reveal contract: brighten the whole school's silhouette for the duration (the invasive
+## presence answers the sweep, same as everything else "surveyable" — cozy: this never harms them,
+## just shows them). Restores to each fish's EXACT captured murk-tinted baseline.
+## Only captures if NOT already mid-reveal: a repeat call (Survey re-triggering before the previous
+## window closes) must extend the timer, never re-capture the already-boosted modulate as "prior" —
+## that would strand the whole school lit forever once the reveal finally ends.
+func reveal(duration: float) -> void:
+	if _reveal_t <= 0.0:
+		_reveal_bases.clear()
+		for f in _fish:
+			var s: Sprite2D = f["node"]
+			var base: Color = s.modulate
+			_reveal_bases.append({"node": s, "base": base})
+			s.modulate = base.lightened(0.5)
+	_reveal_t = duration
 
 func setup(cfg: CoveConfig) -> void:
 	_cfg = cfg
@@ -24,6 +42,7 @@ func setup(cfg: CoveConfig) -> void:
 		queue_free()
 		return
 	add_to_group("sprayable")   # custom spray_at: scatter, never delete
+	add_to_group("surveyable")
 	z_index = 6
 	_met = bool(WorldState.get_cove(cfg.id, "enc_school", false))
 	# field-true anchors on a painted map only (spec 4.6/T7) — legacy keeps the exact lerp+jitter so
@@ -51,6 +70,13 @@ func setup(cfg: CoveConfig) -> void:
 
 func _process(delta: float) -> void:
 	_t += delta
+	if _reveal_t > 0.0:
+		_reveal_t = maxf(0.0, _reveal_t - delta)
+		if _reveal_t <= 0.0:
+			for entry in _reveal_bases:
+				if is_instance_valid(entry["node"]):
+					(entry["node"] as CanvasItem).modulate = entry["base"]
+			_reveal_bases.clear()
 	var axo := get_tree().get_first_node_in_group("player") as Node2D
 	var axo_local := to_local(axo.global_position) if axo else Vector2(-9999, 0)
 	for f in _fish:

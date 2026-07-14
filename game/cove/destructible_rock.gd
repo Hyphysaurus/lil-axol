@@ -45,6 +45,21 @@ var _redraw_acc := 0.0           # throttles the pulse redraw to ~10 Hz
 var _scars: Array = []           # [local cell centre, age] — fresh-break craters, fading ~1.2s
 var _lock_tween: Tween           # guards against stacking tweens on rapid blasts
 const SCAR_LIFE := 1.2
+var _reveal_t := 0.0             # Survey's reveal window remaining (0 = not revealing)
+var _reveal_base_z := 0          # z_index to restore to — CAPTURED, not hardcoded (spec risk #1:
+var _reveal_captured := false    # legacy rocks sit at z2, reach_map.gd's painted seals at z7)
+
+## Survey's reveal contract: boosts the mineral shimmer (and, for a locked gate, flashes its own
+## tone) so a sealed gate visibly answers the sweep even with breakable_glow off. Lifts briefly to
+## z 8 (the portal/FX plane, spec risk #1) so the boost reads through the land quad on a map reach,
+## then restores to WHATEVER z this rock actually had — never a hardcoded restore point.
+func reveal(duration: float) -> void:
+	if not _reveal_captured:
+		_reveal_base_z = z_index
+		_reveal_captured = true
+	z_index = 8
+	_reveal_t = duration
+	queue_redraw()
 
 func _ready() -> void:
 	# turtle-only nooks join a private group the bubble bomb doesn't call; everything else is "blastable"
@@ -85,7 +100,12 @@ func _hash(c: int, r: int) -> float:
 	return fmod(absf(sin(float(c) * 12.9898 + float(r) * 78.233) * 43758.5453), 1.0)
 
 func _process(delta: float) -> void:
-	var shimmer := breakable_glow and _remaining > 0
+	if _reveal_t > 0.0:
+		_reveal_t = maxf(0.0, _reveal_t - delta)
+		if _reveal_t <= 0.0:
+			z_index = _reveal_base_z
+			queue_redraw()
+	var shimmer := (breakable_glow and _remaining > 0) or _reveal_t > 0.0
 	if not shimmer and _scars.is_empty():
 		return
 	_glow_t += delta
@@ -94,10 +114,10 @@ func _process(delta: float) -> void:
 	while not _scars.is_empty() and _scars[0][1] > SCAR_LIFE:   # appended in order — oldest first
 		_scars.pop_front()
 	# WEB PERF: canvas-item rebuilds are the expensive part on WebGL, and every intact rock runs
-	# this loop. The slow mineral shimmer only needs ~8Hz; the brief scar fades get 20Hz while
-	# any are alive, then the rock settles back to the cheap cadence.
+	# this loop. The slow mineral shimmer only needs ~8Hz; the brief scar fades AND an active
+	# Survey reveal get 20Hz (bounded to the reveal's 6s window), then the rock settles back down.
 	_redraw_acc += delta
-	var period := 0.05 if not _scars.is_empty() else 0.125
+	var period := 0.05 if (not _scars.is_empty() or _reveal_t > 0.0) else 0.125
 	if _redraw_acc >= period:
 		_redraw_acc = 0.0
 		queue_redraw()
@@ -124,9 +144,15 @@ func _draw() -> void:
 				tone = tone.darkened(0.16)
 			elif m < 0.3:
 				tone = tone.lightened(0.12)
-			if breakable_glow and j > 0.68:   # ~1/3 of cells shimmer, each at its own phase
+			if (breakable_glow and j > 0.68) or _reveal_t > 0.0:   # Survey: every cell answers
 				var tw := 0.5 + 0.5 * sin(_glow_t * 2.0 + j * TAU + pz)
-				tone = tone.lightened(0.10 * tw)
+				# a locked gate glows its OWN tone under Survey (the "not yet" colour reading
+				# through); everything else just shimmers harder than its idle ~1/3-cells pulse
+				if locked and _reveal_t > 0.0:
+					tone = tone_a.lerp(tone, 0.70)
+				else:
+					var boost: float = 0.30 if _reveal_t > 0.0 else 0.10
+					tone = tone.lightened(boost * tw)
 			draw_rect(Rect2(p, Vector2(CELL, CELL)), tone)
 			# a SOFT seam tinted to the material (warm loam / cool stone), not a harsh near-black grid
 			draw_rect(Rect2(p, Vector2(CELL, CELL)), Color(tone_a.darkened(0.35), 0.28), false, 1.0)

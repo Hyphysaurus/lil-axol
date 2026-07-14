@@ -22,9 +22,28 @@ var _done := false
 var _t := 0.0
 var _acc := 0.0
 
+var _reveal_t := 0.0
+var _reveal_base_z := 0
+var _reveal_captured := false
+
 func _ready() -> void:
 	add_to_group("sprayable")
+	add_to_group("surveyable")
 	z_index = 4                 # in the silt, under creatures (frog 9 / axolotl 10)
+
+## Survey's reveal contract: ONLY unfound curios answer (spec §4 — "unfound curios glint through
+## terrain"; a revealed-but-not-collected or already-collected curio ignores this). Lifts to the
+## portal/FX plane (z 8) so the glint reads through the land quad, restoring to whatever z it
+## actually had (4 today — captured lazily on first use, never hardcoded, spec risk #1).
+func reveal(duration: float) -> void:
+	if _revealed or _done:
+		return
+	if not _reveal_captured:
+		_reveal_base_z = z_index
+		_reveal_captured = true
+	z_index = 8
+	_reveal_t = duration
+	queue_redraw()
 
 ## The player's spray — same group contract as rescues and the leak cap.
 func spray_at(world_pos: Vector2, _radius: float, delta: float) -> void:
@@ -43,6 +62,11 @@ func _process(delta: float) -> void:
 	_t += delta
 	if _done:
 		return
+	if _reveal_t > 0.0:
+		_reveal_t = maxf(0.0, _reveal_t - delta)
+		if _reveal_t <= 0.0:
+			z_index = _reveal_base_z
+			queue_redraw()
 	if _revealed:
 		# unearthed: the curio floats free, bobbing — collect by coming close
 		position.y += sin(_t * 2.2) * 2.4 * delta
@@ -77,9 +101,13 @@ func _draw() -> void:
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		var glint := maxf(0.0, sin(_t * 1.4))
 		glint = maxf(0.0, glint * glint * glint - 0.15)   # a brief sparkle every ~4.5s, dark between
+		if _reveal_t > 0.0:
+			glint = maxf(glint, 0.55 + 0.35 * sin(_t * 6.0))   # Survey holds a steady bright sparkle
 		if glint > 0.0:
 			draw_line(Vector2(-3.0, -4.0), Vector2(3.0, -4.0), Color(Palette.FOAM, glint), 1.5)
 			draw_line(Vector2(0.0, -7.0), Vector2(0.0, -1.0), Color(Palette.FOAM, glint), 1.5)
+			if _reveal_t > 0.0:
+				draw_circle(Vector2.ZERO, 12.0, Color(Palette.GOLD, 0.12 * glint))   # a soft halo so it reads through terrain (z8)
 		return
 	# unearthed: the little find itself, held in a soft glow until collected
 	var bob := sin(_t * 2.2) * 1.5
