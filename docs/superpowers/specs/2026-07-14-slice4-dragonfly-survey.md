@@ -1,6 +1,6 @@
 # Slice 4: The Dragonfly — Survey
 
-**Date:** 2026-07-14 · **Status:** DRAFT — pending design review + Maram's reach-2 map
+**Date:** 2026-07-14 · **Status:** v2 — design-reviewed (2 Crit / 2 Imp amended in); pending Maram's reach-2 map
 **Depends on:** slice 5 (reach-map ingester, live), the companion rig (Kind.DRAGONFLY registered,
 frames built), the scout dragonfly (diegetic pass 1), master design §verbs ("dragonfly SURVEY =
 reveal hidden sources + O2 bioindicator; pollination RETIRED").
@@ -24,23 +24,40 @@ player's *senses*, the way the turtle is their *force* and the frog their *mouth
 - Authoring suggestion (not binding): she suits a reach with AIR — tall sky, floating
   terraces, surface-heavy play; oxygen (`&"oxygen"` in `in_play`) should matter here since
   her bioindicator readout stars in it.
+- **Authoring RULE (from review): every curio must sit within spray reach (~30px) of open
+  space.** Survey reveals unfound curios through terrain — a curio buried deep in solid earth
+  would be a tease the player can physically never collect, which breaks the cozy contract.
+  Silt cells and earth-boundary pockets are fine; the audit tool should gain this check when
+  reach 2 lands.
 
 ## 3. The verb — SURVEY
 
 - **Input:** the shared partner-action button (the turtle's shell input) while the dragonfly
   is the ACTIVE partner — one button, verbs keyed by who travels with you (the Kirby rule).
-- **The sweep:** tap → she spirals out from the player (~1.8s flight, radius ~180px, the
+  **REVIEW AMENDMENT (Critical): the Kirby rule must be BUILT, not assumed.** Today the
+  turtle's pilot trigger gates on instance kind only (companion.gd ~:248 — zero references to
+  `Settings.run_active` in the file), so every rescued verb-bearer answers the button at once.
+  Task 1 retrofits `Settings.run_active == _kind` onto the TURTLE's existing trigger AND gates
+  Survey the same way. With that single gate, tap/hold disambiguation is UNNECESSARY — only
+  the active partner listens, so Survey fires on PRESS (zero latency, shell-identical feel).
+  The former "HOLD vs TAP" policy is deleted.
+- **The sweep:** press → she spirals out from the player (~1.8s flight, radius ~180px, the
   scout's flight language reused), then REVEAL for **6 seconds**:
   - the uncapped leak pulses through murk,
   - sealed rubble / locked gates outline-glow,
   - **unfound curios glint through terrain** (the treasure sense),
   - grabbable chokes and the invasive school silhouette brighten.
 - **The bioindicator finish:** she ends the sweep hovering ~2.5s at the reach's **worst
-  oxygen point** (most grabbable-dense spot via reach_state's oxygen inputs; fallback: the
-  leak; fallback: nothing — reach already breathing). Then returns to her follow slot.
-- **Cooldown:** ~10s, shown as a small ring on the PartnerHud portrait (the shell stamina
-  idiom). No cost — Survey is knowledge, and knowledge is free (conservation hook: observing
-  IS the first restoration verb, per the knowledge loop).
+  oxygen point**. **REVIEW AMENDMENT (Important): this is NEW WORK, not a lookup** —
+  reach_state's oxygen is a single scalar (alive/total ratio); no positional data exists.
+  Build a small density pass over group "grabbable" members' positions (densest neighborhood
+  by radius count — members carry global_position); fallback: the leak; fallback: no finish.
+- **Cooldown:** ~10s, shown as a small ring on the PartnerHud portrait. **REVIEW AMENDMENT
+  (Important): the Chip is a static rebuild-on-signal Control with no per-frame path** — give
+  it a throttled (4Hz) poll of the active companion's cooldown, scoped as real plumbing.
+  No cost — Survey is knowledge, and knowledge is free (conservation hook: observing IS the
+  first restoration verb). **Tuning watch:** a free 10s reveal-everything may flatten
+  seek-and-find pacing; playtest lever = 20s cooldown or bubble-charge linkage.
 - **Cozy contract:** reveals never mark quest arrows or map pins; they light the things
   themselves, in-world, then fade.
 
@@ -82,7 +99,10 @@ Plus the standing gates: all suites, three scene boots, reach-2 ingest audit gre
 
 ## 8. Task seeds
 
-1. Survey verb core: input routing by active kind + sweep flight + cooldown + PartnerHud ring.
+1. Survey verb core: **retrofit active-partner gating onto the turtle's pilot trigger**
+   (companion-architecture surgery, tested on legacy reaches for zero behavior change when
+   the turtle IS active), press-fired Survey sweep flight + cooldown, PartnerHud throttled
+   cooldown ring.
 2. Reveal contract: "surveyable" group + the four component implementations + worst-O2 finish.
 3. Scout hand-off + Field Guide card for the dragonfly rescue + feat &"first_survey".
 4. Reach 2 integration: ingest Maram's map, .tres, portals wiring both ways, travel loop, deploy.
