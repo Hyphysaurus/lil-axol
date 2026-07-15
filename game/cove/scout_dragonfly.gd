@@ -26,8 +26,19 @@ func setup(cfg: CoveConfig) -> void:
 	if WorldState.is_restored(cfg.id):
 		queue_free()
 		return
+	if Settings.run_roster.has(3):    # Kind.DRAGONFLY (companion.gd's enum; a literal here avoids
+		queue_free()                  # a cross-script dependency, same convention as companion_library.gd)
+		return
 	z_index = 8
 	visible = false
+	Settings.roster_changed.connect(_on_roster_changed)
+
+## The dragonfly joined the roster (rescued here, or already rostered and just arriving as this
+## reach's own dragonfly's rescue moment on THIS visit) — she's taken over the pointing, on your
+## command instead of on a timer (spec §5). One-shot: the node frees itself the instant it happens.
+func _on_roster_changed() -> void:
+	if Settings.run_roster.has(3):
+		queue_free()
 
 func _process(delta: float) -> void:
 	_t += delta

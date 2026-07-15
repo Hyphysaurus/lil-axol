@@ -50,6 +50,13 @@ const CARDS := {
 		"icon": 1,
 		"type": "encounter",
 	},
+	"enc_dragonfly_rescue": {
+		"name": "Dragonfly, Rescued",
+		"species": "Odonata",
+		"fact": "Dragonflies only breed where the water is clean and oxygen-rich — her return isn't just a friend found, it's a reading on the whole reach.",
+		"icon": 2,
+		"type": "encounter",
+	},
 }
 
 static func card(id: String) -> Dictionary:

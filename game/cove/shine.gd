@@ -42,6 +42,7 @@ const FEATS := {
 	&"trove":        ["Trove",        1800.0, 0.28],
 	&"spring_clean": ["Spring Clean", 1100.0, 0.22],
 	&"curio":        ["Curio Found",   800.0, 0.18],
+	&"first_survey": ["First Survey",  700.0, 0.20],
 	&"cascade":      ["The Cascade!", 2400.0, 0.38],   # bubble bounce -> gill-kick -> dive-splash,
 }                                                      # one flight (detected by the axolotl)
 const FLOW_DURATION := 8.0     # seconds of TIDAL FLOW once the meter fills

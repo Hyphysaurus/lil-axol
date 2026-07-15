@@ -13,6 +13,7 @@ extends Node2D
 ## carve tunnels doubles as traversal. (The FROG companion isn't piloted — it auto-tongues debris.)
 
 const Spring := preload("res://game/fx/spring.gd")   # offset-transform juice helper (lean/skew)
+const FieldGuide := preload("res://game/log/field_guide.gd")
 
 @export var frames: SpriteFrames = preload("res://game/companion/turtle_frames.tres")
 @export var anims: CharacterAnimSet = preload("res://game/companion/turtle_anims.tres")
@@ -225,6 +226,13 @@ func _wake() -> void:
 	var keeper = get_tree().get_first_node_in_group("shine")
 	if keeper and keeper.has_method("feat"):
 		keeper.feat(&"wake_up", global_position)   # "Wake-Up Call" feat: callout + Flow + Shine
+	if _kind == Kind.DRAGONFLY:
+		# her rescue doubles as a Field Guide encounter (spec T3) — a fixed, cove-id-independent
+		# key (see this task's design-decision note), so it never needs renaming once reach 2's
+		# real id lands. Every other companion's rescue is unchanged (wake_up feat only, no card).
+		var card: Dictionary = FieldGuide.card(&"enc_dragonfly_rescue")
+		if not card.is_empty():
+			get_tree().call_group("curio_cards", "show_card", card, "field guide — encounter logged")
 	Settings.roster_add(_kind)   # the rescued friend joins the roster (chips HUD); was never wired
 	woke.emit()
 	await get_tree().create_timer(0.5).timeout
@@ -683,7 +691,7 @@ func _pick_survey_finish() -> Vector2:
 	if densest != Vector2.INF:
 		return densest
 	var leak := get_tree().get_first_node_in_group("leak")
-	if leak and not (leak as Node).is_queued_for_deletion():
+	if leak is Node2D and not (leak as Node).is_queued_for_deletion():
 		return (leak as Node2D).global_position
 	return Vector2.INF
 
@@ -693,7 +701,20 @@ func _end_survey() -> void:
 	_fire_first_survey()
 	queue_redraw()
 
-func _fire_first_survey() -> void: pass  ## replaced in Task 3
+## Guarded like reach_map.gd's seal-mark idiom (slice 5 T5): echo runs never mark, and the catalog
+## Shine only pays out once, ever, world-wide — not once per reach, since Survey follows you
+## everywhere the moment she's rescued. "meta" is the pseudo cove-id reserved for account-wide
+## marks (see this task's design-decision note; WorldState.mark prefixes it "cove_meta", never
+## colliding with a real reach id).
+func _fire_first_survey() -> void:
+	var root := get_tree().get_first_node_in_group("cove_root")
+	var echo: bool = root != null and root.has_method("is_echo") and root.is_echo()
+	if echo or bool(WorldState.get_cove("meta", "first_survey", false)):
+		return
+	WorldState.mark("meta", "first_survey", true)
+	var keeper = get_tree().get_first_node_in_group("shine")
+	if keeper and keeper.has_method("feat"):
+		keeper.feat(&"first_survey", global_position)
 
 ## The frog auto-snags any floating debris that drifts within tongue reach WHILE it follows you — bring
 ## it near the muck and it cleans it (no command, no darting). A cooldown paces the strikes; the tongue
