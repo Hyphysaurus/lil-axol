@@ -90,6 +90,23 @@ func _process(_delta: float) -> bool:
 	_check("leak: a capped (already-purified) leak ignores reveal", not capped_leak._survey_motes.emitting)
 	capped_leak.free()
 
+	# --- capping MID-reveal (review Finding 2, Important): _purify() must settle the reveal state
+	# immediately, or the sped-up drip + rising motes keep going over an already-purified barrel
+	# until the 6s window naturally times out — contradicting reveal()'s own "a capped leak ignores
+	# it" contract just above, since a leak capped BEFORE its window opened is already covered ---
+	var cfg_midcap = CoveConfigScript.new()
+	cfg_midcap.leak_enabled = true
+	var midcap_leak = LeakScript.new()
+	root.add_child(midcap_leak)
+	midcap_leak.setup(cfg_midcap)
+	midcap_leak.reveal(6.0)
+	_check("leak: mid-window sanity check — drip sped up before capping", midcap_leak._drip.speed_scale > 1.0)
+	midcap_leak._purify()
+	_check("leak: capping mid-reveal settles the drip speed immediately", is_equal_approx(midcap_leak._drip.speed_scale, 1.0))
+	_check("leak: capping mid-reveal stops the survey motes immediately", not midcap_leak._survey_motes.emitting)
+	_check("leak: capping mid-reveal zeroes the reveal timer immediately", is_equal_approx(midcap_leak._reveal_t, 0.0))
+	midcap_leak.free()
+
 	# --- debris_field.gd: brightens live clumps' modulate, restores to their captured baseline ---
 	var DebrisFieldScript = load("res://game/cove/debris_field.gd")
 	var cfg_debris = CoveConfigScript.new()

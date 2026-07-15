@@ -60,6 +60,29 @@ func _process(_delta: float) -> bool:
 	var upick: Vector2 = Companion.densest_point(uniform, 90.0)
 	_check("density pick on a uniform field still returns a real member point", uniform.has(upick))
 
+	# --- FINISH-phase target frame consistency (review Finding 1, Critical): every shipping scene
+	# parents its companions under the Cove root at a non-zero offset (all three place it at
+	# (402, 28)) — _run_survey's FINISH phase must fly to the grabbable's GLOBAL position, not
+	# treat _pick_survey_finish()'s global point as if it were already in the parent's local frame.
+	# _pick_survey_finish()'s own INF-sentinel contract (tested above via densest_point, pure and
+	# frame-agnostic) is untouched by this — this check exercises the real instance flight instead.
+	var frame_root := Node2D.new()
+	frame_root.position = Vector2(402.0, 28.0)   # the real scenes' offset (main/estuary/canals)
+	get_root().add_child(frame_root)
+	var comp = Companion.new()
+	frame_root.add_child(comp)
+	comp.position = Vector2.ZERO
+	var lure := Node2D.new()
+	lure.add_to_group("grabbable")
+	lure.position = Vector2(50.0, 10.0)
+	frame_root.add_child(lure)
+	comp._begin_survey()
+	for i in 170:                                # sweep (1.8s) + finish-fly (0.6s) + settle, at 60Hz
+		comp._run_survey(1.0 / 60.0)
+	_check("survey FINISH flies to the grabbable's GLOBAL position (not a mixed-frame offset)",
+		comp.global_position.distance_to(lure.global_position) < 10.0)
+	frame_root.free()
+
 	print("RESULT: " + ("ALL PASS" if fails == 0 else "%d FAILED" % fails))
 	quit(1 if fails > 0 else 0)
 	return true

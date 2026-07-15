@@ -230,6 +230,10 @@ func _wake() -> void:
 		# her rescue doubles as a Field Guide encounter (spec T3) — a fixed, cove-id-independent
 		# key (see this task's design-decision note), so it never needs renaming once reach 2's
 		# real id lands. Every other companion's rescue is unchanged (wake_up feat only, no card).
+		# NOTE: this card intentionally re-fires on every _wake() call (e.g. a New Day reset that
+		# re-rescues her), same as the adjacent "wake_up" feat above — unlike _fire_first_survey(),
+		# which is guarded to fire once ever. Don't "fix" this into a once-ever guard; the asymmetry
+		# is deliberate — the rescue moment always re-announces, the Survey milestone does not.
 		var card: Dictionary = FieldGuide.card(&"enc_dragonfly_rescue")
 		if not card.is_empty():
 			get_tree().call_group("curio_cards", "show_card", card, "field guide — encounter logged")
@@ -662,8 +666,13 @@ func _run_survey(delta: float) -> void:
 				_survey_phase = SurveyPhase.FINISH
 				_survey_t = 0.0
 				get_tree().call_group("surveyable", "reveal", SURVEY_REVEAL_SECONDS)
-				_survey_finish_pos = _pick_survey_finish()
-				_survey_has_finish = _survey_finish_pos != Vector2.INF
+				# _pick_survey_finish() returns a GLOBAL point (its own INF-sentinel contract,
+				# untouched below); convert ONCE here into our parent's (the cove root's) LOCAL
+				# frame — the same frame `position` lives in — so the FINISH lerp/hover below
+				# never mixes frames (companion.gd's established to_local() idiom, see :325/:731).
+				var finish := _pick_survey_finish()
+				_survey_has_finish = finish != Vector2.INF
+				_survey_finish_pos = (get_parent() as Node2D).to_local(finish) if _survey_has_finish else Vector2.INF
 				_survey_finish_start = position
 		SurveyPhase.FINISH:
 			if not _survey_has_finish:

@@ -124,6 +124,13 @@ func _process(delta: float) -> void:
 func _purify() -> void:
 	_capped = true
 	_drip.emitting = false
+	# a capped leak ignores the reveal contract (reveal()'s own comment above) — if this fires
+	# WHILE a Survey reveal window is still open, settle that state immediately too, or the cyan
+	# _survey_motes + sped-up drip would keep going over an already-purified barrel until the
+	# window naturally expires
+	_reveal_t = 0.0
+	_drip.speed_scale = 1.0
+	_survey_motes.emitting = false
 	if is_instance_valid(_body):
 		_body.queue_free()           # the barrel's gone — drop its collider so the axo doesn't
 		_body = null                 # stand on an invisible box where the barrel used to be
