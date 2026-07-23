@@ -45,11 +45,17 @@ sit-and-watch a full cycle without it churning; this is the canonical value for 
 
 ## PENDING (awaiting Mario's ruling)
 
+- **D-0012 Bible ratification** — the "cozy WITH recoverable stakes" re-ruling (world can fail,
+  player cannot) needs the Lil Series Bible updated to match, plus confirmation it doesn't leak
+  into the sibling games' identities. Recorded as ruled *direction*; awaiting explicit Bible sign-off.
+- **P-6 Slice 3 (640×360 art unification) — do-now-or-defer.** Master §10 orders art unification
+  BEFORE new biomes ("so they're authored native-pixel"); slices 4 & 5 shipped without it, so
+  canals + estuary are authored against a grid we may re-author. Rule before reach 2 lands.
 - **P-5 Seabed tile style match** — do the `water_clean_*` tiles cohere with the axolotl's
   pixel style now that they're live? **Deferred by Mario (2026-07-02):** ruling parked until
   he eyeballs the live build (lilaxol.vercel.app) from his phone; then record keep-vs-rework.
-- *(P-3 resolved → D-0007. P-4 resolved: both specs drafted AND built — game-loop Phase 1 and
-  audio Phases 1–3 shipped; no open priority call remains.)*
+  *(Now re-deployed 2026-07-22 with the full slice-4/5 stack — ready for the phone eyeball.)*
+- *(P-3 resolved → D-0007. P-4 resolved: game-loop Phase 1 + audio Phases 1–3 shipped.)*
 
 ## D-0009 — Swim allows deep hover (Subnautica mobility) (2026-07-03, Mario)
 The buoyancy spring no longer always floats the axolotl to the surface. It holds you near the
@@ -72,3 +78,77 @@ Edit a colour in the two source files and everything updates. Bug fixed alongsid
 barrel's `StaticBody2D` is now freed on burst, so the axolotl no longer stands on an invisible box
 where the barrel was. Verified: 4.7 import + GL boot compile clean (no shader/script errors);
 shipped to lilaxol.vercel.app. Feel/eyeball-confirm the sheen + fire intensity on the live build.
+
+## D-0011 — The Living Watershed pivot: one honest Xochimilco watershed + Terra Nil variable/recipe restoration (2026-07-07, Mario — master design v2)
+The game re-frames from "cozy cove-cleaner" to **the true story of the axolotl's only home**: one
+spring-fed Valley-of-Mexico watershed (Xochimilco), every reach ecologically real and laddering back
+to axolotl habitat. Master spec: `docs/superpowers/specs/2026-07-07-living-watershed-master-design.md`
+(**supersedes** the v1 `2026-07-06-hub-pond-living-world-design.md`; hub/persistence/Echo/frog/marsh
+carry forward). The single `cleanliness` float becomes a **system of tracked ecological variables**
+(Toxicity, Oxygen, Clarity, Invasive ratio, Vegetation — all 0..1, authored per-reach in `CoveConfig`,
+persisted in `WorldState`), moved by **partner verbs** (spray/bomb → Toxicity ↓; turtle Break, frog
+Consume → Oxygen ↑; dragonfly Survey reads; otter Herd → Clarity ↑ / Haul-Build; bat Echosong).
+Wildlife returns by **habitat recipe** (variable thresholds), not by %. The win is a **multi-condition
+recipe** (axolotl eggs need Toxicity ≤.15 AND Clarity ≥.75 AND Invasive ≤.2 AND eelgrass), never a
+single-meter finish. `cleanliness` survives as a *derived read* for legacy consumers during migration.
+Roster + unlock order fixed: **Turtle → Frog → Dragonfly → Otter → Bat**. Sliced (§10): 1 Foundations,
+2 Restoration engine, 3 Art unification, 4 Dragonfly, 5 Metroidvania terrain, 6 Otter+Build, 7 Bat.
+
+## D-0012 — Cozy WITH recoverable stakes: the world can fail, the player cannot (2026-07-07, master §1/§3.7) — ⚠ PENDING BIBLE RATIFICATION
+Pillar 1 re-ruling. **No player death, no game-over, no punishment of the player** (the D-0007
+never-punishment line HOLDS). But the **no-consequence** framing is lifted: reaches can **backslide**
+(ignored spills spread, invasives multiply, oxygen falls — extends the capped pest re-oil, D-0005),
+**dead-end** (started-but-stuck until you return with the missing partner/verb/material — the
+metroidvania teased-lock made consequential), or **material-stall** (mis-spend cleaned material; reaches
+are authored with sufficient material + a regenerating leak trickle so you can **never permanently
+soft-lock**). All setbacks persist like wins; all are recoverable. **⚠ Master §12 flags this as needing
+a Lil Series Bible update + confirmation it doesn't leak into the sibling games' identities — recorded
+here, awaiting Mario's explicit ratification.** Permanent ecological loss (real local extinction) stays
+a parked opt-in "stakes mode," NOT the default.
+
+## D-0013 — Pollution becomes build material; the explosion-mechanics direction is superseded (2026-07-07, master §3.6/§12)
+Cleaned pollution is **repurposed, not deleted** — the reverse-city-builder resource loop and the
+design's strongest statement: *you build the healing out of the waste you removed.* Barrel lifecycle:
+**empty → dilute → clean (spray) → becomes build MATERIAL** (a small per-reach currency); the otter's
+**Haul/Build** verb seats cleaned material into build sockets to raise persistent structures (mesh
+refugio / weirs / reed frames / nest platforms). This **supersedes both** the 2026-07-05 "barrels
+purify/dissolve" behavior AND the 2026-07-03 explosion-mechanics-direction spec
+(`docs/superpowers/specs/2026-07-03-explosion-mechanics-direction.md` → marked SUPERSEDED). The old
+dissolve VFX can become the "reclaim" VFX. **Build state:** the material/build economy lands with the
+otter (slice 6, unbuilt); today's `reclaim_token`/barrel behavior is the pre-economy seam.
+
+## D-0014 — Reach-map PNG ingester is the authoring pipeline; Canals is the game's first level (2026-07-11, Mario — slice 5, RULED §9)
+A reach is authored as **two painted PNGs** (terrain + markers, 1px = one 8px cell), ingested by
+`game/cove/reach_map.gd` into the existing cove architecture. **A new reach costs a painting session,
+not a scene-building session.** Rulings: (1) Maram's `marsh_draft` map ships as **"the Canals" — the
+game's FIRST level**, where the turtle's rescue now happens (friend at open water); (2) the dormant
+**east portal** ships drawn-dark, no trigger (wakes when reach 2 lands); (3) **broken seals STAY broken**
+(`WorldState seal_<i>`, echo-run exempt). Legacy rect-geometry reaches (hub, estuary) keep parity via the
+`ReachField` oracle (slice 5 foundation). Spec:
+`docs/superpowers/specs/2026-07-11-slice5-reach-map-ingester.md`.
+
+## D-0015 — The Kirby rule: the active partner gates the shared verb button (2026-07-14, slice 4)
+There is **one** partner-action button (the turtle's original shell input); which verb it fires is keyed
+to **who travels with you** — the trigger gates on `Settings.run_active == _kind`. Retrofitted onto the
+turtle's existing pilot trigger (previously gated on instance kind only, so every rescued verb-bearer
+answered at once — a real bug this fixes) AND applied to the dragonfly's Survey. Because only the active
+partner ever listens, **verbs fire on PRESS** — zero latency, shell-identical feel; the earlier
+"HOLD-vs-TAP disambiguation" policy is **deleted**. Commit `289c35f`.
+
+## D-0016 — Survey reveal contract: one group call, each component owns its look, reveals are free (2026-07-14, slice 4)
+The dragonfly's Survey makes the invisible visible via **one group call**:
+`get_tree().call_group("surveyable", "reveal", 6.0)`. Components opt in and each owns its own look —
+`curio` (glint through terrain, **unfound only**), `destructible_rock` (locked-gate glow), `leak_source`
+(drip pulse + mote trail), `debris_field` / `invasive_school` (brightened silhouettes). Reveals render at
+**z 8** (portal/FX plane, above the land quad's z 7), **duration-bounded**. **Survey has no cost** —
+knowledge is free (conservation hook: observing IS the first restoration verb). The bioindicator finish
+(hover at worst-oxygen point) is **new work, not a lookup**: a density pass over group "grabbable"
+members' positions, fallback leak, fallback none. Tuning watch: a free 10s reveal-everything may flatten
+seek-and-find pacing (playtest lever = 20s cooldown or bubble-charge link). Commits `c33e287`, `289c35f`.
+
+## D-0017 — Thermal vents are restoration-installed updraft traversal, not barrel-blast triggers (2026-07-13, commit `7bdcf36`)
+The explosion-direction spec floated vents as *barrel-cooking blast triggers* (D-0013 supersedes that
+whole spec). What actually shipped is a cozier, traversal-first read: **restoration INSTALLS traversal** —
+a healed reach's `thermal_vent` provides an **updraft** the axolotl rides, so cleaning the world literally
+opens new vertical routes (the bible's "restoration unlocks traversal," ecology-native, never a hazard).
+Confirm exact trigger/geometry against `game/cove/thermal_vent.gd`.

@@ -1,7 +1,15 @@
 # Explosion Mechanics — Design Direction (not yet built)
 
+> **⚠️ SUPERSEDED 2026-07-07 (D-0013).** The barrel rework in
+> [`2026-07-07-living-watershed-master-design.md`](2026-07-07-living-watershed-master-design.md) §3.6
+> replaces "barrel bursts / blast clears oil": barrels now **clean → become build MATERIAL** (the
+> otter's Haul/Build loop), not detonators. The **thermal-vent** idea below also pivoted — vents
+> shipped as **restoration-installed updraft traversal** (D-0017, commit `7bdcf36`), not
+> barrel-cooking blast triggers. Kept for history; the "clear rubble → open path" intent lives on in
+> the slice-5 carvable block-land + `destructible_rock`. Do not build from this doc.
+
 **Date:** 2026-07-03
-**Status:** DIRECTION captured (Mario, 2026-07-03) — spec + build later.
+**Status:** Superseded — see banner above (was: DIRECTION captured, Mario 2026-07-03).
 **Context:** Mario added a Red Oil Barrel + a 12-frame Exploding Red Oil Barrel and wants
 explosions to become a real mechanic: *"open rubbled pathways... clear large oil-slicked
 areas... or something similar."* This turns the one-off barrel burst into a reusable tool.
