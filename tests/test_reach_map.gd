@@ -377,6 +377,11 @@ func _process(_delta: float) -> bool:
 		if is_instance_of(child, RockScript) and not child.locked and child.position == target_pos:
 			seal_rock = child
 	_check("seal blast: located a live unlocked seal rock", seal_rock != null)
+	# REGRESSION GUARD: painted seals MUST render at z 7 (over water 5 / oil film 6), not the rock's
+	# default z 2. DestructibleRock._ready() runs inside add_child and used to hardcode z=2, clobbering
+	# reach_map's z set — so seals silently sank behind the water and were invisible. render_z fixes it.
+	_check("seal render layer: painted seal draws at z 7 (not buried under the water)",
+		seal_rock != null and seal_rock.z_index == 7)
 
 	# a Dictionary, not a bare bool — GDScript lambdas capture primitive locals BY VALUE, so a bare
 	# bool reassigned inside the closure would only mutate the closure's own copy (same idiom as

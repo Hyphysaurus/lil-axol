@@ -34,6 +34,12 @@ const CELL := 8.0                 # px per rock cell — smaller = smoother carv
 ## unlocks specific gates by kind. Default false so every existing rock (rubble, vent caps, land
 ## nooks) keeps blasting exactly as before.
 @export var locked := false
+## The render layer this rock draws on. Default 2 = the legacy scene-rock plane (correct for the
+## hub/estuary hand-placed nooks + vents). On a PAINTED map reach the z-map runs water 5 / oil film
+## 6 / land quad 7, so a seal MUST sit at 7+ or it renders BEHIND the water and is invisible — set
+## by reach_map (seals) + thermal_vent (map caps). Applied in _ready(); before, _ready hardcoded
+## z=2 and clobbered any z a spawner set before add_child(), so painted seals silently sank to z2.
+@export var render_z := 2
 
 var _present: Array = []          # rows×cols of bool — is this cell still solid?
 var _shapes: Array = []           # rows×cols of CollisionShape2D (null where eroded at spawn)
@@ -64,7 +70,8 @@ func reveal(duration: float) -> void:
 func _ready() -> void:
 	# turtle-only nooks join a private group the bubble bomb doesn't call; everything else is "blastable"
 	add_to_group("turtle_blastable" if turtle_only else "blastable")   # not "sprayable" — spray never breaks rubble
-	z_index = 2
+	z_index = render_z             # NOT a hardcoded 2 — _ready runs inside add_child, so a literal here
+	                               # clobbers whatever plane the spawner asked for (see render_z docs)
 	_body = StaticBody2D.new()     # default collision layer = the axolotl bumps it for free
 	add_child(_body)
 	var mid := Vector2(cols, rows) * 0.5

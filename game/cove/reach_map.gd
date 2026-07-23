@@ -383,8 +383,8 @@ func _build_breakables() -> void:
 			rock.tone_a = entry[2]
 			rock.tone_b = entry[3]
 			rock.position = _cfg.map_origin + Vector2(r.position) * CELL
-			rock.z_index = 7                      # the land quad's plane: rocks were invisible at
-			add_child(rock)                       # their default z under it — seals looked like land
+			rock.render_z = 7                     # the land quad's plane (water 5 / film 6 / land 7):
+			add_child(rock)                       # at the default z2 the seal renders BEHIND the water
 			if not entry[1]:
 				# broken seals STAY broken (ruling 5); echo runs replay them sealed, never persist
 				var root := get_tree().get_first_node_in_group("cove_root")
@@ -451,6 +451,7 @@ func _build_vents() -> void:
 		var v = VentScene.new()
 		v.cap_cols = 7
 		v.cap_rows = 5
+		v.cap_z = 7                             # map z-map: the cap must clear the water/film like the seals
 		v.position = p
 		add_child(v)
 

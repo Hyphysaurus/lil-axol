@@ -13,6 +13,10 @@ const SURGE_RADIUS := 100.0    # oil cleared in the column above the vent when i
 
 @export var cap_cols := 11
 @export var cap_rows := 7
+## The render layer for the rubble cap. Default 2 = legacy hand-placed hub/estuary vents (correct on
+## rect reaches). reach_map sets 7 on painted map reaches, where the water/film/land quad would
+## otherwise bury the cap (same z-map fix as the painted seals — see DestructibleRock.render_z).
+@export var cap_z := 2
 
 var _open := false
 var _plume: CPUParticles2D
@@ -29,6 +33,7 @@ func _ready() -> void:
 	var rock := RockScript.new()
 	rock.cols = cap_cols
 	rock.rows = cap_rows
+	rock.render_z = cap_z          # map caps ride above the water/film; rect reaches keep the legacy z2
 	rock.position = Vector2(-cap_cols * DestructibleRock.CELL * 0.5, -cap_rows * DestructibleRock.CELL)
 	add_child(rock)
 	rock.cleared.connect(_open_vent)
