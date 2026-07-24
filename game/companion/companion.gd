@@ -157,6 +157,10 @@ func _ready() -> void:
 ## behind the player so followers never dogpile; slot 0 is the scene's own friend.
 const SLOT_OFFSETS: Array[Vector2] = [Vector2.ZERO, Vector2(-16.0, -10.0), Vector2(16.0, -14.0), Vector2(-28.0, 6.0)]
 var _slot := 0
+var _mirror := 1.0             # smoothed slot mirror: eases toward the player's facing so the
+                               # crew re-fans BEHIND the tidekeeper on turns instead of snapping
+var _idle_beat := 0.0          # staggered idle-variety timer (blink/croak) — offset per slot
+var _blink_t := 0.0            # remaining time the blink clip owns the sprite over follow anims
 
 ## Spawn path for a TRAVELLER: a partner rescued in another cove that journeys with you (the
 ## party always follows — TotK rule). No rescue ceremony, no feat, no zzz: it arrives awake,
@@ -327,8 +331,13 @@ func _process(delta: float) -> void:
 	var in_water := position.y > _cfg.surface_y + 4.0
 	var lift := FOLLOW_LIFT_WATER if in_water else FOLLOW_LIFT_LAND   # sit ON the blocks on land, lift in water
 	# party formation: each follower aims at its own slot offset so the crew fans out behind the
-	# tidekeeper instead of stacking on one point (TotK-style everybody-follows)
-	var target := (get_parent() as Node2D).to_local(axo.global_position) + Vector2(0.0, lift) + SLOT_OFFSETS[_slot]
+	# tidekeeper instead of stacking on one point (TotK-style everybody-follows); the fan mirrors
+	# with the tidekeeper's facing (eased) so the crew re-fans BEHIND them on turns, not snaps
+	var p_face := (axo._face as float) if "_face" in axo else 1.0
+	_mirror = move_toward(_mirror, signf(p_face), 3.0 * delta)
+	var slot := SLOT_OFFSETS[_slot]
+	var target := (get_parent() as Node2D).to_local(axo.global_position) \
+		+ Vector2(0.0, lift) + Vector2(slot.x * _mirror, slot.y)
 	if _kind == Kind.FROG:
 		# the frog is a SURFACE-AND-LAND creature (spec §9): it rides the waterline and hops the
 		# banks/lilypads — never dives. Clamping the follow target here retires the deep-water
@@ -383,7 +392,20 @@ func _process(delta: float) -> void:
 			elif _land_t > 0.0:
 				_anims.play(anims.land, _face)                # landed right at the follow point
 			else:
-				_anims.play(anims.swim_idle if in_water else anims.idle, _face)
+				# PRESENCE: settled followers look AT the tidekeeper and blink on their own
+				# staggered beat (slot-offset so the crew never syncs like a metronome). No
+				# current()/finished() reads on AnimationController (play()-only API) — the blink
+				# owns the sprite for a short _blink_t window instead of polling clip state.
+				if absf(axo.global_position.x - global_position.x) > 6.0 and absf(gap.x) < 60.0:
+					_face = signf(axo.global_position.x - global_position.x)
+				_idle_beat -= delta
+				if _idle_beat <= 0.0:
+					_idle_beat = 3.2 + float(_slot) * 0.9 + randf() * 1.6
+					_blink_t = 0.7                        # the blink owns the sprite briefly
+					_anims.play(anims.idle_blink, _face)
+				_blink_t = maxf(0.0, _blink_t - delta)
+				if _blink_t <= 0.0:
+					_anims.play(anims.swim_idle if in_water else anims.idle, _face)
 	_spr.scale = _spr.scale.lerp(Vector2.ONE, clampf(9.0 * delta, 0.0, 1.0))   # settle the landing/chomp squash
 	_spr.skew = _lean.update(clampf(gap.x / 70.0, -1.0, 1.0) * TURTLE_SKEW, delta)   # lean into the follow
 	if in_water:
