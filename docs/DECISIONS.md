@@ -167,3 +167,10 @@ Architecture: a **runtime pixel shell** (`game/fx/pixel_shell.gd`, built by `cov
 — scene files stay flat, wrappers untouched, world coordinates contract-identical (locked by
 `tests/test_pixel_contract.gd`). Spec:
 `docs/superpowers/specs/2026-07-23-slice3-full-pixel-unification-design.md`.
+**Addendum (2026-07-24, Maram live-eyeball rulings):** (1) the palette snap runs BELOW PostFX
+(quantized grain/vignette read as screen-wide noise — reverses the spec's "snap runs last");
+dither gains a flat-zone deadband + a world-anchored Bayer weave, strength 0.2. (2) "Size is
+fine, texture feels crude" → the shell's **effect grid is 640×360 with the camera at ×2**:
+framing and art-pixel size on screen stay byte-identical to the 320×180 shell, while shaders,
+particles, and dither render at double resolution. Art pixels stay integer (1 art px = 2
+viewport px). The strict one-grid purism is deliberately traded for a finer atmosphere.

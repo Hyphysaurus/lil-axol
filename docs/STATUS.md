@@ -110,7 +110,8 @@ Travel loop wired: **hub ⇄ estuary ⇄ canals**. Reach 2 blocks on Maram's pai
   `cove_life` kelp/fish fade-in, `shore_health`/`shore_pollution`, localized reveal + caustics,
   `restoration_banner` win handoff, `cleanup_fx`.
 - **Pixel shell (slice 3)** (`game/fx/pixel_shell.gd`, built by `cove.gd` at `_ready`) — reparents the
-  world subtree into a runtime SubViewport shell: world renders @ **320×180**, integer + expand scaled
+  world subtree into a runtime SubViewport shell: **640×360 effect grid, camera ×2** (D-0018 addendum —
+  framing reads as 320×180 while shaders/dither render twice as fine), integer + expand scaled
   (no letterbox), camera ×1. HUD stays native-res. `shaders/apollo_post.gdshader` runs last inside the
   viewport (Bayer 4×4 dither, snaps to Apollo swatches). World-coordinate contract locked by
   `tests/test_pixel_contract.gd`. *(D-0018, amends master §5)*

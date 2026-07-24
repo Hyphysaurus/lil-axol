@@ -4,7 +4,11 @@ extends Node
 ## HUD layers stay native-res at the cove root. Layout math is pure + static for headless
 ## testing. Preloaded (not class_name) by cove.gd — same portable pattern as game/fx/spring.gd.
 
-const BASE := Vector2i(320, 180)
+## 2026-07-24 grid retune (Maram's live verdict: "size is fine, texture feels crude"):
+## the EFFECT grid is 640x360 while the camera runs x2, so the world framing and art-pixel
+## size on screen are byte-identical to the 320x180 shell — only shaders, particles, and
+## dither render at double resolution. Art pixels stay integer (1 art px = 2 viewport px).
+const BASE := Vector2i(640, 360)
 
 ## Biggest integer scale that fits the physical window, view expanded to fill the remainder
 ## (ratified fill policy: integer + expand, never letterbox, never fractional world pixels).
