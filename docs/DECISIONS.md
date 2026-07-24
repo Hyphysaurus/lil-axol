@@ -174,3 +174,10 @@ fine, texture feels crude" → the shell's **effect grid is 640×360 with the ca
 framing and art-pixel size on screen stay byte-identical to the 320×180 shell, while shaders,
 particles, and dither render at double resolution. Art pixels stay integer (1 art px = 2
 viewport px). The strict one-grid purism is deliberately traded for a finer atmosphere.
+**(3, later the same day)** The snap ships **OFF** (`SNAP_ENABLED = false` in pixel_shell —
+A/B screenshots proved the nearest-swatch mapping desaturates/red-shifts the whole scene; the
+shader + dither stack stay mounted for a future palette dial). And the REAL "too muted" culprit
+fell out of the hunt: `reach_map._draw_surround` had filled the ENTIRE map rect with near-ink
+since slice 5, hiding the sky/sun/clouds in every map reach ("permanent midnight") — fixed to
+its own doc-stated intent (margin slabs + underwater backdrop only; the air above the waterline
+now shows the day/night sky). The sky pipeline itself was never broken.

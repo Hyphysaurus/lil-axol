@@ -307,8 +307,19 @@ func _draw_surround(s: Node2D) -> void:
 	var deep := Palette.INK.lerp(Color(0.11, 0.16, 0.23), 0.25)
 	# grow just past camera_bounds (map + 24px) — the old 1400px apron was ~12MP of pure WebGL
 	# fill-rate the camera could never even pan to (web sluggishness, 2026-07-12 hotfix)
-	var r := Rect2(_cfg.map_origin, Vector2(gw, gh) * CELL).grow(280.0)
-	s.draw_rect(r, deep)                                        # far field
+	#
+	# 2026-07-24 (slice-3 eyeball fallout): the slice-5 code filled the WHOLE grown rect with
+	# near-ink, walling the entire reach off from the sky — the canals shipped in permanent
+	# scene-file midnight (sky/sun/clouds all drawn, all hidden; Maram's "the world feels too
+	# muted"). The doc above always said the intent: below the table + a margin outside. Now
+	# the fill is exactly that — side/bottom slabs + the underwater backdrop — and the AIR
+	# above the waterline is transparent, so the day/night sky finally shows in map reaches.
+	var map_r := Rect2(_cfg.map_origin, Vector2(gw, gh) * CELL)
+	var r := map_r.grow(280.0)
+	# left / right / bottom margin slabs (no top slab: the sky owns the air above the reach)
+	s.draw_rect(Rect2(r.position, Vector2(map_r.position.x - r.position.x, r.size.y)), deep)
+	s.draw_rect(Rect2(Vector2(map_r.end.x, r.position.y), Vector2(r.end.x - map_r.end.x, r.size.y)), deep)
+	s.draw_rect(Rect2(Vector2(map_r.position.x, map_r.end.y), Vector2(map_r.size.x, r.end.y - map_r.end.y)), deep)
 	var below := Rect2(Vector2(_cfg.map_origin.x, _cfg.surface_y),
 		Vector2(float(gw) * CELL, float(gh) * CELL - float(table_row) * CELL))
 	s.draw_rect(below, Color(0.11, 0.16, 0.23))                 # water backdrop

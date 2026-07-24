@@ -44,7 +44,13 @@ func build(cove: Node2D, keep_at_root: Array) -> Node2D:
 	world.transform = cove.global_transform  # the coordinate contract: world coords == today's
 	_viewport.add_child(world)
 	_container.add_child(_viewport)
+	# 2026-07-24 ruling (Maram: "not sure I want to keep this palette" + "world feels too
+	# muted"; A/B screenshot bisect confirmed): the global snap's nearest-swatch mapping
+	# desaturates and red-shifts the scene hard (warm terrain browns -> muted reds). The snap
+	# ships OFF; the shader + dither stack stay mounted for a future palette dial session.
+	const SNAP_ENABLED := false
 	var snap_layer := CanvasLayer.new()
+	snap_layer.visible = SNAP_ENABLED
 	snap_layer.name = "ApolloSnap"
 	snap_layer.layer = 90                    # BELOW PostFX (100) + iris (200): grain/vignette/iris
 	                                         # stay smooth — quantizing them read as all-over noise
