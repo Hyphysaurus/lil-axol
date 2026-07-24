@@ -247,6 +247,10 @@ mascot is wanted), chicken (livestock — farm set-dressing only, never a citize
 
 ## 5. Art unification — full pixel @ 640×360
 
+> **AMENDED 2026-07-23 (D-0018, slice 3 shipped):** base grid is **320×180** (not 640×360) —
+> ×4 → 720p / ×6 → 1080p, integer + expand fill, global Apollo snap+dither post-pass. See
+> `2026-07-23-slice3-full-pixel-unification-design.md`.
+
 - **World** renders into a **640×360 SubViewport**, integer-scaled ×2 → 720p / ×3 → 1080p,
   `NEAREST`. One pixel grid for characters, block terrain, water, sky, particles, and light.
 - **Shaders quantize to the grid** and to **Apollo** swatches: water, clouds, god-rays,

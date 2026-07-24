@@ -1,12 +1,13 @@
 # LilAxol — Build Status
 
-**Updated:** 2026-07-22 (verified against code + git through `d657de2`; slice-4/5 stack live).
+**Updated:** 2026-07-24 (verified against code + git through `b9fb766`; slice-3 pixel shell live —
+world @ 320×180, integer + expand, global Apollo post-pass).
 **Engine:** Godot 4.7 (GL Compatibility), exports via the Steam build + no-threads web template.
 **Game:** *Lil Axolotl: Tidekeeper — The Living Watershed.* A cozy 2D pixel platformer/swimmer where
 an axolotl restores its only real home — the Xochimilco canal wetlands — one reach at a time. The
 reward is the living watershed returning underneath you. Design of record:
 `docs/superpowers/specs/2026-07-07-living-watershed-master-design.md` (v2). Decisions: `DECISIONS.md`
-(current through **D-0017**).
+(current through **D-0018**).
 
 ## The pivot in one line (D-0011)
 
@@ -108,7 +109,13 @@ Travel loop wired: **hub ⇄ estuary ⇄ canals**. Reach 2 blocks on Maram's pai
 - **Atmosphere & payoff** — procedural sky + `day_night.gd` (120s, D-0008), reactive `seabed_backdrop`,
   `cove_life` kelp/fish fade-in, `shore_health`/`shore_pollution`, localized reveal + caustics,
   `restoration_banner` win handoff, `cleanup_fx`.
-- **Palette** (`palette.gd` + `shaders/sweetie16.gdshaderinc`) — Sweetie-16 master, single-source (D-0010).
+- **Pixel shell (slice 3)** (`game/fx/pixel_shell.gd`, built by `cove.gd` at `_ready`) — reparents the
+  world subtree into a runtime SubViewport shell: world renders @ **320×180**, integer + expand scaled
+  (no letterbox), camera ×1. HUD stays native-res. `shaders/apollo_post.gdshader` runs last inside the
+  viewport (Bayer 4×4 dither, snaps to Apollo swatches). World-coordinate contract locked by
+  `tests/test_pixel_contract.gd`. *(D-0018, amends master §5)*
+- **Palette** (`palette.gd` + `shaders/apollo.gdshaderinc`) — Apollo master, single-source (D-0010,
+  migrated 2026-07-04); slice 3 adds the global `apollo_post` quantizer.
 - **Audio** — `Sfx` autoload verb board + `cove_audio.gd` three-layer soundscape (ambience/life/music,
   music earned ~85%); buses persisted via `Settings`.
 
@@ -127,9 +134,6 @@ while reaches respawn to config, but the "save the exact ecological state" promi
 
 ## DESIGNED, NOT BUILT
 
-- **Slice 3 — full-pixel 640×360 art unification** (master §5) — **SKIPPED so far.** Master §10 orders it
-  *before* new biomes; slices 4 & 5 shipped without it, so canals + estuary are authored against a grid
-  we may re-author. See **P-6** in DECISIONS.
 - **Otter + creek + the refugio + BUILD** (slice 6) — the spend side of the barrel economy (§3.6), carp
   Herd, refugio/weirs, Clarity payoff. Otter art registered; verbs unbuilt.
 - **Bat + spring-grotto** (slice 7) — Echosong reveal, dark-biome lighting.
@@ -151,6 +155,8 @@ while reaches respawn to config, but the "save the exact ecological state" promi
 - Pre-watershed gotchas from the old STATUS (orphaned `shaders/oil.gdshader`, unreferenced
   `newoilset.png`/`waterpack.png`, ~144/145 props unused) are **unre-verified this pass** — treat as
   stale until checked.
+- **Lit addon shader globals still track the window, not the world viewport** — harmless (no Lit
+  lights in game code); wire only if Lit ever ships a light. *(slice 3)*
 
 ## SHIPPED / DEPLOYED
 
@@ -164,6 +170,6 @@ while reaches respawn to config, but the "save the exact ecological state" promi
 ## AWAITING MARAM (playtest / eyeball)
 
 - **P-5** seabed tile style-match — now on the live build, ready for the phone eyeball.
-- **P-6** slice-3 do-now-or-defer (rule before reach 2 lands).
+- *(P-6 resolved → D-0018: ruled do-now, this slice — the 320×180 pixel shell shipped.)*
 - Slice-4 **Survey feel** + **D-0009/D-0010** feel-confirms — all now deployed.
 - **D-0012** Bible ratification (recoverable stakes).

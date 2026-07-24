@@ -152,3 +152,17 @@ whole spec). What actually shipped is a cozier, traversal-first read: **restorat
 a healed reach's `thermal_vent` provides an **updraft** the axolotl rides, so cleaning the world literally
 opens new vertical routes (the bible's "restoration unlocks traversal," ecology-native, never a hazard).
 Confirm exact trigger/geometry against `game/cove/thermal_vent.gd`.
+
+## D-0018 — Full-pixel base grid is 320×180, integer + expand, dithered Apollo bands (2026-07-23, Maram — slice 3, amends master §5)
+The master spec's 640×360 would have zoomed the framing OUT ~1.5× (today's zoom-3 camera shows a
+~427×240 world window); Maram ruled **320×180** (×4 → 720p, ×6 → 1080p) — characters read ~33%
+BIGGER, the Animal Well / Celeste grid. Companion rulings: (1) **HUD/text stays native-res**
+(master §5 letter — no pixel-font re-theme); (2) fill policy = **integer + expand** — biggest
+integer scale that fits the physical window, viewport extends to fill, no letterbox, matching the
+game's existing `expand` behavior; (3) color = **dithered Apollo bands** — one global post pass
+(`shaders/apollo_post.gdshader`, Bayer 4×4, tunable `dither_strength`, a tuned constant not a user
+setting) runs last inside the world viewport so even day/night Mood tints land on-palette.
+Architecture: a **runtime pixel shell** (`game/fx/pixel_shell.gd`, built by `cove.gd` at `_ready`)
+— scene files stay flat, wrappers untouched, world coordinates contract-identical (locked by
+`tests/test_pixel_contract.gd`). Spec:
+`docs/superpowers/specs/2026-07-23-slice3-full-pixel-unification-design.md`.
