@@ -39,6 +39,18 @@ func build(cove: Node2D, keep_at_root: Array) -> Node2D:
 	world.transform = cove.global_transform  # the coordinate contract: world coords == today's
 	_viewport.add_child(world)
 	_container.add_child(_viewport)
+	var snap_layer := CanvasLayer.new()
+	snap_layer.name = "ApolloSnap"
+	snap_layer.layer = 250                   # above world PostFX (100) and the iris wipe (200)
+	var snap_rect := ColorRect.new()
+	snap_rect.name = "Snap"
+	snap_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	snap_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var snap_mat := ShaderMaterial.new()
+	snap_mat.shader = preload("res://shaders/apollo_post.gdshader")
+	snap_rect.material = snap_mat
+	snap_layer.add_child(snap_rect)
+	_viewport.add_child(snap_layer)
 	layer.add_child(_container)
 	add_child(layer)
 	for c in cove.get_children():            # get_children() returns a copy — safe to reparent in-loop
