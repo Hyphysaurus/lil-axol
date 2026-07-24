@@ -35,7 +35,8 @@ var arrive_entry := ""               # which edge/door we arrive through on a ma
 func roster_add(kind: int) -> void:
 	if not run_roster.has(kind):
 		run_roster.append(kind)
-	run_active = kind
+	if run_active == -1:
+		run_active = kind   # D-0019: joining NEVER steals the active slot; claim only when alone
 	roster_changed.emit()
 
 ## Register a partner in the roster WITHOUT stealing the active slot — the persistence spawn

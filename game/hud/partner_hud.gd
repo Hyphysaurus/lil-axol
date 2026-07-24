@@ -62,7 +62,7 @@ class Chip extends Control:
 		var frames: SpriteFrames = Library.ART[kind]["frames"]
 		if frames.has_animation("idle") and frames.get_frame_count("idle") > 0:
 			_tex = frames.get_frame_texture("idle", 0)
-		tooltip_text = str(Library.NAMES.get(kind, "?")).capitalize()
+		tooltip_text = str(Library.info(kind).get("name", "?"))
 
 	func _process(delta: float) -> void:
 		if not _active:
