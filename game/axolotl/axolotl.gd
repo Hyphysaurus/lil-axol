@@ -46,6 +46,7 @@ var _dash_t := 0.0             # remaining clean-wake dash time (swim only)
 var _dash_cd := 0.0
 var _spray_p: CPUParticles2D
 var _bubbles: CPUParticles2D
+var _chain: CPUParticles2D     # gold trick-chain aura: visible while the Cascade is open
 var _bubble: Node = null       # the live Bubble Bomb while its button is held (aim/steer/release)
 var _bubble_held_t := 0.0      # how long the bubble button has been down (tap vs hold)
 var _ride: Node = null         # the free bubble we're homing onto (V re-press ride)
@@ -195,6 +196,24 @@ func _ready() -> void:
 	_bubbles.color = Color(1.0, 1.0, 1.0, 0.7)   # white so the bubble's own colours show
 	_bubbles.z_index = 6
 	add_child(_bubbles)
+	# CHAIN AURA (2026-07-24 — "no visual language for the bubble dive"): while the Cascade is
+	# open (bounced -> kick pending -> dive pending) the axolotl sheds gold sparks, so the trick
+	# state is visible instead of living only in a hint you read once.
+	_chain = CPUParticles2D.new()
+	_chain.emitting = false
+	_chain.local_coords = false
+	_chain.amount = 7
+	_chain.lifetime = 0.45
+	_chain.spread = 40.0
+	_chain.direction = Vector2(0, 1)
+	_chain.initial_velocity_min = 14.0
+	_chain.initial_velocity_max = 34.0
+	_chain.gravity = Vector2(0, 90)
+	_chain.scale_amount_min = 0.7
+	_chain.scale_amount_max = 1.4
+	_chain.color = Color(Palette.GOLD, 0.85)
+	_chain.z_index = 8
+	add_child(_chain)
 
 func _physics_process(delta: float) -> void:
 	_t += delta
@@ -274,7 +293,10 @@ func _physics_process(delta: float) -> void:
 	# jump-onto-the-held-bubble path still works for purists. ---
 	if _ride != null:
 		if not is_instance_valid(_ride) or _ride_t > RIDE_TIME:
+			if is_instance_valid(_ride) and _ride.has_method("ride_unlock"):
+				_ride.ride_unlock()           # gave up — the bubble's clock resumes
 			_ride = null                      # popped or unreachable — hand control straight back
+			queue_redraw()                    # clear the guide thread
 		else:
 			_ride_t += delta
 			var to: Vector2 = (_ride as Node2D).global_position - global_position
@@ -282,7 +304,9 @@ func _physics_process(delta: float) -> void:
 				bubble_bounce()
 				_ride.ride_pop()
 				_ride = null
+				queue_redraw()
 			else:
+				queue_redraw()                # keep the gold guide thread tracking
 				if absf(to.x) > 2.0:
 					_face = signf(to.x)
 				velocity = to.normalized() * RIDE_SPEED   # the ride owns velocity; no gravity
@@ -371,6 +395,17 @@ func _physics_process(delta: float) -> void:
 	_was_on_floor = is_on_floor()
 	_animate_land(running, spraying, delta)
 	_juice(delta)
+
+## RIDE LANGUAGE (2026-07-24 — Maram: "no visual language for the bubble dive"): while homing
+## onto the bubble, a dotted gold thread runs nose-to-bubble — you can SEE the lock-on.
+func _draw() -> void:
+	if _ride == null or not is_instance_valid(_ride):
+		return
+	var to := to_local((_ride as Node2D).global_position)
+	var n := maxi(int(to.length() / 8.0), 1)
+	for i in range(n):
+		var t0 := float(i) / float(n)
+		draw_circle(to * t0, 1.2, Color(Palette.GOLD, 0.7 * (1.0 - t0 * 0.4)))
 
 ## Is Meno pressed close enough to spring off? Finds the frog companion in contact range and asks
 ## it to crouch-launch (companion.springboard() owns the recovery cooldown + the squash).
@@ -524,9 +559,15 @@ func _swim(delta: float, dir: float) -> void:
 		velocity.y = 0.0
 	# ...but a deliberate hop near the surface gets a grace window to clear it
 	if not ui and Input.is_action_just_pressed("jump") and depth < tuning.rest_depth + 6.0:
-		velocity.y = tuning.surface_hop
+		# SPRINGBOARD from the water too (2026-07-24 fix — Maram: "the springboard isn't
+		# working": the ground-jump path alone made Meno's launch unreachable in the marsh,
+		# where he rides the surface and you swim). Hop near him = the big launch.
+		var spring := _frog_springboard()
+		velocity.y = tuning.jump_velocity * SPRING_SCALE if spring else tuning.surface_hop
 		velocity.x = dir * tuning.run_speed
-		_hop_grace = 0.3
+		_hop_grace = 0.5 if spring else 0.3
+		if spring:
+			_air_jump_spent = false
 		Sfx.play("splash", -8.0, 1.2)   # tiny bright hop splash
 
 	_idle_t = 0.0   # swimming is its own animation family; the AFK chain is land-only
@@ -595,6 +636,8 @@ func _animate_idle(delta: float) -> void:
 ## vertical swim motion. Never writes velocity/position — D-0003 stays intact.
 func _juice(delta: float) -> void:
 	_stick_aim_t = maxf(0.0, _stick_aim_t - delta)   # sticky-aim decay (every branch calls _juice)
+	if _chain:
+		_chain.emitting = _cascade >= 1 and not _in_water   # the open trick-chain glitters gold
 	# BREATHING: when calm, the pose the scale eases back to gently swells instead of sitting at 1:1 —
 	# so an idle/hovering axo is alive, not frozen. Active states kick the scale and this rest is ~1:1.
 	var calm := clampf(1.0 - absf(velocity.x) / 60.0, 0.0, 1.0)
@@ -766,6 +809,8 @@ func _update_bubble(dir: float, ui: bool) -> void:
 			if not ui and Input.is_action_just_pressed("bubble") and _ride == null:
 				_ride = _bubble
 				_ride_t = 0.0
+				if _ride.has_method("ride_lock"):
+					_ride.ride_lock()   # the bubble waits for you — no mid-ride expiry
 			return
 		_bubble_held_t += get_physics_process_delta_time()
 		if ui or not Input.is_action_pressed("bubble"):

@@ -17,6 +17,7 @@ var _fade := 0.0
 
 func _ready() -> void:
 	layer = 94                 # over hints (93), under the restoration banner (95)
+	process_mode = PROCESS_MODE_ALWAYS   # keep fading under the paused rest menu (review minor)
 	add_to_group("rescue_card")
 	_build()
 
@@ -42,7 +43,7 @@ func _process(delta: float) -> void:
 		target = 0.0 if Settings.ui_locked() else 1.0
 	_fade = move_toward(_fade, target, delta / FADE)
 	_root.modulate.a = _fade
-	_root.visible = _fade > 0.01
+	_root.visible = _fade > 0.01 and not Settings.ui_locked()   # hard-hide under menus (hints idiom)
 
 func _build() -> void:
 	_root = Control.new()

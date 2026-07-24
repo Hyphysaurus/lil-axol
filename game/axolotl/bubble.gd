@@ -26,6 +26,7 @@ var _cfg: CoveConfig
 var _t := 0.0
 var _popped := false
 var _held := true              # false after a tap-release: free glide, ready to be ridden
+var _ride_locked := false      # a rider is homing in — the lifetime clock pauses for them
 var _spr: AnimatedSprite2D    # the shimmer sprite when the art exists; null = draw the circle instead
 
 func setup(aim: Vector2, cfg: CoveConfig) -> void:
@@ -83,6 +84,14 @@ func is_free() -> bool:
 func ride_pop() -> void:
 	_pop()
 
+## A rider committed (V re-press): the bubble WAITS — no mid-ride expiry (2026-07-24,
+## "still very difficult to land"). Unlocked if the ride gives up, so it can't live forever.
+func ride_lock() -> void:
+	_ride_locked = true
+
+func ride_unlock() -> void:
+	_ride_locked = false
+
 func _physics_process(delta: float) -> void:
 	if _popped:
 		return
@@ -107,7 +116,7 @@ func _physics_process(delta: float) -> void:
 		var ceiling: float = (_cfg.camera_bounds.position.y + 16.0) if _cfg.has_map else (_cfg.surface_y - 44.0)
 		out = position.y < ceiling \
 			or position.x < _cfg.water_left - 24.0 or position.x > _cfg.water_right + 24.0
-	if _t >= (MAX_TIME if _held else FREE_TIME) or out:
+	if (_t >= (MAX_TIME if _held else FREE_TIME) and not _ride_locked) or out:
 		_pop()
 		return
 	scale = Vector2.ONE * (1.0 + 0.06 * sin(_t * 9.0) + 0.12 * _t)   # swells as it charges

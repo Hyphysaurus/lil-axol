@@ -8,3 +8,8 @@ desktop.ini
 /build/
 
 .playwright-mcp/
+
+# session/test scratch (headless run dumps)
+stderr.txt
+stdout.txt
+test_error.txt

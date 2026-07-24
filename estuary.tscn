@@ -12,20 +12,18 @@ size = Vector2(519, 145)
 
 [node name="Estuary" type="Node2D"]
 
-[node name="Tint" type="CanvasModulate" parent="."]
-color = Color(0.9, 0.97, 0.88, 1)
-
 [node name="Cove" parent="." instance=ExtResource("1_cove")]
 position = Vector2(402, 28)
 config = ExtResource("6_cfg")
 
-[node name="MudBed" type="StaticBody2D" parent="."]
+[node name="MudBed" type="StaticBody2D" parent="Cove"]
+position = Vector2(-402, -28)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="MudBed"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Cove/MudBed"]
 position = Vector2(519.5, 196.5)
 shape = SubResource("RectangleShape2D_mud")
 
-[node name="Polygon2D" type="Polygon2D" parent="MudBed"]
+[node name="Polygon2D" type="Polygon2D" parent="Cove/MudBed"]
 z_index = 2
 color = Color(0.23, 0.19, 0.14, 1)
 polygon = PackedVector2Array(260, 124, 779, 124, 779, 269, 260, 269)

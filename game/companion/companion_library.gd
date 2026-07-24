@@ -40,7 +40,7 @@ const INFO := {
 	2: { "name": "Nutria", "species": "Neotropical river otter", "verb_name": "",
 		"verb_teach": "" },
 	3: { "name": "Zuni", "species": "Great darner dragonfly", "verb_name": "Survey",
-		"verb_teach": "Press the SPIN button to sweep the reach and reveal what hides." },
+		"verb_teach": "Zuni can Survey the reach — tap her chip, then press SPIN to reveal what hides." },
 }
 
 static func info(kind: int) -> Dictionary:
