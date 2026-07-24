@@ -243,7 +243,11 @@ func _wake() -> void:
 			get_tree().call_group("curio_cards", "show_card", card, "field guide — encounter logged")
 	Settings.roster_add(_kind)   # the rescued friend joins the roster (chips HUD); was never wired
 	get_tree().call_group("rescue_card", "show_rescue", _kind)   # the Waking ceremony card
-	_spr.scale = Vector2(1.35, 0.7)   # wake POP: a big stretch the standard settle eases out
+	# wake POP: a big stretch that eases home on its own tween — the follow branch's settle
+	# lerp can't run during WAKING (_process early-returns), so the pop must own its recovery
+	_spr.scale = Vector2(1.35, 0.7)
+	create_tween().tween_property(_spr, "scale", Vector2.ONE, 0.28)\
+		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	woke.emit()
 	await get_tree().create_timer(0.5).timeout
 	if _state != State.WAKING:          # (a New Day reset could have freed/retired us mid-wait)
