@@ -554,7 +554,7 @@ func _juice(delta: float) -> void:
 		target_tilt = clampf(velocity.y / tuning.swim_v, -1.0, 1.0) * TILT_MAX * _face
 	_spr.rotation = lerpf(_spr.rotation, target_tilt, clampf(TILT_LERP * delta, 0.0, 1.0))
 	# sit & watch (or a full AFK nap): the camera breathes out and the cove becomes the show
-	var z := 2.55 if (_sitting or _idle_t >= AFK_AT) else 3.0
+	var z := 0.85 if (_sitting or _idle_t >= AFK_AT) else 1.0
 	_cam.zoom = _cam.zoom.lerp(Vector2(z, z), clampf(1.5 * delta, 0.0, 1.0))
 	# impact shake: a fast-decaying jitter on the camera offset (kicked via shake())
 	if _shake > 0.05:
