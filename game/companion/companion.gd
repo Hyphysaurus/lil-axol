@@ -773,7 +773,14 @@ func _snap_tongue() -> void:
 	_snap_cd = SNAP_COOLDOWN
 	var prey := _nearest_grabbable(SNAP_REACH)
 	if prey == null:
-		Sfx.play("scrub", -16.0, 0.7)         # a soft whiff — nothing in tongue range
+		# WHIFF, but VISIBLY (2026-07-24 fix — Maram: "can't seem to activate the frog
+		# abilities"): a silent no-op read as a dead button. Meno now snaps at nothing —
+		# the tongue clip plays toward his facing with an audible swish, so the verb always
+		# answers the press even when no debris is in range.
+		_strike_t = 0.3
+		_play_tongue_anim(Vector2(_face, -0.1))
+		_spr.scale = Vector2(1.1, 0.9)
+		Sfx.play("swish", -8.0, 1.3)
 		return
 	_strike_t = 0.4                            # the tongue clip owns the sprite briefly
 	var dir := (get_parent() as Node2D).to_local(prey.global_position) - position

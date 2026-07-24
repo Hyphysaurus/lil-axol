@@ -378,7 +378,9 @@ func _frog_springboard() -> bool:
 	for c in get_tree().get_nodes_in_group("companion"):
 		if c.has_method("kind") and c.kind() == 1 and c.has_method("springboard"):
 			var d: Vector2 = (c as Node2D).global_position - global_position
-			if absf(d.x) < 26.0 and absf(d.y) < 24.0:
+			# 44x34 catch box (2026-07-24 fix): the follow model PARKS Meno ~30px away
+			# (FOLLOW_GAP), so the original 26px box left him forever just out of reach
+			if absf(d.x) < 44.0 and absf(d.y) < 34.0:
 				return c.springboard()
 	return false
 
