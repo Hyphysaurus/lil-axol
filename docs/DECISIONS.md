@@ -55,7 +55,8 @@ sit-and-watch a full cycle without it churning; this is the canonical value for 
   pixel style now that they're live? **Deferred by Mario (2026-07-02):** ruling parked until
   he eyeballs the live build (lilaxol.vercel.app) from his phone; then record keep-vs-rework.
   *(Now re-deployed 2026-07-22 with the full slice-4/5 stack — ready for the phone eyeball.)*
-- *(P-3 resolved → D-0007. P-4 resolved: game-loop Phase 1 + audio Phases 1–3 shipped.)*
+- *(P-3 resolved → D-0007. P-4 resolved: game-loop Phase 1 + audio Phases 1–3 shipped. P-6 resolved →
+  D-0018: ruled do-now — the 320×180 pixel shell shipped this slice.)*
 
 ## D-0009 — Swim allows deep hover (Subnautica mobility) (2026-07-03, Mario)
 The buoyancy spring no longer always floats the axolotl to the surface. It holds you near the
