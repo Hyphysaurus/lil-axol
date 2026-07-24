@@ -66,6 +66,7 @@ const AIR_JUMP_SCALE := 0.9    # the mid-air gill-kick is a touch softer than th
 const DIVE_MIN_SPEED := 320.0  # entry fall speed where a dive starts scrubbing (a bank slip doesn't)
 const DIVE_MAX_SPEED := 620.0  # full-power cannonball
 const BOUNCE_SCALE := 1.15     # bubble-trampoline launch vs the ground jump
+const SPRING_SCALE := 1.5      # Meno's springboard launch vs the ground jump (2026-07-24 frog kit)
 const BUBBLE_TAP := 0.18       # press shorter than this = free-glide bubble (not a detonate)
 const AIM_STICKY := 2.0        # touch: the last stick aim lingers this long after going neutral
 const ASSIST_CONE := 0.8       # touch aim assist: cos ~37° — how far off-aim a target may sit
@@ -342,9 +343,14 @@ func _physics_process(delta: float) -> void:
 	# (or coyote grace) arrives — the classic "my jump got eaten" landing press, fixed.
 	if _jump_buffer > 0.0 and (is_on_floor() or _coyote > 0.0):
 		_jump_buffer = 0.0
-		velocity.y = tuning.jump_velocity
+		# SPRINGBOARD (2026-07-24 frog kit): jumping while pressed against Meno launches HIGH
+		# and refreshes the gill-kick — a living trampoline beside the bubbles and geysers
+		var spring := _frog_springboard()
+		velocity.y = tuning.jump_velocity * (SPRING_SCALE if spring else 1.0)
+		if spring:
+			_air_jump_spent = false
 		_coyote = 0.0
-		_spr.scale = Vector2(0.72, 1.28)   # takeoff stretch
+		_spr.scale = Vector2(0.6, 1.4) if spring else Vector2(0.72, 1.28)   # takeoff stretch
 		Sfx.play("jump")
 	elif not ui and Input.is_action_just_pressed("jump") and not _air_jump_spent:
 		# the mid-air GILL-KICK (double jump): one per airtime, a touch softer than the
@@ -365,6 +371,16 @@ func _physics_process(delta: float) -> void:
 	_was_on_floor = is_on_floor()
 	_animate_land(running, spraying, delta)
 	_juice(delta)
+
+## Is Meno pressed close enough to spring off? Finds the frog companion in contact range and asks
+## it to crouch-launch (companion.springboard() owns the recovery cooldown + the squash).
+func _frog_springboard() -> bool:
+	for c in get_tree().get_nodes_in_group("companion"):
+		if c.has_method("kind") and c.kind() == 1 and c.has_method("springboard"):
+			var d: Vector2 = (c as Node2D).global_position - global_position
+			if absf(d.x) < 26.0 and absf(d.y) < 24.0:
+				return c.springboard()
+	return false
 
 ## STEP-ASSIST: walking into a riser no taller than STEP_MAX with clear headroom steps the body
 ## up onto it instead of stopping dead. test_move uses our own collider, so anything that would

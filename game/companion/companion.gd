@@ -70,6 +70,10 @@ const PAD_SNAP := 18.0         # landing point snaps onto a lilypad within this
 const VERB_NONE := 0
 const VERB_SHELL := 1
 const VERB_SURVEY := 2
+const VERB_TONGUE := 3         # Meno's ACTIVE Tongue Snap (2026-07-24 frog kit — Maram)
+const SNAP_REACH := 100.0      # the deliberate press-snap reaches further than the idle habit
+const SNAP_COOLDOWN := 0.8
+const SPRING_COOLDOWN := 1.0   # springboard recovery — a beat, not a pogo exploit
 
 # --- SURVEY (dragonfly, non-interactive — she flies herself): press → ~1.8s spiral-out sweep →
 # a 6s world-wide REVEAL → an optional ~2.5s hover over the reach's worst-oxygen point → back to
@@ -106,6 +110,8 @@ var _t := 0.0
 var _face := -1.0
 var _lean := Spring.new(0.0, 55.0)   # springy body-lean (skew) into the follow direction — offset juice
 var _tongue_cd := 0.0                # cooldown between auto-tongue strikes
+var _snap_cd := 0.0                  # cooldown of the ACTIVE press-snap (frog kit)
+var _spring_cd := 0.0                # springboard recovery
 var _strike_t := 0.0                 # remaining time the tongue clip owns the sprite (over follow anims)
 
 # frog hop state
@@ -312,6 +318,8 @@ func _process(delta: float) -> void:
 		_stamina = minf(1.0, _stamina + delta / REFILL_SECONDS)
 		queue_redraw()
 	_survey_cd = cooldown_tick(_survey_cd, delta)
+	_snap_cd = cooldown_tick(_snap_cd, delta)
+	_spring_cd = cooldown_tick(_spring_cd, delta)
 	var held := _shell_held()
 	var pressed := held and not _shell_was_held
 	_shell_was_held = held
@@ -327,6 +335,8 @@ func _process(delta: float) -> void:
 	if verb == VERB_SURVEY and _survey_cd <= 0.0 and not Settings.ui_locked() and pressed:
 		_begin_survey()
 		return
+	if verb == VERB_TONGUE and _snap_cd <= 0.0 and not Settings.ui_locked() and pressed:
+		_snap_tongue()   # instantaneous — the follow continues underneath the strike clip
 	var axo := get_tree().get_first_node_in_group("player") as Node2D
 	if axo == null:
 		return
@@ -481,6 +491,8 @@ static func verb_for(kind: int, active_kind: int) -> int:
 		return VERB_SHELL
 	if kind == Kind.DRAGONFLY:
 		return VERB_SURVEY
+	if kind == Kind.FROG:
+		return VERB_TONGUE   # the ACTIVE Tongue Snap (2026-07-24 frog kit)
 	return VERB_NONE
 
 static func cooldown_tick(cd: float, delta: float) -> float:
@@ -752,6 +764,37 @@ func _fire_first_survey() -> void:
 	var keeper = get_tree().get_first_node_in_group("shine")
 	if keeper and keeper.has_method("feat"):
 		keeper.feat(&"first_survey", global_position)
+
+## The ACTIVE Tongue Snap (2026-07-24 frog kit — Maram: "the frog is fairly lacking"): the shared
+## partner button while Meno is active. A deliberate, longer-reach strike at the nearest snaggable
+## (debris AND pests share group "grabbable" + the grab(to) contract). Kirby-gated like every
+## active verb; the short-reach idle auto-tongue below stays his passive habit.
+func _snap_tongue() -> void:
+	_snap_cd = SNAP_COOLDOWN
+	var prey := _nearest_grabbable(SNAP_REACH)
+	if prey == null:
+		Sfx.play("scrub", -16.0, 0.7)         # a soft whiff — nothing in tongue range
+		return
+	_strike_t = 0.4                            # the tongue clip owns the sprite briefly
+	var dir := (get_parent() as Node2D).to_local(prey.global_position) - position
+	if absf(dir.x) > 2.0:
+		_face = signf(dir.x)
+	_play_tongue_anim(dir)
+	prey.grab(global_position)
+	_spr.scale = Vector2(1.15, 0.85)
+	Sfx.play("chirp", -10.0, 1.5)              # brighter than the idle gulp — it was COMMANDED
+
+## SPRINGBOARD (2026-07-24 frog kit): Meno crouches and LAUNCHES the tidekeeper — called by the
+## axolotl's jump when it presses off him. NOT Kirby-gated: a contact ability like the auto-tongue,
+## available whenever Meno follows (presence value even while inactive). False while recovering.
+func springboard() -> bool:
+	if _kind != Kind.FROG or _state != State.FOLLOWING or _spring_cd > 0.0:
+		return false
+	_spring_cd = SPRING_COOLDOWN
+	_spr.scale = Vector2(1.45, 0.6)            # the crouch-launch squash (settle lerp eases it)
+	_anims.play(anims.jump, _face)
+	Sfx.play("chirp", -6.0, 1.3)
+	return true
 
 ## The frog auto-snags any floating debris that drifts within tongue reach WHILE it follows you — bring
 ## it near the muck and it cleans it (no command, no darting). A cooldown paces the strikes; the tongue

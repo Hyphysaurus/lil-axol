@@ -36,7 +36,7 @@ const INFO := {
 	0: { "name": "Tola", "species": "Mexican mud turtle", "verb_name": "Shell Spin",
 		"verb_teach": "Hold the SPIN button to pilot the spinning shell through rubble." },
 	1: { "name": "Meno", "species": "Montezuma leopard frog", "verb_name": "Tongue Snap",
-		"verb_teach": "Keep Meno near floating debris — the tongue does the rest." },
+		"verb_teach": "Press the SPIN button to snap Meno's tongue — or jump off his back for a boost!" },
 	2: { "name": "Nutria", "species": "Neotropical river otter", "verb_name": "",
 		"verb_teach": "" },
 	3: { "name": "Zuni", "species": "Great darner dragonfly", "verb_name": "Survey",

@@ -29,7 +29,9 @@ func _process(_delta: float) -> bool:
 	_check("dragonfly active -> not shell", Companion.verb_for(DRAGONFLY, DRAGONFLY) != Companion.VERB_SHELL)
 	_check("turtle rescued but NOT active -> neither verb fires", Companion.verb_for(TURTLE, DRAGONFLY) == Companion.VERB_NONE)
 	_check("dragonfly rescued but NOT active -> neither verb fires", Companion.verb_for(DRAGONFLY, TURTLE) == Companion.VERB_NONE)
-	_check("frog has no button verb (registered, tongue is automatic)", Companion.verb_for(FROG, FROG) == Companion.VERB_NONE)
+	# 2026-07-24 frog kit: the ACTIVE Tongue Snap is Meno's button verb (Kirby-gated like all)
+	_check("frog active -> Tongue Snap on the button", Companion.verb_for(FROG, FROG) == Companion.VERB_TONGUE)
+	_check("frog rescued but NOT active -> no verb", Companion.verb_for(FROG, TURTLE) == Companion.VERB_NONE)
 	_check("otter has no button verb yet (registered, lands slice 6)", Companion.verb_for(OTTER, OTTER) == Companion.VERB_NONE)
 
 	# --- a solo-turtle roster always has the turtle active (legacy zero-behavior-change proof —
