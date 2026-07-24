@@ -141,7 +141,7 @@ shader_parameter/opacity = 1.0
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_post"]
 shader = ExtResource("10_post")
-shader_parameter/grain = 0.035
+shader_parameter/grain = 0.018
 shader_parameter/vignette = 0.4
 shader_parameter/warm = 0.03
 shader_parameter/mid_lift = 0.96

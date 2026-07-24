@@ -16,6 +16,7 @@ static func compute_layout(phys: Vector2i) -> Dictionary:
 
 var _container: SubViewportContainer
 var _viewport: SubViewport
+var _snap_mat: ShaderMaterial
 
 ## Build the shell under `cove` and move every child NOT named in keep_at_root into the world
 ## viewport. Call FIRST in cove.gd._ready(), before any injection. Returns the WorldOffset node
@@ -41,14 +42,16 @@ func build(cove: Node2D, keep_at_root: Array) -> Node2D:
 	_container.add_child(_viewport)
 	var snap_layer := CanvasLayer.new()
 	snap_layer.name = "ApolloSnap"
-	snap_layer.layer = 250                   # above world PostFX (100) and the iris wipe (200)
+	snap_layer.layer = 90                    # BELOW PostFX (100) + iris (200): grain/vignette/iris
+	                                         # stay smooth — quantizing them read as all-over noise
+	                                         # (2026-07-24 eyeball retune; was 250)
 	var snap_rect := ColorRect.new()
 	snap_rect.name = "Snap"
 	snap_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
 	snap_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var snap_mat := ShaderMaterial.new()
-	snap_mat.shader = preload("res://shaders/apollo_post.gdshader")
-	snap_rect.material = snap_mat
+	_snap_mat = ShaderMaterial.new()
+	_snap_mat.shader = preload("res://shaders/apollo_post.gdshader")
+	snap_rect.material = _snap_mat
 	snap_layer.add_child(snap_rect)
 	_viewport.add_child(snap_layer)
 	layer.add_child(_container)
@@ -71,3 +74,10 @@ func _resize() -> void:
 	var f := (design.y / float(phys.y)) if (phys.y > 0 and design.y > 0.0) else 1.0
 	_container.scale = Vector2.ONE * (float(lay["scale"]) * f)
 	_container.position = Vector2.ZERO
+
+## Anchor the snap shader's Bayer pattern to WORLD pixels: push the camera's canvas translation
+## each frame so the dither weave scrolls with the art instead of sitting on the screen like a
+## fixed noise overlay (2026-07-24 eyeball retune).
+func _process(_delta: float) -> void:
+	if _snap_mat and _viewport:
+		_snap_mat.set_shader_parameter("world_ofs", _viewport.canvas_transform.origin)
