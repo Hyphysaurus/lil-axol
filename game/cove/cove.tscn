@@ -48,6 +48,7 @@
 [ext_resource type="Script" path="res://game/hud/perf_overlay.gd" id="46_perf"]
 [ext_resource type="Script" path="res://game/cove/scout_dragonfly.gd" id="47_scout"]
 [ext_resource type="Script" path="res://game/fx/feat_echo.gd" id="48_echo"]
+[ext_resource type="Script" path="res://game/hud/rescue_card.gd" id="49_rescue"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_sn0t7"]
 size = Vector2(255, 280)
@@ -418,6 +419,9 @@ script = ExtResource("29_vent")
 
 [node name="Hints" type="CanvasLayer" parent="."]
 script = ExtResource("30_hints")
+
+[node name="RescueCard" type="CanvasLayer" parent="."]
+script = ExtResource("49_rescue")
 
 [node name="ShorePollution" type="Node2D" parent="."]
 script = ExtResource("28_shorepol")

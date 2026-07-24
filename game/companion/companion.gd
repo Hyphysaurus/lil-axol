@@ -238,6 +238,8 @@ func _wake() -> void:
 		if not card.is_empty():
 			get_tree().call_group("curio_cards", "show_card", card, "field guide — encounter logged")
 	Settings.roster_add(_kind)   # the rescued friend joins the roster (chips HUD); was never wired
+	get_tree().call_group("rescue_card", "show_rescue", _kind)   # the Waking ceremony card
+	_spr.scale = Vector2(1.35, 0.7)   # wake POP: a big stretch the standard settle eases out
 	woke.emit()
 	await get_tree().create_timer(0.5).timeout
 	if _state != State.WAKING:          # (a New Day reset could have freed/retired us mid-wait)

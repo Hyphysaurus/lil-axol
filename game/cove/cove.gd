@@ -26,7 +26,7 @@ var _echo := false
 ## 320x180 world viewport — including Shine, whose "+N" pops are world-anchored, and
 ## CoveAudio/ShoreHealth/TimeOfDay, whose relative sibling paths move with them).
 const KEEP_AT_ROOT := ["RestorationBanner", "NewDay", "TouchControls", "RestorationMeter",
-	"ShineHud", "FeatBanner", "PartnerHud", "HighScores", "Hints", "PerfOverlay"]
+	"ShineHud", "FeatBanner", "PartnerHud", "HighScores", "Hints", "PerfOverlay", "RescueCard"]
 
 var _world: Node2D
 
@@ -75,6 +75,7 @@ func _ready() -> void:
 	_inject(_w("ReachState"))
 	_inject(_w("InvasiveSchool"))
 	_inject($Hints)      # needs the cove id for the once-per-world Cascade tutorial mark
+	_inject(get_node_or_null("RescueCard"))   # HUD ceremony card: stateless, but stays root-side (KEEP_AT_ROOT)
 	_inject(_w("ScoutDragonfly"))
 	_inject(_w("FeatEcho"))
 	_apply_environment()
