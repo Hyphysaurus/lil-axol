@@ -50,6 +50,8 @@ var _bubble: Node = null       # the live Bubble Bomb while its button is held (
 var _bubble_held_t := 0.0      # how long the bubble button has been down (tap vs hold)
 var _ride: Node = null         # the free bubble we're homing onto (V re-press ride)
 var _ride_t := 0.0
+var _stick_aim := Vector2.ZERO # touch: last non-neutral stick aim (sticky aim)
+var _stick_aim_t := 0.0        # time left on the sticky aim
 var _reticle: Reticle          # aim indicator: shows where spray/bubble/dash point
 var _shake := 0.0              # camera impact shake, kicked by shake() and decayed in _juice
 var _climbing := false         # latched onto a climbable root curtain (designated surfaces only)
@@ -65,6 +67,9 @@ const DIVE_MIN_SPEED := 320.0  # entry fall speed where a dive starts scrubbing 
 const DIVE_MAX_SPEED := 620.0  # full-power cannonball
 const BOUNCE_SCALE := 1.15     # bubble-trampoline launch vs the ground jump
 const BUBBLE_TAP := 0.18       # press shorter than this = free-glide bubble (not a detonate)
+const AIM_STICKY := 2.0        # touch: the last stick aim lingers this long after going neutral
+const ASSIST_CONE := 0.8       # touch aim assist: cos ~37° — how far off-aim a target may sit
+const ASSIST_BEND := 0.65      # how strongly the aim bends onto the best target
 const RIDE_SPEED := 340.0      # homing speed of the bubble ride (V re-press)
 const RIDE_TIME := 0.8         # give up homing after this (bubble popped / unreachable)
 const RIDE_CONTACT := 24.0     # close enough = bounce
@@ -571,6 +576,7 @@ func _animate_idle(delta: float) -> void:
 ## Visual-only follow-through: squash/stretch settles back and the sprite leans into
 ## vertical swim motion. Never writes velocity/position — D-0003 stays intact.
 func _juice(delta: float) -> void:
+	_stick_aim_t = maxf(0.0, _stick_aim_t - delta)   # sticky-aim decay (every branch calls _juice)
 	# BREATHING: when calm, the pose the scale eases back to gently swells instead of sitting at 1:1 —
 	# so an idle/hovering axo is alive, not frozen. Active states kick the scale and this rest is ~1:1.
 	var calm := clampf(1.0 - absf(velocity.x) / 60.0, 0.0, 1.0)
@@ -666,8 +672,44 @@ func _aim(dir: float) -> Vector2:
 		if to_mouse.length() > 2.0:
 			return to_mouse.normalized()
 		return Vector2(_face, 0.0)
+	# TOUCH (2026-07-24, Maram: "aiming is a bit tough on mobile") — the aim IS the movement
+	# stick, so pointing at a target also swims you toward it. Two forgiving layers:
+	# STICKY: the last real stick aim lingers AIM_STICKY seconds after the stick goes neutral,
+	# so you can point, release to stop drifting, THEN fire (decays in _juice).
 	var v := Vector2(dir, 0.0 if Settings.ui_locked() else Input.get_axis("move_up", "move_down"))
-	return v.normalized() if v != Vector2.ZERO else Vector2(_face, 0.0)
+	if v != Vector2.ZERO:
+		_stick_aim = v.normalized()
+		_stick_aim_t = AIM_STICKY
+	var aim := _stick_aim if (_stick_aim_t > 0.0 and _stick_aim != Vector2.ZERO) else Vector2(_face, 0.0)
+	return _assist(aim)
+
+## ASSIST (touch only): bend the aim onto the most relevant target roughly ahead — the leak,
+## sprayable barrels/sleeping friends, blastable rubble — so precision verbs stop demanding
+## stick precision on a phone. Every verb and the reticle share _aim(), so what the reticle
+## shows is exactly where the assisted verb will point: the assist stays honest.
+func _assist(aim: Vector2) -> Vector2:
+	var best: Node2D = null
+	var best_score := 0.0
+	var reach: float = tuning.spray_reach * 1.4
+	for grp in ["sprayable", "leak", "blastable"]:
+		for n in get_tree().get_nodes_in_group(grp):
+			if not (n is Node2D):
+				continue
+			var to: Vector2 = (n as Node2D).global_position - global_position
+			var d := to.length()
+			if d < 4.0 or d > reach:
+				continue
+			var co := aim.dot(to / d)
+			if co < ASSIST_CONE:
+				continue
+			var score := co + (1.0 - d / reach) * 0.35   # ahead-ness first; closeness breaks ties
+			if score > best_score:
+				best_score = score
+				best = n
+	if best == null:
+		return aim
+	var to_t := (best.global_position - global_position).normalized()
+	return aim.slerp(to_t, ASSIST_BEND).normalized()
 
 ## Bubble Bomb control: launch on press (spends a Shine charge), HOLD to send it further and
 ## steer it, RELEASE to detonate. The axolotl owns the live bubble while the button is held.
