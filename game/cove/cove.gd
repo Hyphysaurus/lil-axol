@@ -59,6 +59,7 @@ func _ready() -> void:
 	_inject(_w("OilSpill"))
 	_inject(_w("CoveLife"))
 	_inject(_w("SeabedBackdrop"))
+	_inject(_w("BenthicDress"))   # floor dressing reads the field AFTER ReachMap's mask upgrade
 	_inject($RestorationBanner)
 	_inject($NewDay)
 	_inject(_w("CoveAudio"))

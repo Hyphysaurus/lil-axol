@@ -49,6 +49,7 @@
 [ext_resource type="Script" path="res://game/cove/scout_dragonfly.gd" id="47_scout"]
 [ext_resource type="Script" path="res://game/fx/feat_echo.gd" id="48_echo"]
 [ext_resource type="Script" path="res://game/hud/rescue_card.gd" id="49_rescue"]
+[ext_resource type="Script" path="res://game/cove/benthic_dress.gd" id="50_benthic"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_sn0t7"]
 size = Vector2(255, 280)
@@ -297,6 +298,9 @@ script = ExtResource("12_life")
 
 [node name="SeabedBackdrop" type="Node2D" parent="." unique_id=771000011]
 script = ExtResource("16_seabed")
+
+[node name="BenthicDress" type="Node2D" parent="."]
+script = ExtResource("50_benthic")
 
 [node name="SkyLayer" type="CanvasLayer" parent="." unique_id=145102971]
 layer = -100
