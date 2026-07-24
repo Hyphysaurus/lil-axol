@@ -47,6 +47,9 @@ var _dash_cd := 0.0
 var _spray_p: CPUParticles2D
 var _bubbles: CPUParticles2D
 var _bubble: Node = null       # the live Bubble Bomb while its button is held (aim/steer/release)
+var _bubble_held_t := 0.0      # how long the bubble button has been down (tap vs hold)
+var _ride: Node = null         # the free bubble we're homing onto (V re-press ride)
+var _ride_t := 0.0
 var _reticle: Reticle          # aim indicator: shows where spray/bubble/dash point
 var _shake := 0.0              # camera impact shake, kicked by shake() and decayed in _juice
 var _climbing := false         # latched onto a climbable root curtain (designated surfaces only)
@@ -61,6 +64,10 @@ const AIR_JUMP_SCALE := 0.9    # the mid-air gill-kick is a touch softer than th
 const DIVE_MIN_SPEED := 320.0  # entry fall speed where a dive starts scrubbing (a bank slip doesn't)
 const DIVE_MAX_SPEED := 620.0  # full-power cannonball
 const BOUNCE_SCALE := 1.15     # bubble-trampoline launch vs the ground jump
+const BUBBLE_TAP := 0.18       # press shorter than this = free-glide bubble (not a detonate)
+const RIDE_SPEED := 340.0      # homing speed of the bubble ride (V re-press)
+const RIDE_TIME := 0.8         # give up homing after this (bubble popped / unreachable)
+const RIDE_CONTACT := 24.0     # close enough = bounce
 const STEP_MAX := 10.0         # walk-up ledge height: painted maps stair EVERYTHING in 8px cells,
 							   # and a CharacterBody2D stops dead at any riser — one cell must
 							   # never need a jump (it read as "terrain is impassable")
@@ -255,6 +262,30 @@ func _physics_process(delta: float) -> void:
 		_exit_water()
 	_in_water = submerged
 	_update_bubble(dir, ui)   # launch / steer / release the aimed Bubble Bomb (works anywhere)
+	# --- the bubble ride (2026-07-24, Maram's mobile ruling): re-pressing V homes the axolotl
+	# onto its own free-gliding bubble — no aiming, no timing window, one thumb. Contact = the
+	# trampoline bounce (Cascade chain opens exactly as a jumped bounce would). The old
+	# jump-onto-the-held-bubble path still works for purists. ---
+	if _ride != null:
+		if not is_instance_valid(_ride) or _ride_t > RIDE_TIME:
+			_ride = null                      # popped or unreachable — hand control straight back
+		else:
+			_ride_t += delta
+			var to: Vector2 = (_ride as Node2D).global_position - global_position
+			if to.length() < RIDE_CONTACT:
+				bubble_bounce()
+				_ride.ride_pop()
+				_ride = null
+			else:
+				if absf(to.x) > 2.0:
+					_face = signf(to.x)
+				velocity = to.normalized() * RIDE_SPEED   # the ride owns velocity; no gravity
+				_climbing = false
+				_bubbles.emitting = true
+				_anims.play(anim_set.dash, _face)
+				move_and_slide()
+				_juice(delta)
+				return
 	if submerged:
 		_swim(delta, dir)
 		_juice(delta)
@@ -642,14 +673,25 @@ func _aim(dir: float) -> Vector2:
 ## steer it, RELEASE to detonate. The axolotl owns the live bubble while the button is held.
 func _update_bubble(dir: float, ui: bool) -> void:
 	if is_instance_valid(_bubble):
+		if _bubble.is_free():
+			# free glide: the NEXT bubble press is the ride (see the ride block above)
+			if not ui and Input.is_action_just_pressed("bubble") and _ride == null:
+				_ride = _bubble
+				_ride_t = 0.0
+			return
+		_bubble_held_t += get_physics_process_delta_time()
 		if ui or not Input.is_action_pressed("bubble"):
-			_bubble.release()          # released -> detonate where it is
-			_bubble = null
+			if _bubble_held_t < BUBBLE_TAP:
+				_bubble.set_free()     # quick TAP -> free glide; re-press rides it
+			else:
+				_bubble.release()      # held aim-and-release -> detonate where it is
+				_bubble = null
 		else:
 			_bubble.steer(_aim(dir))   # held -> steer + keep gliding further
 		return
 	_bubble = null                     # cleared if it auto-detonated at max reach
 	if not ui and Input.is_action_just_pressed("bubble"):
+		_bubble_held_t = 0.0
 		_fire_bubble(dir)
 
 ## Spend a full Shine charge and launch a steerable AOE bubble (see bubble.gd).

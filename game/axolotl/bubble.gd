@@ -8,6 +8,7 @@ extends Node2D
 const SPEED := 150.0           # travel speed while held
 const STEER := 4.0             # how fast it turns toward the current aim
 const MAX_TIME := 1.7          # auto-detonate after this even if still held
+const FREE_TIME := 2.6         # a TAPPED (free-gliding) bubble lives longer — the ride window
 const POP_RADIUS := 46.0       # blast radius at launch...
 const POP_GROW := 34.0         # ...plus this much per second of flight (reward for holding)
 const POP_STRENGTH := 0.6
@@ -22,6 +23,7 @@ var _aim := Vector2.RIGHT
 var _cfg: CoveConfig
 var _t := 0.0
 var _popped := false
+var _held := true              # false after a tap-release: free glide, ready to be ridden
 var _spr: AnimatedSprite2D    # the shimmer sprite when the art exists; null = draw the circle instead
 
 func setup(aim: Vector2, cfg: CoveConfig) -> void:
@@ -66,6 +68,19 @@ func steer(aim: Vector2) -> void:
 func release() -> void:
 	_pop()
 
+## A quick TAP released the button (2026-07-24, Maram's mobile ruling): instead of a wasted
+## point-blank pop, the bubble glides on freely — and the NEXT bubble press rides it
+## (axolotl.gd's bubble ride). Free bubbles get a longer life so the re-press is forgiving.
+func set_free() -> void:
+	_held = false
+
+func is_free() -> bool:
+	return not _held
+
+## The ride made contact: pop under the rider (same scrub/carve payoff as any pop).
+func ride_pop() -> void:
+	_pop()
+
 func _physics_process(delta: float) -> void:
 	if _popped:
 		return
@@ -90,7 +105,7 @@ func _physics_process(delta: float) -> void:
 		var ceiling: float = (_cfg.camera_bounds.position.y + 16.0) if _cfg.has_map else (_cfg.surface_y - 44.0)
 		out = position.y < ceiling \
 			or position.x < _cfg.water_left - 24.0 or position.x > _cfg.water_right + 24.0
-	if _t >= MAX_TIME or out:
+	if _t >= (MAX_TIME if _held else FREE_TIME) or out:
 		_pop()
 		return
 	scale = Vector2.ONE * (1.0 + 0.06 * sin(_t * 9.0) + 0.12 * _t)   # swells as it charges

@@ -88,7 +88,7 @@ func _lazy_hook_cascade() -> void:
 	_cascade_hooked = true
 	player.bubbled.connect(func() -> void:
 		if not _cascade_done():
-			nudge("cascade0", "Trick time! JUMP onto your own bubble to bounce off it."))
+			nudge("cascade0", "Trick time! Tap %s again to ride your bubble — or jump on it!" % _prompt("bubble", "Bomb")))
 	player.bounced.connect(func() -> void:
 		_cascade_bounced = true
 		if not _cascade_done():
