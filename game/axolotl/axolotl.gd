@@ -6,6 +6,7 @@ extends CharacterBody2D
 
 const MOVE_EPS := 6.0
 const BubbleBomb := preload("res://game/axolotl/bubble.gd")
+const PixelShellRef := preload("res://game/fx/pixel_shell.gd")   # grid_zoom source (perf pass)
 const Spring := preload("res://game/fx/spring.gd")   # offset-transform juice helper (see _juice)
 
 # --- juice (visual only — never touches movement; D-0002: art stays out of config) ---
@@ -652,9 +653,11 @@ func _juice(delta: float) -> void:
 		target_tilt = clampf(velocity.y / tuning.swim_v, -1.0, 1.0) * TILT_MAX * _face
 	_spr.rotation = lerpf(_spr.rotation, target_tilt, clampf(TILT_LERP * delta, 0.0, 1.0))
 	# sit & watch (or a full AFK nap): the camera breathes out and the cove becomes the show.
-	# x2 baseline = the 640x360 effect grid shows the same 320x180 world window (slice 3 retune);
-	# art pixels land on 2 viewport px — still integer, never fractional.
-	var z := 1.7 if (_sitting or _idle_t >= AFK_AT) else 2.0
+	# The baseline zoom comes from the pixel shell's grid (2.0 on the 640x360 desktop grid,
+	# 1.0 on the 320x180 touch grid) so the visible world window is 320x180 EITHER way; the
+	# sit/AFK breathe-out keeps its 0.85 ratio. Art pixels stay integer on both grids.
+	var gz := PixelShellRef.grid_zoom
+	var z := (0.85 * gz) if (_sitting or _idle_t >= AFK_AT) else gz
 	_cam.zoom = _cam.zoom.lerp(Vector2(z, z), clampf(1.5 * delta, 0.0, 1.0))
 	# impact shake: a fast-decaying jitter on the camera offset (kicked via shake())
 	if _shake > 0.05:

@@ -9,24 +9,35 @@ extends Node
 ## size on screen are byte-identical to the 320x180 shell — only shaders, particles, and
 ## dither render at double resolution. Art pixels stay integer (1 art px = 2 viewport px).
 const BASE := Vector2i(640, 360)
+## 2026-07-24 perf pass: TOUCH devices run the 320x180 effect grid (4x fewer fullscreen-shader
+## pixels — phones never fit an integer 640 scale, so they were rendering effects at FULL window
+## res). The camera compensates via grid_zoom, so the world FRAMING is identical either way.
+const BASE_TOUCH := Vector2i(320, 180)
+
+## The camera zoom that keeps the visible world window at 320x180 on the active grid.
+## Read by axolotl._juice (2.0 on the 640 desktop grid, 1.0 on the 320 touch grid).
+static var grid_zoom := 2.0
 
 ## Biggest integer scale that fits the physical window, view expanded to fill the remainder
 ## (ratified fill policy: integer + expand, never letterbox, never fractional world pixels).
-static func compute_layout(phys: Vector2i) -> Dictionary:
+static func compute_layout(phys: Vector2i, base: Vector2i = BASE) -> Dictionary:
 	if phys.x <= 0 or phys.y <= 0:
-		return {"scale": 1, "view": BASE}   # headless / degenerate window: neutral shell
-	var k := maxi(1, mini(phys.x / BASE.x, phys.y / BASE.y))   # int division = floor
+		return {"scale": 1, "view": base}   # headless / degenerate window: neutral shell
+	var k := maxi(1, mini(phys.x / base.x, phys.y / base.y))   # int division = floor
 	return {"scale": k, "view": Vector2i(ceili(phys.x / float(k)), ceili(phys.y / float(k)))}
 
 var _container: SubViewportContainer
 var _viewport: SubViewport
 var _snap_mat: ShaderMaterial
+var _base := BASE              # the effect grid this shell runs (touch -> BASE_TOUCH)
 
 ## Build the shell under `cove` and move every child NOT named in keep_at_root into the world
 ## viewport. Call FIRST in cove.gd._ready(), before any injection. Returns the WorldOffset node
 ## that all new world content must parent to (its transform reproduces the cove root's global
 ## transform — the coordinate contract).
 func build(cove: Node2D, keep_at_root: Array) -> Node2D:
+	_base = BASE_TOUCH if Settings.touch_active() else BASE
+	grid_zoom = 2.0 if _base == BASE else 1.0
 	var layer := CanvasLayer.new()
 	layer.name = "WorldShell"
 	layer.layer = -120                       # under every HUD CanvasLayer at the cove root
@@ -78,7 +89,7 @@ func build(cove: Node2D, keep_at_root: Array) -> Node2D:
 ## (design/phys) so world texels land on exact physical pixels on every device.
 func _resize() -> void:
 	var phys := DisplayServer.window_get_size()
-	var lay := compute_layout(phys)
+	var lay := compute_layout(phys, _base)
 	_container.size = Vector2(lay["view"])   # local units == world pixels (stretch, shrink 1)
 	var design := get_viewport().get_visible_rect().size
 	var f := (design.y / float(phys.y)) if (phys.y > 0 and design.y > 0.0) else 1.0

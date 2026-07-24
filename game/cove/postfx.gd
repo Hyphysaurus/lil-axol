@@ -20,8 +20,11 @@ func _ready() -> void:
 	_apply()
 
 func _apply() -> void:
-	var grain_on: bool = Settings.get_setting("visual", "grain", true)
-	var vig_on: bool = Settings.get_setting("visual", "vignette", true)
+	# 2026-07-24 perf pass: on TOUCH platforms the pass defaults OFF (the fullscreen backbuffer
+	# copy is real money on phone GPUs) — a phone player can still opt back in via Settings.
+	var def := not Settings.touch_active()
+	var grain_on: bool = Settings.get_setting("visual", "grain", def)
+	var vig_on: bool = Settings.get_setting("visual", "vignette", def)
 	# With BOTH off there's nothing to grade — hide the pass so it stops sampling the screen texture.
 	# That skips the full-framebuffer copy every frame (the real cost), a genuine escape hatch for
 	# low-end/mobile, instead of just zeroing the uniforms while still running the fullscreen pass.

@@ -10,16 +10,6 @@ uniform vec4 col_bottom : source_color = vec4(0.30, 0.26, 0.4, 1.0);    // warm 
 uniform float horizon : hint_range(0.0, 1.0) = 0.60;                    // where the glow band sits
 
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
-float vnoise(vec2 p) {
-	vec2 i = floor(p); vec2 f = fract(p); vec2 u = f * f * (3.0 - 2.0 * f);
-	return mix(mix(hash(i), hash(i + vec2(1, 0)), u.x),
-	           mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), u.x), u.y);
-}
-float fbm(vec2 p) {
-	float v = 0.0; float a = 0.5;
-	for (int i = 0; i < 4; i++) { v += a * vnoise(p); p *= 2.0; a *= 0.5; }
-	return v;
-}
 
 void fragment() {
 	float y = UV.y;
@@ -44,8 +34,8 @@ void fragment() {
 	float night_gate = smoothstep(0.72, 0.92, night);
 	c += star * twinkle * smoothstep(horizon, 0.0, y) * night_gate * 0.85;
 
-	// softly drifting haze wisps — barely-there depth, doesn't fight the separate cloud layer
-	c += (fbm(UV * vec2(3.0, 2.0) + vec2(TIME * 0.01, 0.0)) - 0.5) * 0.03;
+	// (the old fbm haze wisps are gone — 2026-07-24 perf pass: 4 noise octaves per fullscreen
+	// pixel for a "barely-there" effect was the sky's whole budget on phone GPUs)
 
 	// a gentle breathing shimmer right along the horizon band
 	float shimmer = smoothstep(0.12, 0.0, abs(y - horizon)) * (0.5 + 0.5 * sin(TIME * 0.5));
