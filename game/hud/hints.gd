@@ -65,6 +65,9 @@ func _check_triggers() -> void:
 	var has_rubble := not (get_tree().get_nodes_in_group("blastable").is_empty() and get_tree().get_nodes_in_group("turtle_blastable").is_empty())
 	if friend and _following(friend) and has_rubble:
 		nudge("command", "Your turtle can smash rubble! Hold %s to pilot its spinning shell through it." % _prompt("shell", "SPIN"))
+	# two rescued friends = the swap becomes real; teach the chips exactly once
+	if Settings.run_roster.size() >= 2:
+		nudge("swap", "Two friends travel with you now! Tap a partner chip (top-left) to choose who's active.")
 
 func _lazy_hook_bubble() -> void:
 	if _bubble_hooked:

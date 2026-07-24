@@ -11,6 +11,7 @@ const PAD := 8.0
 
 var _root: Control
 var _chips: HBoxContainer
+var _seen: Array[int] = []     # kinds that already had a chip (glint = a kind we've not seen)
 
 func _ready() -> void:
 	layer = 92
@@ -39,7 +40,9 @@ func _refresh() -> void:
 		c.queue_free()         # must not show stale chips beside the fresh row
 	for kind in Settings.run_roster:
 		if Library.has_kind(kind):
-			_chips.add_child(Chip.new(kind, kind == Settings.run_active))
+			_chips.add_child(Chip.new(kind, kind == Settings.run_active, not _seen.has(kind)))
+			if not _seen.has(kind):
+				_seen.append(kind)
 
 ## One tappable partner chip: backing disc + the partner's idle frame + a gold ring when active,
 ## plus (Survey's cooldown, spec REVIEW AMENDMENT Important) a small charge ring on the ACTIVE
@@ -53,10 +56,12 @@ class Chip extends Control:
 	var _tex: Texture2D
 	var _poll_t := 0.0
 	var _charge := -1.0        # -1 = nothing to show; 0..1 once a companion answers kind()
+	var _glint_t := 0.0
 
-	func _init(kind: int, active: bool) -> void:
+	func _init(kind: int, active: bool, fresh: bool = false) -> void:
 		_kind = kind
 		_active = active
+		_glint_t = 3.0 if fresh else 0.0
 		custom_minimum_size = Vector2(CHIP, CHIP)
 		texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		var frames: SpriteFrames = Library.ART[kind]["frames"]
@@ -65,6 +70,9 @@ class Chip extends Control:
 		tooltip_text = str(Library.info(kind).get("name", "?"))
 
 	func _process(delta: float) -> void:
+		if _glint_t > 0.0:
+			_glint_t -= delta
+			queue_redraw()
 		if not _active:
 			return
 		_poll_t -= delta
@@ -106,3 +114,7 @@ class Chip extends Control:
 		if _active and _charge >= 0.0 and _charge < 0.999:
 			draw_arc(c, CHIP * 0.5 + 3.0, -PI / 2.0, -PI / 2.0 + TAU * _charge, 20,
 				Color(Palette.CYAN, 0.9), 2.0, true)
+		if _glint_t > 0.0:
+			var pulse := 0.5 + 0.5 * sin(_glint_t * 9.0)
+			draw_arc(c, CHIP * 0.5 + 4.0, 0.0, TAU, 32,
+				Color(Palette.GOLD, 0.25 + 0.55 * pulse), 2.0, true)
