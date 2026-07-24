@@ -181,3 +181,17 @@ fell out of the hunt: `reach_map._draw_surround` had filled the ENTIRE map rect 
 since slice 5, hiding the sky/sun/clouds in every map reach ("permanent midnight") — fixed to
 its own doc-stated intent (margin slabs + underwater backdrop only; the air above the waterline
 now shows the day/night sky). The sky pipeline itself was never broken.
+
+## D-0019 — Rescues never steal the active-partner slot (2026-07-24, autonomous character-polish run — Maram pre-authorized "do it all headlessly")
+`Settings.roster_add` claims `run_active` only when it is `-1` (no partner yet) — a NEW rescue
+joins the roster but the partner you were using keeps answering the shared verb button. Resolves
+the open slice-4 final-review ruling ("rescuing the estuary frog silences the turtle's shell
+until a chip swap") along exactly the review's proposed softening lever; `roster_add` and
+`roster_include` now share one polite semantics, so persistence/Echo paths are untouched by
+construction. Companion UX shipped alongside: the **RescueCard** ceremony ("<Name> the <Species>
+joins you!" + verb teach, non-blocking, layer 94, one-record data from `CompanionLibrary.INFO` —
+names Tola/Meno/Nutria/Zuni), a 3s **chip glint** on newly joined partners, a one-time swap-teach
+hint at roster size 2, and follow presence (facing-mirrored formation, staggered idle beats,
+face-the-tidekeeper, tweened wake pop). Lint suite `tests/test_companion_library.gd` guards the
+records + the no-steal contract. Spec:
+`docs/superpowers/specs/2026-07-24-character-setups-polish-design.md`.

@@ -101,6 +101,13 @@ Travel loop wired: **hub ⇄ estuary ⇄ canals**. Reach 2 blocks on Maram's pai
 - **Shine / Flow arcade layer** (`shine.gd`, group `shine`) — score/combo/Flow economy; `feat(name, at)`
   drives feat banner + echo ripples. Feats wired: `wake_up`, `first_survey`, `spring_clean`, `geyser`,
   `curio`. Post-win Tide Board (`high_scores.gd`) + shared Supabase leaderboard (`leaderboard.gd`).
+- **Character setups polish (2026-07-24, D-0019)** — rescues never steal the active slot
+  (`roster_add` claims only when none set); **RescueCard** ceremony toast on every live rescue
+  (name/species/verb teach from `CompanionLibrary.INFO` — Tola/Meno/Nutria/Zuni — one record per
+  character, otter/bat land by filling a row); new-partner chip glint + one-time swap-teach hint;
+  follow presence (facing-mirrored formation, staggered idle beats, face-the-tidekeeper, tweened
+  wake pop). Lint suite `test_companion_library.gd` (35 checks) guards records + the no-steal
+  contract. 14 headless suites total.
 - **Field Guide** (`field_guide.gd`) — card table (hub/estuary + encounter cards `enc_estuary_school`,
   `enc_dragonfly_rescue`); curio collection + proximity/rescue triggers show cards. *(Conservation hook,
   master §8.)*
