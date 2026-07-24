@@ -247,7 +247,7 @@ func _spawn_pop(amount: int, at: Vector2) -> void:
 	var l := Label.new()
 	l.text = "+%d" % amount
 	l.add_theme_font_override("font", DISPLAY_FONT)
-	l.add_theme_font_size_override("font_size", 18 + int(12.0 * warm))   # bigger with combo
+	l.add_theme_font_size_override("font_size", 13 + int(9.0 * warm))   # was 18 + 12*warm — pre-shell screen size at x4
 	l.add_theme_color_override("font_color", Palette.FOAM.lerp(Palette.GOLD, warm))
 	l.add_theme_color_override("font_shadow_color", Color(Palette.INK, 0.75))
 	l.add_theme_constant_override("shadow_offset_x", 1)
