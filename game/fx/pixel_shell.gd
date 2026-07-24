@@ -13,3 +13,49 @@ static func compute_layout(phys: Vector2i) -> Dictionary:
 		return {"scale": 1, "view": BASE}   # headless / degenerate window: neutral shell
 	var k := maxi(1, mini(phys.x / BASE.x, phys.y / BASE.y))   # int division = floor
 	return {"scale": k, "view": Vector2i(ceili(phys.x / float(k)), ceili(phys.y / float(k)))}
+
+var _container: SubViewportContainer
+var _viewport: SubViewport
+
+## Build the shell under `cove` and move every child NOT named in keep_at_root into the world
+## viewport. Call FIRST in cove.gd._ready(), before any injection. Returns the WorldOffset node
+## that all new world content must parent to (its transform reproduces the cove root's global
+## transform — the coordinate contract).
+func build(cove: Node2D, keep_at_root: Array) -> Node2D:
+	var layer := CanvasLayer.new()
+	layer.name = "WorldShell"
+	layer.layer = -120                       # under every HUD CanvasLayer at the cove root
+	_container = SubViewportContainer.new()
+	_container.name = "WorldView"
+	_container.stretch = true                # shrink stays 1: _resize sizes the viewport directly
+	_container.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_viewport = SubViewport.new()
+	_viewport.name = "World"
+	_viewport.snap_2d_transforms_to_pixel = true
+	_viewport.canvas_item_default_texture_filter = Viewport.DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_NEAREST
+	_viewport.disable_3d = true
+	var world := Node2D.new()
+	world.name = "WorldOffset"
+	world.transform = cove.global_transform  # the coordinate contract: world coords == today's
+	_viewport.add_child(world)
+	_container.add_child(_viewport)
+	layer.add_child(_container)
+	add_child(layer)
+	for c in cove.get_children():            # get_children() returns a copy — safe to reparent in-loop
+		if c == self or String(c.name) in keep_at_root:
+			continue
+		c.reparent(world)                    # keep_global default: Node2D locals recompute to identical values
+	_resize()
+	get_tree().root.size_changed.connect(_resize)
+	return world
+
+## Integer scaling in PHYSICAL pixels, counter-scaled against the canvas_items stretch factor
+## (design/phys) so world texels land on exact physical pixels on every device.
+func _resize() -> void:
+	var phys := DisplayServer.window_get_size()
+	var lay := compute_layout(phys)
+	_container.size = Vector2(lay["view"])   # local units == world pixels (stretch, shrink 1)
+	var design := get_viewport().get_visible_rect().size
+	var f := (design.y / float(phys.y)) if (phys.y > 0 and design.y > 0.0) else 1.0
+	_container.scale = Vector2.ONE * (float(lay["scale"]) * f)
+	_container.position = Vector2.ZERO

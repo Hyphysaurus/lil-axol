@@ -18,8 +18,21 @@ extends Node2D
 const IrisWipe := preload("res://game/fx/iris_wipe.gd")
 const CompanionScript := preload("res://game/companion/companion.gd")
 const ReachMapScript := preload("res://game/cove/reach_map.gd")
+const PixelShell := preload("res://game/fx/pixel_shell.gd")
 
 var _echo := false
+
+## HUD + native-res layers that STAY at the cove root (everything else moves into the
+## 320x180 world viewport — including Shine, whose "+N" pops are world-anchored, and
+## CoveAudio/ShoreHealth/TimeOfDay, whose relative sibling paths move with them).
+const KEEP_AT_ROOT := ["RestorationBanner", "NewDay", "TouchControls", "RestorationMeter",
+	"ShineHud", "FeatBanner", "PartnerHud", "HighScores", "Hints", "PerfOverlay"]
+
+var _world: Node2D
+
+## World-side child lookup (post-shell replacement for $Name / get_node_or_null on self).
+func _w(n: String) -> Node:
+	return _world.get_node_or_null(n) if _world else get_node_or_null(n)
 
 ## Is this visit an Echo run? (High-scores board keys off this.)
 func is_echo() -> bool:
@@ -30,47 +43,53 @@ func _ready() -> void:
 	_echo = WorldState.echo
 	WorldState.echo = false          # one reload only; consuming it here makes crossings normal
 	WorldState.current_id = config.id
+	# slice 3 (spec 2026-07-23): the pixel shell wraps every world child into a 320x180
+	# SubViewport FIRST; HUD stays at root; world coords are contract-identical.
+	var shell := PixelShell.new()
+	shell.name = "PixelShell"
+	add_child(shell)
+	_world = shell.build(self, KEEP_AT_ROOT)
 	# the water/footing oracle — FIRST, so every injected component can find it (slice 5).
 	# Rect-backed here; a map reach's ReachMap upgrades it to the painted mask in its setup.
 	var field := ReachField.new()
 	field.setup_rect(config)
-	add_child(field)
-	_inject($ReachMap)
-	_inject($Axolotl)
-	_inject($OilSpill)
-	_inject($CoveLife)
-	_inject($SeabedBackdrop)
+	_world.add_child(field)
+	_inject(_w("ReachMap"))
+	_inject(_w("Axolotl"))
+	_inject(_w("OilSpill"))
+	_inject(_w("CoveLife"))
+	_inject(_w("SeabedBackdrop"))
 	_inject($RestorationBanner)
 	_inject($NewDay)
-	_inject($CoveAudio)
-	_inject($Friend)
-	_inject($LeakSource)
-	_inject($ShorePollution)
-	_inject($Portal)
-	_inject($Portal2)
-	_inject($DebrisField)
-	_inject($PestField)
-	_inject($LilyPads)
-	_inject($Reeds)
-	_inject($Curios)
-	_inject($ReachState)
-	_inject($InvasiveSchool)
+	_inject(_w("CoveAudio"))
+	_inject(_w("Friend"))
+	_inject(_w("LeakSource"))
+	_inject(_w("ShorePollution"))
+	_inject(_w("Portal"))
+	_inject(_w("Portal2"))
+	_inject(_w("DebrisField"))
+	_inject(_w("PestField"))
+	_inject(_w("LilyPads"))
+	_inject(_w("Reeds"))
+	_inject(_w("Curios"))
+	_inject(_w("ReachState"))
+	_inject(_w("InvasiveSchool"))
 	_inject($Hints)      # needs the cove id for the once-per-world Cascade tutorial mark
-	_inject($ScoutDragonfly)
-	_inject($FeatEcho)
+	_inject(_w("ScoutDragonfly"))
+	_inject(_w("FeatEcho"))
 	_apply_environment()
 	if Settings.arrive_via_portal:
 		var entry_key := Settings.arrive_entry
 		Settings.arrive_via_portal = false
 		Settings.arrive_entry = ""      # one-shot, same idiom as arrive_via_portal above
 		if config.has_map:
-			# ReachMap._place_spawn() (run earlier, inside _inject($ReachMap)) already positioned the
-			# axolotl at the painted entry portal marker — a map reach's hardcoded left-edge water
+			# ReachMap._place_spawn() (run earlier, inside _inject(_w("ReachMap"))) already positioned
+			# the axolotl at the painted entry portal marker — a map reach's hardcoded left-edge water
 			# reposition below would land it inside solid earth, so only the cosmetic half runs here.
 			# entry_key IS the edge just crossed (cove_portal._cross() stamps it straight from the
 			# marker's edge) — edge_inward() turns that into the swim-out direction, so east/top/
 			# bottom doors send the axolotl IN, not outward/sideways.
-			_arrive_wipe($Axolotl as CharacterBody2D, ReachMapScript.edge_inward(entry_key))
+			_arrive_wipe(_w("Axolotl") as CharacterBody2D, ReachMapScript.edge_inward(entry_key))
 		else:
 			_arrive()
 	if not _echo:
@@ -84,7 +103,7 @@ func _ready() -> void:
 ## tidekeeper's side, fanned into follow slots. (An Echo run's New Day resets the roster, so
 ## echo replays naturally start partnerless — no extra gating needed.)
 func _spawn_travellers() -> void:
-	var axo := get_node_or_null("Axolotl") as Node2D
+	var axo := _w("Axolotl") as Node2D
 	if axo == null:
 		return
 	var local_kind := -1
@@ -96,14 +115,16 @@ func _spawn_travellers() -> void:
 		if kind == local_kind:
 			continue                           # the local friend IS this partner — no double
 		var t := CompanionScript.new()
-		add_child(t)
+		_world.add_child(t)
 		t.setup_traveller(config, kind, slot, axo.position)
 		slot += 1
 
-## A live (not queued-for-deletion) child by name, or null. Components retire themselves in
-## setup() (friend_enabled false, no exit configured...) — never poke a retiring node.
+## A live (not queued-for-deletion) world-side child by name, or null. Components retire
+## themselves in setup() (friend_enabled false, no exit configured...) — never poke a retiring
+## node. World-side only (post-shell): RestorationBanner stays at the cove root (KEEP_AT_ROOT)
+## and never retires, so its two call sites below look it up directly instead of through here.
 func _live(n: String) -> Node:
-	var node := get_node_or_null(n)
+	var node := _w(n)
 	return node if node != null and not node.is_queued_for_deletion() else null
 
 ## Spawn-time restore from WorldState (spec §7): the world as you left it.
@@ -113,7 +134,7 @@ func _apply_saved() -> void:
 	var portal := _live("Portal")
 	var oil := _live("OilSpill")
 	if WorldState.is_restored(id):
-		var banner := _live("RestorationBanner")
+		var banner := get_node_or_null("RestorationBanner")   # KEEP_AT_ROOT: not world-side, bypass _live
 		if banner:
 			banner.is_restored = true          # latch: no duplicate celebration on re-entry
 		if friend and friend.has_method("wake_instant"):
@@ -141,7 +162,7 @@ func _apply_saved() -> void:
 ## Milestone saves: each signal writes one flag the moment it's earned.
 func _wire_saves() -> void:
 	var id := config.id
-	var banner := _live("RestorationBanner")
+	var banner := get_node_or_null("RestorationBanner")   # KEEP_AT_ROOT: not world-side, bypass _live
 	if banner and banner.has_signal("restored"):
 		banner.restored.connect(func() -> void: WorldState.mark(id, "restored", true))
 	var portal := _live("Portal")
@@ -159,7 +180,7 @@ func _exit_tree() -> void:
 		return
 	if WorldState.is_restored(config.id):
 		return
-	var oil := get_node_or_null("OilSpill")
+	var oil := _w("OilSpill")
 	if oil and "current_clean" in oil:
 		WorldState.mark(config.id, "cleanliness", oil.current_clean)
 
@@ -167,7 +188,7 @@ func _exit_tree() -> void:
 ## passage mouth (the left edge of the water — you exited the last cove travelling right), already
 ## swimming, behind an opening iris — the two coves read as one continuous passage.
 func _arrive() -> void:
-	var axo := $Axolotl as CharacterBody2D
+	var axo := _w("Axolotl") as CharacterBody2D
 	axo.position = Vector2(config.water_left + 34.0, config.surface_y + 46.0)
 	_arrive_wipe(axo)
 
@@ -182,7 +203,7 @@ func _arrive_wipe(axo: CharacterBody2D, dir: Vector2 = Vector2.RIGHT) -> void:
 	var speed: float = axo.tuning.run_speed if axo.tuning else 150.0
 	axo.velocity = dir * speed              # still swimming, in whatever direction is "into" the reach
 	var wipe := IrisWipe.new()
-	add_child(wipe)
+	_world.add_child(wipe)
 	wipe.set_closed()
 	wipe.open(0.7)
 
@@ -198,7 +219,7 @@ func _inject(n: Node) -> void:
 ## visit would otherwise leak its green onto the hub's water for the rest of the session.
 func _apply_environment() -> void:
 	var wt := config.env_water_tint if config.env_water_tint.a > 0.0 else Color(1.0, 1.0, 1.0, 1.0)
-	var water := get_node_or_null("Water") as Sprite2D
+	var water := _w("Water") as Sprite2D
 	if water and water.material is ShaderMaterial:
 		var wm := water.material as ShaderMaterial
 		wm.set_shader_parameter("env_tint", wt)

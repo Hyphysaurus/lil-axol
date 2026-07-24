@@ -17,7 +17,6 @@ anim_set = ExtResource("3_anims")
 shape = SubResource("RectangleShape2D_bhunq")
 
 [node name="Camera" type="Camera2D" parent="." unique_id=920053632]
-zoom = Vector2(3, 3)
 
 [node name="Sprite" type="AnimatedSprite2D" parent="." unique_id=904301367]
 sprite_frames = ExtResource("2_rvbxv")
