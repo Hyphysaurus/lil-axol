@@ -70,8 +70,8 @@ const BUBBLE_TAP := 0.18       # press shorter than this = free-glide bubble (no
 const AIM_STICKY := 2.0        # touch: the last stick aim lingers this long after going neutral
 const ASSIST_CONE := 0.8       # touch aim assist: cos ~37° — how far off-aim a target may sit
 const ASSIST_BEND := 0.65      # how strongly the aim bends onto the best target
-const RIDE_SPEED := 340.0      # homing speed of the bubble ride (V re-press)
-const RIDE_TIME := 0.8         # give up homing after this (bubble popped / unreachable)
+const RIDE_SPEED := 380.0      # homing speed of the bubble ride (V re-press)
+const RIDE_TIME := 1.2         # give up homing after this (bubble popped / unreachable)
 const RIDE_CONTACT := 24.0     # close enough = bounce
 const STEP_MAX := 10.0         # walk-up ledge height: painted maps stair EVERYTHING in 8px cells,
 							   # and a CharacterBody2D stops dead at any riser — one cell must
@@ -621,13 +621,15 @@ func _enter_water() -> void:
 	if impact > 0.0:
 		get_tree().call_group("oil_manager", "spray_at",
 			global_position, 26.0 + 22.0 * impact, 0.30 + 0.45 * impact)
-		shake(1.0 + 1.5 * impact)
+		shake(1.5 + 2.5 * impact)         # the entry THUMP reaches the camera (2026-07-24 dive juice)
 		_splash(1.2 + 0.8 * impact)
+		_dive_ring(0.7 + 0.9 * impact)    # the lateral wave — droplets sell height, this sells IMPACT
 		Sfx.play("splash", -2.0, 0.85)    # deeper whump for a dive
 		var full_chain := _cascade == 2
 		if full_chain:
 			# THE CASCADE: bubble bounce -> gill-kick -> dive, one flight — the movement combo
 			# the hints teach; the feat banner + Shine celebrate every time it's performed
+			_dive_ring(1.6, true)          # a gold crown on the combo finish
 			var keeper = get_tree().get_first_node_in_group("shine")
 			if keeper and keeper.has_method("feat"):
 				keeper.feat(&"cascade", global_position)
@@ -643,6 +645,32 @@ func _exit_water() -> void:
 	submerged_changed.emit(false)
 	_splash(0.7)
 	Sfx.play("splash", -6.0)   # lighter, like the 0.7 particle burst
+
+## The lateral half of a dive (2026-07-24 dive juice): foam that SKIMS outward along the
+## waterline both ways — _splash's vertical droplets sell height, this sells impact. Gold
+## variant crowns a completed Cascade.
+func _dive_ring(amt: float, gold := false) -> void:
+	for side in [-1.0, 1.0]:
+		var p := CPUParticles2D.new()
+		p.one_shot = true
+		p.emitting = true
+		p.amount = int(9.0 * amt) + 5
+		p.lifetime = 0.5
+		p.explosiveness = 1.0
+		p.position = Vector2(_cove_local().x + side * 4.0, _cfg.surface_y - 1.0)
+		p.direction = Vector2(side, -0.12)
+		p.spread = 10.0
+		p.initial_velocity_min = 70.0 * amt
+		p.initial_velocity_max = 130.0 * amt
+		p.gravity = Vector2(0, 150)
+		p.damping_min = 60.0
+		p.damping_max = 120.0
+		p.scale_amount_min = 0.8
+		p.scale_amount_max = 1.6
+		p.color = Color(Palette.GOLD, 0.95) if gold else Color(Palette.FOAM, 0.85)
+		p.z_index = 8
+		get_parent().add_child(p)
+		p.finished.connect(p.queue_free)
 
 func _splash(amt: float) -> void:
 	var p := CPUParticles2D.new()

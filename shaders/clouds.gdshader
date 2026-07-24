@@ -47,8 +47,11 @@ vec2 cumulus(vec2 uv, float scale, float by, float h, float dx) {
 	float wob = (vnoise(vec2(ux * 0.6, 11.0)) - 0.5) * 0.07;
 	float bb = by + wob;
 	float cloud_top = bb - h * topn;
-	float flat_bottom = clamp((bb - uv.y) / 0.05, 0.0, 1.0);   // softer, feathered belly
-	float soft_top = clamp((uv.y - cloud_top) / 0.035, 0.0, 1.0);
+	// pixel-fit (2026-07-24, Maram: the smooth puffs read as "massive pigeons" against the
+	// crisp world): tight edges instead of feathered ones — the posterize in fragment() does
+	// the rest of the chunking
+	float flat_bottom = clamp((bb - uv.y) / 0.014, 0.0, 1.0);
+	float soft_top = clamp((uv.y - cloud_top) / 0.012, 0.0, 1.0);
 	float det = bfbm(vec2(ux * 2.1, uv.y * scale * 1.6 + 5.0), 3);
 	float alpha = clamp(soft_top * flat_bottom * (1.0 - puffiness * det), 0.0, 1.0);
 	float depth = clamp((uv.y - cloud_top) / max(bb - cloud_top, 0.001), 0.0, 1.0);
@@ -56,8 +59,10 @@ vec2 cumulus(vec2 uv, float scale, float by, float h, float dx) {
 }
 
 vec4 shade(vec2 ad) {
+	// pixel-fit: TWO hard tone bands (lit top / shaded belly), not a smooth gradient
 	float bright = pow(1.0 - ad.y, 0.8);
-	return vec4(mix(shadow_col.rgb, light_col.rgb, bright), ad.x);
+	vec3 col = bright > 0.55 ? light_col.rgb : mix(shadow_col.rgb, light_col.rgb, 0.3);
+	return vec4(col, ad.x);
 }
 
 void fragment() {
@@ -67,11 +72,14 @@ void fragment() {
 	// and the strip is screen-space coherent, so the GPU branch stays cheap.
 	COLOR = vec4(0.0);
 	if (UV.y >= base_y - height - 0.06 && UV.y <= base_y + 0.12) {
-		vec4 far = shade(cumulus(UV, 6.0, base_y - 0.10, height * 0.5, TIME * drift * 0.6 + 37.0));
-		far.a *= 0.8;
-		vec4 near = shade(cumulus(UV, 3.4, base_y, height, TIME * drift));
+		// pixel-fit: DOUBLED noise scales -> the masses shrink from screen-third giants to
+		// small drifting cumulus; alpha posterized to two levels (solid near / thin far veil)
+		vec4 far = shade(cumulus(UV, 12.0, base_y - 0.10, height * 0.5, TIME * drift * 0.6 + 37.0));
+		far.a *= 0.6;
+		vec4 near = shade(cumulus(UV, 7.0, base_y, height, TIME * drift));
 		float outa = near.a + far.a * (1.0 - near.a);
 		vec3 outrgb = (near.rgb * near.a + far.rgb * far.a * (1.0 - near.a)) / max(outa, 0.001);
+		outa = outa > 0.55 ? 1.0 : (outa > 0.30 ? 0.55 : 0.0);
 		COLOR = vec4(outrgb, outa * opacity);
 	}
 }

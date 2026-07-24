@@ -8,7 +8,9 @@ extends Node2D
 const SPEED := 150.0           # travel speed while held
 const STEER := 4.0             # how fast it turns toward the current aim
 const MAX_TIME := 1.7          # auto-detonate after this even if still held
-const FREE_TIME := 2.6         # a TAPPED (free-gliding) bubble lives longer — the ride window
+const FREE_TIME := 4.5         # a TAPPED (free-gliding) bubble lives longer — the ride window
+                               # (2.6 -> 4.5, 2026-07-24: "we need more time" — Maram)
+const FREE_SPEED := 55.0       # free bubbles slow to a lazy drift so the ride stays in reach
 const POP_RADIUS := 46.0       # blast radius at launch...
 const POP_GROW := 34.0         # ...plus this much per second of flight (reward for holding)
 const POP_STRENGTH := 0.6
@@ -85,7 +87,7 @@ func _physics_process(delta: float) -> void:
 	if _popped:
 		return
 	_t += delta
-	position += _aim * SPEED * delta
+	position += _aim * (SPEED if _held else FREE_SPEED) * delta
 	# BOUNCE PAD: land on your own bubble from above and it pops UNDER you — a placeable
 	# trampoline whose detonation still scrubs oil and carves rock (and the longer it flew,
 	# the bigger that blast: a held bounce is also a bigger clean).
@@ -152,6 +154,15 @@ func _pop() -> void:
 	queue_free()
 
 func _draw() -> void:
+	if not _held and not _popped:
+		# RIDABLE indicator (2026-07-24, Maram: "a clear visual indicator"): a pulsing gold
+		# ring = "tap again to ride me!", cooling toward rose as the free-glide window runs
+		# out so the urgency reads at a glance. Drawn for both bubble looks (sprite + circle).
+		var left := clampf((FREE_TIME - _t) / FREE_TIME, 0.0, 1.0)
+		var pulse := 0.5 + 0.5 * sin(_t * 10.0)
+		var col := Color(Palette.ROSE).lerp(Color(Palette.GOLD), clampf(left * 1.6, 0.0, 1.0))
+		draw_arc(Vector2.ZERO, R + 4.0 + 2.0 * pulse, 0.0, TAU, 24,
+			Color(col, 0.35 + 0.5 * pulse), 2.0, true)
 	if _spr != null:
 		return   # the hand-drawn animated bubble is showing; skip the procedural circle
 	draw_circle(Vector2.ZERO, R, Color(Palette.CYAN, 0.10))                       # soft fill

@@ -33,11 +33,16 @@ void fragment() {
 	// how dark the upper sky is right now -> how strongly the night ambience shows
 	float night = clamp(1.0 - dot(col_top.rgb, vec3(0.4)), 0.0, 1.0);
 
-	// twinkling stars in the upper sky: sparse points, each with its own shimmer, fading below
-	vec2 cell = floor(UV * vec2(90.0, 60.0));
-	float star = step(0.986, hash(cell));
+	// twinkling stars in the upper sky: sparse POINTS (2026-07-24 pixel-fit: a star used to fill
+	// its whole 7x6-cell on the effect grid and showed from mid-afternoon — they read as floating
+	// grey blocks; now a 2px point in the cell centre, gated to genuine night only)
+	vec2 sgrid = UV * vec2(90.0, 60.0);
+	vec2 cell = floor(sgrid);
+	vec2 cf = fract(sgrid);
+	float star = step(0.986, hash(cell)) * step(abs(cf.x - 0.5), 0.16) * step(abs(cf.y - 0.5), 0.16);
 	float twinkle = 0.5 + 0.5 * sin(TIME * 3.0 + hash(cell) * 40.0);
-	c += star * twinkle * smoothstep(horizon, 0.0, y) * night * 0.85;
+	float night_gate = smoothstep(0.72, 0.92, night);
+	c += star * twinkle * smoothstep(horizon, 0.0, y) * night_gate * 0.85;
 
 	// softly drifting haze wisps — barely-there depth, doesn't fight the separate cloud layer
 	c += (fbm(UV * vec2(3.0, 2.0) + vec2(TIME * 0.01, 0.0)) - 0.5) * 0.03;
