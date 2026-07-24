@@ -161,9 +161,10 @@ while reaches respawn to config, but the "save the exact ecological state" promi
 ## SHIPPED / DEPLOYED
 
 - **Live web build:** https://lilaxol.vercel.app (Vercel project `lilaxol`, static export from
-  `build/lilaxol/`, no-threads template). **Re-deployed 2026-07-22** with the full slice-4/5 stack
-  (Survey verb, dragonfly hand-off, reach-map canals, deep-hover, Sweetie-16). CDN serving byte-exact to
-  the local export (`index.pck` 37,991,616 B verified).
+  `build/lilaxol/`, no-threads template). **Re-deployed 2026-07-24** with slice 3 — the 320×180
+  pixel shell + Apollo dither post-pass (D-0018) on top of the slice-4/5 stack (Survey verb,
+  dragonfly hand-off, reach-map canals, deep-hover). Deployment `lilaxol-bn80eqvvl` verified
+  target=production status=Ready; local `index.pck` 38,001,892 B.
 - **Shared Tide Board** — Supabase table `lilaxol_scores` (public read, sanity-checked insert). Anon key
   ships by design; friendly-competition grade.
 
