@@ -25,6 +25,7 @@ var _cove_id := ""            # for the once-per-world tutorial mark
 
 func _ready() -> void:
 	layer = 93                 # over the meter/HUD, under the banner (95) + menus (97+)
+	add_to_group("hints")      # world components (dormant doors...) nudge via call_group
 	_build()
 
 func setup(cfg: CoveConfig) -> void:
@@ -40,6 +41,7 @@ func nudge(id: String, text: String) -> void:
 func _process(delta: float) -> void:
 	_lazy_hook_bubble()
 	_lazy_hook_cascade()
+	_lazy_hook_restored()
 	_drive_toast(delta)
 	if Settings.title_shown and not Settings.ui_locked():
 		_check_triggers()
@@ -82,6 +84,22 @@ func _lazy_hook_bubble() -> void:
 ## (a live bubble -> "jump on it!", a bounce -> "kick again!", a kick -> "now dive!"), riding the
 ## axolotl's move signals. Taught once per world (WorldState mark), celebrated forever by the
 ## "The Cascade!" feat, which the axolotl reports on every completed chain.
+## UNLOCK-FLOW signpost (2026-07-24): after the restoration banner settles, point the player
+## onward — the "leave no trace, move on" beat finally has a voice. Once per session.
+var _restored_hooked := false
+
+func _lazy_hook_restored() -> void:
+	if _restored_hooked:
+		return
+	var banner = get_tree().get_first_node_in_group("restoration")
+	if banner == null or not banner.has_signal("restored"):
+		return
+	_restored_hooked = true
+	banner.restored.connect(func() -> void:
+		var t := get_tree().create_timer(8.0)   # let the banner + score handoff finish first
+		t.timeout.connect(func() -> void:
+			nudge("onward", "This reach breathes on its own now. Glowing passages lead onward — whenever you're ready.")))
+
 func _lazy_hook_cascade() -> void:
 	if _cascade_hooked:
 		return

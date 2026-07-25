@@ -1,7 +1,16 @@
 # LilAxol — Build Status
 
-**Updated:** 2026-07-24 (verified against code + git through `b9fb766`; slice-3 pixel shell live —
-world @ 320×180, integer + expand, global Apollo post-pass).
+**Updated:** 2026-07-24 evening (verified against code + git through `0e08050`; slice-3 pixel shell
+live + a full same-day polish arc: 640×360 desktop / 320×180 touch effect grids (framing identical,
+`PixelShell.grid_zoom`), the canals SKY fix (slice-5 surround bug — map reaches were walled off from
+their own sky since 07-12), Apollo snap parked OFF, V-tap bubble ride (free-glide + gold ring +
+ride-lock + guide thread + Cascade chain aura), dive impact rings, pixel-fit clouds/stars, touch
+sticky-aim + assist, Meno's kit (Active Tongue Snap + Springboard, D-0019 no-steal + Waking
+ceremony + named characters), benthic floor dressing (field-aware, blooms with cleanliness),
+estuary MudBed floater fix (wrapper-level node the shell couldn't capture), unlock-flow signposts
+(post-restore "onward" nudge, dormant-door plum-seam tease), and a measured perf pass (HEAD 23%
+faster than pre-slice-3 on the same restored save; PostFX defaults off on touch; sky fbm wisps cut).
+Same-day detail lives in the commit log `e3cd3f4..0e08050` + the SDD ledger.
 **Engine:** Godot 4.7 (GL Compatibility), exports via the Steam build + no-threads web template.
 **Game:** *Lil Axolotl: Tidekeeper — The Living Watershed.* A cozy 2D pixel platformer/swimmer where
 an axolotl restores its only real home — the Xochimilco canal wetlands — one reach at a time. The

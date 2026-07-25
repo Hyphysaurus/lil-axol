@@ -157,9 +157,25 @@ func force_open() -> void:
 
 var _redraw_acc := 0.0
 
+var _teased := false               # once-per-visit whisper when the player noses up to a dormant door
+
 func _process(delta: float) -> void:
 	if _dormant:
-		return                          # a promise, not a door: no trigger poll, ever
+		# a promise, not a door: no trigger poll, ever — but it BREATHES (2026-07-24 unlock-flow
+		# pass: an inert black hole read as a bug; a slow plum seam + a one-time whisper read as
+		# a teased lock, the metroidvania contract). 2Hz — near-zero cost.
+		_pulse += delta
+		_redraw_acc += delta
+		if _redraw_acc >= 0.5:
+			_redraw_acc = 0.0
+			queue_redraw()
+			if not _teased:
+				var axo := get_tree().get_first_node_in_group("player") as Node2D
+				if axo and to_local(axo.global_position).length() < 90.0:
+					_teased = true
+					get_tree().call_group("hints", "nudge", "dormant_door",
+						"Something sleeps beyond this door… a new reach will wake here one day.")
+		return
 	if not _open or _crossing or _cfg == null:
 		return
 	_pulse += delta
@@ -208,8 +224,11 @@ func _draw() -> void:
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2(0.55, 1.0))   # circles -> tall ovals
 	draw_circle(Vector2.ZERO, 36.0, Palette.SOIL.darkened(0.25))                       # carved stone rim
 	if _dormant:
-		# a promise, not a door: mouth only, flat INK throat — no tunnel recession, no glow, no swirl
+		# a promise, not a door: mouth only, flat INK throat — no tunnel recession, no glow, no
+		# swirl. A slow PLUM seam breathes around the rim so it reads sealed-by-time, not broken.
 		draw_circle(Vector2.ZERO, 31.0, Palette.INK)
+		var seam := 0.10 + 0.10 * (0.5 + 0.5 * sin(_pulse * 1.3))
+		draw_arc(Vector2.ZERO, 33.0, 0.0, TAU, 28, Color(Palette.PLUM, seam), 1.5, true)
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		return
 	draw_circle(Vector2.ZERO, 31.0, Palette.INK.lerp(Palette.DEEP, 0.4))               # mouth
