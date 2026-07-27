@@ -23,6 +23,19 @@ var _plume: CPUParticles2D
 var _glow := 0.0               # 0 dormant .. 1 fully open (tweened up on opening)
 var _pulse := 0.0
 
+## Injected by the Cove composition root. The vent mouth belongs ON this reach's seabed line, but
+## the shared cove.tscn authors one hardcoded y (164) that only matches the hub's seabed_y of 166.
+## The estuary raises seabed_y to 96, which left all three caps 68px BELOW its mud floor — sealed
+## inside solid ground, unreachable by spray, bomb or shell. That was not cosmetic: the restoration
+## banner's win gate requires EVERY vent open (restoration_banner.gd:85-87), so the estuary could
+## never be completed. Snap to the config instead of trusting the scene's y.
+func setup(cfg: CoveConfig) -> void:
+	if cfg.has_map:
+		return          # a painted reach's vents are placed by ReachMap at their authored "vent"
+		                # marker — that IS the seabed line there, and overriding it would drag the
+		                # vent off its painting (caught by test_pixel_contract's vent-0 position).
+	position.y = cfg.seabed_y
+
 func _ready() -> void:
 	z_index = 1
 	add_to_group("thermal_vent")   # the restoration banner polls this group for the "all vents open" win gate

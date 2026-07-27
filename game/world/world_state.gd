@@ -56,6 +56,26 @@ func mark(id: String, key: String, value: Variant) -> void:
 func is_restored(id: String) -> bool:
 	return bool(get_cove(id, "restored", false))
 
+## Every rescued partner's Kind, across ALL coves. The travelling party is world progress, not a
+## session flag: Settings.run_roster lives only in memory and was refilled solely by the friend of
+## the reach you happened to be standing in (companion.wake_instant -> roster_include). So one page
+## reload left you with whichever partner lived in the current reach and no way to reach the others
+## — the frog "not persisting across scenes", and the turtle chip you could never toggle back to.
+## Derived from friend_awake so there is still exactly ONE source of truth for who's been rescued.
+## `friend_kind` is written beside friend_awake (see cove._wire_saves / _apply_saved); saves made
+## before that existed simply self-heal the first time you visit each reach.
+func awake_friend_kinds() -> Array[int]:
+	var out: Array[int] = []
+	for s in _cfg.get_sections():
+		if not s.begins_with("cove_"):
+			continue
+		if not bool(_cfg.get_value(s, "friend_awake", false)):
+			continue
+		var k := int(_cfg.get_value(s, "friend_kind", -1))
+		if k >= 0 and not out.has(k):
+			out.append(k)
+	return out
+
 ## Any world memory at all? Drives the title's continue / new-tide split — a brand-new player
 ## sees a single "begin"; a returning one gets the choice. True when any cove section exists.
 func has_progress() -> bool:

@@ -6,7 +6,7 @@
 [ext_resource type="Resource" path="res://game/axolotl/axolotl_tuning.tres" id="4_tuning"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bhunq"]
-size = Vector2(16, 18)
+size = Vector2(14, 18)
 
 [node name="Axolotl" type="CharacterBody2D" unique_id=1466163284]
 script = ExtResource("1_t8ay6")

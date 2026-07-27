@@ -38,6 +38,13 @@ func setup(cfg: CoveConfig) -> void:
 func _spawn_splats() -> void:
 	# scatter oil splats across the beach near the shoreline (left of the water)
 	for i in SPLATS:
+		# D-0020, second wave: a scrubbed splat stays scrubbed across visits. The first wave covered
+		# floating debris + drifting barrels and MISSED these, so land oil alone came back at full
+		# strength on every re-entry while everything else stayed clean. Unlike debris_field this
+		# skip can sit at the top of the loop: splat placement is a pure function of `i` (lerp, no
+		# rng), so skipping one can never shift where the survivors land.
+		if bool(WorldState.get_cove(_cfg.id, "splat_" + str(i), false)):
+			continue
 		var mat := ShaderMaterial.new()
 		mat.shader = OIL_SHADER
 		mat.set_shader_parameter("amount", 1.0)
@@ -52,7 +59,7 @@ func _spawn_splats() -> void:
 		s.position = Vector2(x, y)
 		s.z_index = 2               # over the sand, under the grass fringe
 		add_child(s)
-		_splats.append({ "spr": s, "mat": mat, "amount": 1.0 })
+		_splats.append({ "spr": s, "mat": mat, "amount": 1.0, "idx": i })
 
 func _spawn_barrels() -> void:
 	if not _cfg.barrel_positions.is_empty():
@@ -129,6 +136,12 @@ func spray_at(world_pos: Vector2, radius: float, delta: float) -> void:
 			var keeper = get_tree().get_first_node_in_group("shine")
 			if keeper and keeper.has_method("bonus"):
 				keeper.bonus(SPLAT_SHINE, sp.spr.global_position)
+			# file it (D-0020). Echo-guarded exactly like the barrels + curio_field: a replay
+			# re-scrubs for Shine, the world record stays put.
+			var root := get_tree().get_first_node_in_group("cove_root")
+			var echo: bool = root != null and root.has_method("is_echo") and root.is_echo()
+			if not echo and int(sp.get("idx", -1)) >= 0:
+				WorldState.mark(_cfg.id, "splat_" + str(int(sp.idx)), true)
 	# spraying a drifting barrel fills its purify meter; sustained close spray purifies it (same as the leak)
 	for b in _barrels:
 		if b["capped"]:

@@ -60,6 +60,12 @@ func _ready() -> void:
 	_inject(_w("CoveLife"))
 	_inject(_w("SeabedBackdrop"))
 	_inject(_w("BenthicDress"))   # floor dressing reads the field AFTER ReachMap's mask upgrade
+	# thermal vents place themselves on THIS reach's seabed (see thermal_vent.setup). By group, not
+	# by name, so adding a fourth vent to the scene needs no edit here. After ReachMap's inject
+	# above, which queue_frees the legacy vents on a painted map reach — skip those.
+	for vent in get_tree().get_nodes_in_group("thermal_vent"):
+		if not vent.is_queued_for_deletion():
+			_inject(vent)
 	_inject($RestorationBanner)
 	_inject($NewDay)
 	_inject(_w("CoveAudio"))
@@ -97,6 +103,12 @@ func _ready() -> void:
 	if not _echo:
 		_wire_saves()      # wires FIRST: if a re-seed ever crosses the win gate, it must save/score
 		_apply_saved()
+	# Rebuild the party from world memory BEFORE spawning travellers. Without this the roster only
+	# ever held the friend of the reach you were standing in, so a page reload stranded every other
+	# rescued partner (and left nothing to toggle back to). Echo runs stay partnerless by design.
+	if not _echo:
+		for k in WorldState.awake_friend_kinds():
+			Settings.roster_include(k)
 	_spawn_travellers()    # the party follows everywhere (TotK rule) — after apply, so a restored
 	                       # cove's wake_instant has already re-derived the roster
 
@@ -141,6 +153,7 @@ func _apply_saved() -> void:
 			banner.is_restored = true          # latch: no duplicate celebration on re-entry
 		if friend and friend.has_method("wake_instant"):
 			friend.wake_instant()
+			_heal_friend_marks()
 		if oil and oil.has_method("set_clean_fraction"):
 			oil.set_clean_fraction(1.0)
 		if portal and portal.has_method("force_open"):
@@ -154,12 +167,25 @@ func _apply_saved() -> void:
 	# partial progress: re-seed cleanliness + the flags that were individually earned
 	if friend and friend.has_method("wake_instant") and bool(WorldState.get_cove(id, "friend_awake", false)):
 		friend.wake_instant()
+		_heal_friend_marks()
 	if oil and oil.has_method("set_clean_fraction"):
 		var f := float(WorldState.get_cove(id, "cleanliness", 0.0))
 		if f > 0.02:
 			oil.set_clean_fraction(f)
 	if portal and portal.has_method("force_open") and bool(WorldState.get_cove(id, "portal_cleared", false)):
 		portal.force_open()
+
+## Back-fill the friend marks a cold-boot party rebuild needs (WorldState.awake_friend_kinds) for
+## saves written before friend_kind was recorded — including a fully restored reach, whose friend is
+## awake by definition even if no friend_awake flag was ever written. One disk write per reach, only
+## when a key is genuinely missing, so a healed save costs nothing on later visits.
+func _heal_friend_marks() -> void:
+	if not config.friend_enabled:
+		return
+	if not bool(WorldState.get_cove(config.id, "friend_awake", false)):
+		WorldState.mark(config.id, "friend_awake", true)
+	if int(WorldState.get_cove(config.id, "friend_kind", -1)) < 0:
+		WorldState.mark(config.id, "friend_kind", config.friend_kind)
 
 ## Milestone saves: each signal writes one flag the moment it's earned.
 func _wire_saves() -> void:
@@ -174,7 +200,11 @@ func _wire_saves() -> void:
 	# mark here could never fire — and a plugless door has no cleared-state to persist anyway.)
 	var friend := _live("Friend")
 	if friend and friend.has_signal("woke"):
-		friend.woke.connect(func() -> void: WorldState.mark(id, "friend_awake", true))
+		# friend_kind rides alongside friend_awake so the party can be rebuilt on a cold boot
+		# (WorldState.awake_friend_kinds) instead of dying with the session.
+		friend.woke.connect(func() -> void:
+			WorldState.mark(id, "friend_awake", true)
+			WorldState.mark(id, "friend_kind", config.friend_kind))
 
 ## Scene exit (portal cross, New Day, quit): file the scrub progress of an unfinished cove.
 func _exit_tree() -> void:

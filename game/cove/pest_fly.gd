@@ -37,14 +37,16 @@ func _ready() -> void:
 	_spr.texture = FLY_TEX
 	_spr.hframes = 2            # the strip's two wing frames, flipped by hand in _process
 	_spr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	_spr.scale = Vector2(2.0, 2.0)                   # 8x6 art -> a readable 16x12 gnat
+	_spr.scale = Vector2(1.0, 1.0)                   # 8x6 art at true pixel size — the 2.0 gnat read
+	                                                 # as a big floating blob over the water (Maram,
+	                                                 # 2026-07-27). Raise this pair to re-embiggen.
 	add_child(_spr)
 	if mode == Mode.PEST:
 		add_to_group("grabbable")                    # the frog's auto-tongue finds us here
 		_spr.modulate = Palette.SLATE.lerp(Palette.INK, 0.4)   # dark oily gnat
 	else:
 		_spr.modulate = Palette.AQUA.lerp(Palette.CYAN, 0.4)   # bright healthy dragonfly
-		_spr.scale = Vector2(2.6, 2.6)               # dragonflies read a touch larger
+		_spr.scale = Vector2(1.3, 1.3)               # dragonflies still read a touch larger
 
 func _process(delta: float) -> void:
 	_phase += delta

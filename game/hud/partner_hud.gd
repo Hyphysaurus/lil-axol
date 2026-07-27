@@ -20,6 +20,22 @@ func _ready() -> void:
 	Settings.ui_lock_changed.connect(func(_l: bool) -> void: _refresh())
 	_refresh()
 
+## Swapping used to be reachable ONLY by clicking a 34px chip — there was no key or pad binding at
+## all, so a keyboard/gamepad player simply could not switch back to a partner they had rescued.
+## "swap_partner" (Q / left-stick click) cycles the roster in rescue order. The chips stay the
+## direct-pick affordance; this is the fast path. Requests the swap through Settings like the chips
+## do — this node still never owns the roster.
+func _unhandled_input(event: InputEvent) -> void:
+	if not event.is_action_pressed("swap_partner"):
+		return
+	if Settings.ui_locked() or Settings.run_roster.size() < 2:
+		return              # nothing to cycle between (and menus own input while locked)
+	get_viewport().set_input_as_handled()
+	var i := Settings.run_roster.find(Settings.run_active)
+	var next: int = Settings.run_roster[(i + 1) % Settings.run_roster.size()]
+	Settings.roster_swap(next)
+	Sfx.play("ui_tap", -8.0)
+
 func _build() -> void:
 	_root = Control.new()
 	_root.set_anchors_preset(Control.PRESET_FULL_RECT)
