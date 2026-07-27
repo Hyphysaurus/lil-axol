@@ -13,3 +13,9 @@ desktop.ini
 stderr.txt
 stdout.txt
 test_error.txt
+test_output.txt
+temp_test_output.txt
+full_test_output.txt
+lint_output.txt
+lint_boot.txt
+/.claude/settings.local.json
