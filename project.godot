@@ -21,7 +21,6 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-MetSys="*uid://c01ibpvrp2wsd"
 LitManager="*uid://brf2hvdtyyw3q"
 Sfx="*res://game/audio/sfx.gd"
 Settings="*res://game/hud/settings_store.gd"
@@ -42,7 +41,7 @@ window/handheld/orientation=4
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/MetroidvaniaSystem/EditorExtension/plugin.cfg", "res://addons/MetroidvaniaSystem/plugin.cfg", "res://addons/lit/plugin.cfg", "res://addons/mcp_bridge/plugin.cfg", "res://addons/rmsmartshape/plugin.cfg", "res://addons/softbody2d/plugin.cfg")
+enabled=PackedStringArray("res://addons/lit/plugin.cfg", "res://addons/mcp_bridge/plugin.cfg", "res://addons/rmsmartshape/plugin.cfg", "res://addons/softbody2d/plugin.cfg")
 
 [gui]
 

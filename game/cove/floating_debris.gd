@@ -6,6 +6,11 @@ extends Node2D
 
 const GRAB_SHINE := 450.0      # Shine for reeling in one clump (small, like a shore splat)
 
+## Fired once the clump actually dissolves, so DebrisField can file it as permanently cleared
+## (D-0020). `idx` is the spawner's index — the key half of the WorldState "debris_<i>" mark.
+signal cleared(idx: int)
+
+var idx := -1                  # stamped by DebrisField at spawn; -1 = unmanaged (never persisted)
 var _phase := 0.0
 var _base := Vector2.ZERO
 var _grabbed := false
@@ -42,6 +47,7 @@ func grab(to: Vector2) -> void:
 
 func _cleanse() -> void:
 	_foam_pop()
+	cleared.emit(idx)
 	queue_free()
 
 ## A small clean-water foam burst where the muck dissolves.

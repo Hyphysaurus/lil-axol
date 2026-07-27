@@ -1,6 +1,16 @@
 # LilAxol — Build Status
 
-**Updated:** 2026-07-24 evening (verified against code + git through `0e08050`; slice-3 pixel shell
+**Updated:** 2026-07-26 — **true-up pass** ahead of slice 6. A five-way verification audit against
+the code (not the docs) preceded it and found three things the docs did not say: (1)
+`tests/test_pixel_shell.gd` had been a **false green** since 07-24, printing `ALL PASS` on zero
+executed checks; (2) cleared chokes and purified barrels **respawned on every reach crossing**,
+undoing the frog's work and re-locking the estuary win — a live player-visible bug (**D-0020**);
+(3) this file's own "orphaned `shaders/oil.gdshader`" claim was **wrong** — it is live, and acting
+on it would have broken the build. All three are fixed. Hygiene shipped alongside: MetSys gone (all
+three reaches now boot warning-free), root squatters gone, dead music gone, merged branches gone.
+Suites: **14 files / 261 checks / all green**, and every RESULT line now reports its check count.
+
+**Previously:** 2026-07-24 evening (verified against code + git through `0e08050`; slice-3 pixel shell
 live + a full same-day polish arc: 640×360 desktop / 320×180 touch effect grids (framing identical,
 `PixelShell.grid_zoom`), the canals SKY fix (slice-5 surround bug — map reaches were walled off from
 their own sky since 07-12), Apollo snap parked OFF, V-tap bubble ride (free-glide + gold ring +
@@ -31,7 +41,7 @@ read. Roster order: **Turtle → Frog → Dragonfly → Otter → Bat**.
 |---|---|---|---|---|---|
 | Hub | `hub` (`main.tscn`) | rect | — | purity | persistent home shell |
 | Estuary / Reed Marsh | `estuary` | rect | Frog (kind 1) | purity, oxygen | frog rescue + oxygen recipe |
-| The Canals | `canals` | **map-ingested** (2 PNGs) | Turtle (kind 0) | purity | **the game's first level** (D-0014); leak live; **east portal dormant** (reach 2) |
+| The Canals | `canals` | **map-ingested** (2 PNGs) | Turtle (kind 0) | purity | **the game's first level** (D-0014); leak live; **east portal dormant** (reach 2); invasive school ×3 as an unsolvable setup beat (D-0020) |
 
 Travel loop wired: **hub ⇄ estuary ⇄ canals**. Reach 2 blocks on Maram's painted map
 (`assets/maps/reach_template.png` is the blank; canals' east door wakes when it lands).
@@ -116,7 +126,15 @@ Travel loop wired: **hub ⇄ estuary ⇄ canals**. Reach 2 blocks on Maram's pai
   character, otter/bat land by filling a row); new-partner chip glint + one-time swap-teach hint;
   follow presence (facing-mirrored formation, staggered idle beats, face-the-tidekeeper, tweened
   wake pop). Lint suite `test_companion_library.gd` (35 checks) guards records + the no-steal
-  contract. 14 headless suites total.
+  contract.
+- **Headless suites: 14, 261 executed checks, all green** (recount 2026-07-26 — the old "14" was
+  wrong twice over: there were 13 files, and one of them was a **false green**.
+  `tests/test_pixel_shell.gd` printed `ALL PASS` while running **zero** checks from `0e08050`
+  onward — its top-level `preload` of `pixel_shell.gd` stopped compiling the moment that commit
+  added a `Settings` autoload read, so every `_test_*` aborted and `_fails` stayed 0. Converted to
+  the `_process()` + lazy-`load()` idiom (now 16 checks incl. the touch grid). **Every suite's
+  RESULT line now carries `(N checks)`** so an empty suite can never read as green again — gate on
+  the count, not just the token.)
 - **Field Guide** (`field_guide.gd`) — card table (hub/estuary + encounter cards `enc_estuary_school`,
   `enc_dragonfly_rescue`); curio collection + proximity/rescue triggers show cards. *(Conservation hook,
   master §8.)*
@@ -143,13 +161,24 @@ Travel loop wired: **hub ⇄ estuary ⇄ canals**. Reach 2 blocks on Maram's pai
 `world.save` (ConfigFile, IndexedDB on web), `SAVE_VERSION = 1`, section-per-cove. **Corrupt / future
 version → quarantine to `.bad`, start fresh, never crash.** Milestone-cadence writes. Persisted keys:
 per-cove `restored`, `portal_cleared`, `friend_awake`, `cleanliness`, `curio_<i>`, `enc_school`,
-`material`, `seal_<n>`, `portal_<edge>`, `tut_cascade`; global `cove_meta/first_survey`. **Roster is
-derived** (rebuilt from `friend_awake` marks, not stored). **Echo runs** = session flag (score replay of
-a restored reach; state untouched).
+`material`, `seal_<n>`, `portal_<edge>`, `tut_cascade`, **`debris_<i>`, `barrel_<i>** (D-0020);
+global `cove_meta/first_survey`. **Roster is derived** (rebuilt from `friend_awake` marks, not
+stored). **Echo runs** = session flag (score replay of a restored reach; state untouched).
 
-⚠ **Full reach-variable persistence is designed (master §7) but NOT built** — only `cleanliness`/purity
-persists; oxygen/clarity/invasive/vegetation **re-derive live** from entity counts on load. Adequate
-while reaches respawn to config, but the "save the exact ecological state" promise is unmet.
+**Entity-level persistence closed 2026-07-26 (D-0020).** Cleared chokes and purified barrels used to
+respawn on *every* reach crossing — a five-second portal hop undid the frog's work, dropped estuary
+oxygen (30% of its blend) and re-locked its `oxygen >= 0.9` win recipe, and let `material` +
+`spring_clean` be farmed by re-entry. Now filed with echo-guarded indexed marks in the `curio_<i>`
+idiom; no `SAVE_VERSION` bump (additive keys). Guarded by `tests/test_choke_persistence.gd`.
+
+⚠ **Full reach-*variable* persistence (master §7) remains NOT built** — oxygen/clarity/invasive
+re-derive live from entity counts and vegetation resets to 0.0 on load. **Re-assessed 2026-07-26:
+this is now a much smaller gap than it reads.** With D-0020 the entity counts the derivation reads
+are themselves faithful, so oxygen reconstructs correctly; vegetation is in no reach's `in_play` or
+`win_recipe` (its reset shows only as a dim pip, re-earned in ~20s); and clarity/invasive cannot be
+moved by any shipped verb, so there is no information to lose until Herd lands. **Do not implement
+§7 literally** — storing the numbers while entities still respawn to config would make the meter
+contradict the visible water. Revisit as an entity-reconciled pass with slice 6.
 
 ## DESIGNED, NOT BUILT
 
@@ -164,18 +193,40 @@ while reaches respawn to config, but the "save the exact ecological state" promi
 ## KNOWN GAPS / LOOSE ENDS
 
 - ⚠ **`destructible_rock.reveal()` is dead code** — Survey can't reveal locked gates/rubble until the
-  rock joins group `surveyable` (or the sweep calls it). One-ish line, but it's a real reveal-contract
-  hole; flagged for a ruling (does revealing sealed gates through terrain fit the cozy contract?).
-- **MetSys is autoloaded but unused** — pushes `Map data file does not exist` on every boot and also
-  errors the web export's map-data step (harmless: no map data ships). Wire it or drop the autoload.
-- **Root still squatted** — `example/`, `scenes/`, `scripts/` are an unused RPG inventory/itemization
-  pack (the export preset already excludes `scenes/*`/`scripts/*`; `third_party/` tidied the rest).
-- **Merged branches** `feat/win-state-and-hygiene`, `refactor/cove-modular-architecture` undeleted.
-- Pre-watershed gotchas from the old STATUS (orphaned `shaders/oil.gdshader`, unreferenced
-  `newoilset.png`/`waterpack.png`, ~144/145 props unused) are **unre-verified this pass** — treat as
-  stale until checked.
-- **Lit addon shader globals still track the window, not the world viewport** — harmless (no Lit
-  lights in game code); wire only if Lit ever ships a light. *(slice 3)*
+  rock joins group `surveyable` (or the sweep calls it). **Verified 2026-07-26:** the cause is a plan
+  defect, not a deferral — the slice-4 plan's Step 4 is the only one of five component steps that
+  omits the `add_to_group("surveyable")` line, and commit `c33e287` reproduced the omission.
+  `tests/test_reveal_contract.gd` calls `rock.reveal()` **directly**, and no test anywhere asserts
+  group membership or fans out `call_group("surveyable", …)` — so the spec's own §6 fan-out test was
+  never written either. **The ruling is currently moot:** zero locked gates exist in the shipped world
+  (no SILT/BOULDER pixels in either map PNG) and Survey itself is unreachable (no reach sets
+  `friend_kind = 3`), so this cannot be eyeballed until reach 2 lands. Only live question: do the 6
+  LandNook loam mounds get revealed? They already shimmer idly, so it amplifies an existing tell.
+- **Pre-watershed gotchas re-verified 2026-07-26** — ⚠ **`shaders/oil.gdshader` is NOT orphaned; it is
+  LIVE** (`shore_pollution.gd:10`, `leak_source.gd:11`). The previous "orphaned" claim here was wrong
+  and deleting on its advice would have broken the build. `newoilset.png`/`waterpack.png` **were**
+  unreferenced → removed. Props: measured **143 of 149 unused** (not "~144/145"), but they are the
+  authored art library for reaches 2-5 indexed by `assets/props/_catalog.json` — **do not bulk-delete**;
+  the clean move is `.gdignore` + a small `props_live/`. Awaiting Maram's ruling.
+- **Dead addons: `rmsmartshape` (14 MB), `lit`, `softbody2d` are all unused by game code** — none is
+  referenced anywhere in `game/`. `lit` additionally owns the `LitManager` autoload and 15
+  `[shader_globals]` entries no shader in `shaders/` reads (this supersedes the old "Lit shader globals
+  track the window" bullet — Lit is not mis-wired, it is entirely unused). Removal is a clean win but
+  was left out of the 07-26 pass to keep that pass verifiable; queued.
+- **Repo carries 34 MB of never-used `third_party/rpg_icons`** — zero runtime cost (`.gdignore`d, 0 pck
+  hits); purging needs a history rewrite, so deliberately left alone.
+
+### Closed 2026-07-26 (true-up pass)
+
+- ~~MetSys autoloaded but unused~~ — **removed**: autoload + both plugin entries out of
+  `project.godot`, `MetSysSettings.tres` + `addons/MetroidvaniaSystem/` + the two `third_party/metsys_*`
+  samples deleted. All three reach scenes now boot with **no MetSys warning** for the first time.
+- ~~Root squatted~~ — **`example/`, `scenes/`, `scripts/` deleted** (136 tracked files, zero inbound
+  references, already export-excluded; recoverable from git history).
+- ~~Merged branches undeleted~~ — both deleted, local and origin.
+- ~~18.8 MB of dead music shipping in the pck~~ — `gentle_breeze.ogg` /
+  `wildflowers_by_the_river.ogg` removed (`cove_audio.gd` references only `mus_base`/`mus_alive`).
+  Recoverable from git if a later reach wants them.
 
 ## SHIPPED / DEPLOYED
 

@@ -12,10 +12,12 @@ func _init() -> void:
 	_test_art()
 	_test_info()
 	_test_no_steal()
-	print("RESULT: %s" % ("FAIL x%d" % _fails if _fails > 0 else "ALL PASS"))
+	print("RESULT: %s (%d checks)" % ["FAIL x%d" % _fails if _fails > 0 else "ALL PASS", _checks])
 	quit(1 if _fails > 0 else 0)
 
+var _checks := 0   # executed-check tally: guards against a silently-empty suite reading as green
 func _check(name: String, ok: bool) -> void:
+	_checks += 1
 	print(("PASS  " if ok else "FAIL  ") + name)
 	if not ok:
 		_fails += 1

@@ -39,7 +39,9 @@ const EXPECTED_VENT_0 := Vector2(678.0, 280.0)
 var _fails := 0
 var _done := false
 
+var _checks := 0   # executed-check tally: guards against a silently-empty suite reading as green
 func _check(name: String, ok: bool) -> void:
+	_checks += 1
 	print(("PASS  " if ok else "FAIL  ") + name)
 	if not ok:
 		_fails += 1
@@ -67,6 +69,6 @@ func _process(_delta: float) -> bool:
 	if vents.size() > 0:
 		_check("vent 0 position", (vents[0] as Node2D).global_position.is_equal_approx(EXPECTED_VENT_0))
 
-	print("RESULT: %s" % ("FAIL x%d" % _fails if _fails > 0 else "ALL PASS"))
+	print("RESULT: %s (%d checks)" % ["FAIL x%d" % _fails if _fails > 0 else "ALL PASS", _checks])
 	quit(1 if _fails > 0 else 0)
 	return true

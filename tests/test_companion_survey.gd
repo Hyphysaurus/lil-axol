@@ -8,7 +8,9 @@ extends SceneTree
 ## Run: & $godot --headless --path $proj --script tests/test_companion_survey.gd
 var fails := 0
 var _done := false
+var _checks := 0   # executed-check tally: guards against a silently-empty suite reading as green
 func _check(name: String, ok: bool) -> void:
+	_checks += 1
 	print(("PASS  " if ok else "FAIL  ") + name)
 	if not ok: fails += 1
 func _process(_delta: float) -> bool:
@@ -85,6 +87,6 @@ func _process(_delta: float) -> bool:
 		comp.global_position.distance_to(lure.global_position) < 10.0)
 	frame_root.free()
 
-	print("RESULT: " + ("ALL PASS" if fails == 0 else "%d FAILED" % fails))
+	print("RESULT: " + ("ALL PASS" if fails == 0 else "%d FAILED" % fails) + " (%d checks)" % _checks)
 	quit(1 if fails > 0 else 0)
 	return true

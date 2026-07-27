@@ -59,14 +59,19 @@ func _spawn_barrels() -> void:
 		# a painted map authored exact barrel x's — honor them verbatim (y always rides the surface
 		# bob below regardless of source, so only x is meaningfully "explicit" here)
 		for i in _cfg.barrel_positions.size():
-			_spawn_one_barrel(_cfg.barrel_positions[i].x, float(i) * 2.3)
+			_spawn_one_barrel(_cfg.barrel_positions[i].x, float(i) * 2.3, i)
 		return
 	# a couple of oil barrels adrift on the surface — pollution washed in
 	for i in 2:
 		var x := lerpf(_cfg.water_left + 90.0, _cfg.water_right - 130.0, 0.3 + 0.45 * float(i))
-		_spawn_one_barrel(x, float(i) * 2.3)
+		_spawn_one_barrel(x, float(i) * 2.3, i)
 
-func _spawn_one_barrel(x: float, phase: float) -> void:
+## `idx` keys the WorldState "barrel_<i>" mark: a purified barrel stays purified across visits
+## (D-0020). Without it, re-entering a reach respawned every barrel and each one could be cashed
+## for another +1 material and another "spring_clean" feat — a portal-hop farm.
+func _spawn_one_barrel(x: float, phase: float, idx: int) -> void:
+	if idx >= 0 and bool(WorldState.get_cove(_cfg.id, "barrel_" + str(idx), false)):
+		return
 	var s := Sprite2D.new()
 	s.texture = BARREL
 	s.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
@@ -102,7 +107,7 @@ func _spawn_one_barrel(x: float, phase: float) -> void:
 	drip.position = Vector2(x + 7.0, _cfg.surface_y - 5.0)
 	add_child(drip)
 	_barrels.append({ "spr": s, "body": body, "slick": slick, "drip": drip, "x": x, "phase": phase,
-		"cap": 0.0, "capped": false, "cd": 0.0 })
+		"cap": 0.0, "capped": false, "cd": 0.0, "idx": idx })
 
 ## The axolotl's spray reaching us (via the "sprayable" group). Cleans the land splat nearest
 ## the spray point; the water film is handled separately by OilSpill.
@@ -146,6 +151,12 @@ func spray_at(world_pos: Vector2, radius: float, delta: float) -> void:
 func _purify_barrel(b: Dictionary) -> void:
 	b["capped"] = true
 	var s: Sprite2D = b["spr"]
+	# file it before the FX so leaving mid-dissolve still counts. Echo-guarded like curio_field:
+	# a replay re-purifies for Shine, the world record stays put.
+	var root := get_tree().get_first_node_in_group("cove_root")
+	var echo: bool = root != null and root.has_method("is_echo") and root.is_echo()
+	if not echo and int(b.get("idx", -1)) >= 0:
+		WorldState.mark(_cfg.id, "barrel_" + str(int(b["idx"])), true)
 	get_tree().call_group("oil_manager", "spray_at", s.global_position, BARREL_CLEAR, 0.9)   # oil lifts away
 	var keeper = get_tree().get_first_node_in_group("shine")
 	if keeper and keeper.has_method("feat"):

@@ -7,10 +7,12 @@ extends Node2D
 
 const DEBRIS := preload("res://game/cove/floating_debris.gd")
 
+var _cfg: CoveConfig
 var _reveal_t := 0.0
 var _reveal_bases: Array = []   # [{node: CanvasItem, base: Color}, ...] — captured per reveal() call
 
 func setup(cfg: CoveConfig) -> void:
+	_cfg = cfg
 	if cfg.debris_count <= 0 or WorldState.is_restored(cfg.id):
 		return   # a RESTORED reach reloads restored: no chokes respawn (spec review C2)
 	add_to_group("surveyable")
@@ -20,18 +22,34 @@ func setup(cfg: CoveConfig) -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 19
 	for i in cfg.debris_count:
-		var d := DEBRIS.new()
 		# spread across the middle of the water span (kept off the shore so it's genuinely out of the
-		# axolotl's reach — a job for the frog), with staggered depth near the surface
+		# axolotl's reach — a job for the frog), with staggered depth near the surface.
+		# NOTE: x is drawn BEFORE the already-cleared skip below, because random_surface_x advances
+		# the rng — skipping the draw would shift every surviving clump's column on reload.
 		var x: float
 		if cfg.has_map and field != null:
 			x = field.random_surface_x(rng)     # guaranteed an actual open-water column
 		else:
 			var t := (float(i) + 0.5) / float(cfg.debris_count)
 			x = lerpf(cfg.water_left + 70.0, cfg.water_right - 60.0, t)
+		if bool(WorldState.get_cove(cfg.id, "debris_" + str(i), false)):
+			continue   # eaten on an earlier visit — it stays eaten (D-0020)
+		var d := DEBRIS.new()
 		var y := cfg.surface_y + 8.0 + fmod(float(i) * 37.0, 40.0)
 		d.position = Vector2(x, y)
+		d.idx = i
+		d.cleared.connect(_on_cleared)
 		add_child(d)
+
+## A clump dissolved — file it so the frog's work survives leaving the reach. Echo-guarded exactly
+## like curio_field: a replay re-eats for Shine, but the world record stays put.
+func _on_cleared(i: int) -> void:
+	if i < 0 or _cfg == null:
+		return
+	var root := get_tree().get_first_node_in_group("cove_root")
+	var echo: bool = root != null and root.has_method("is_echo") and root.is_echo()
+	if not echo:
+		WorldState.mark(_cfg.id, "debris_" + str(i), true)
 
 ## Survey's reveal contract: brighten every LIVE clump's modulate for the duration, restoring to
 ## whatever it was (captured per-node, not a hardcoded WHITE — floating_debris.gd stays untouched,

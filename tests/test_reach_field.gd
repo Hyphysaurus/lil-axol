@@ -4,7 +4,9 @@ extends SceneTree
 const ReachFieldScript := preload("res://game/cove/reach_field.gd")
 const CoveConfigScript := preload("res://game/cove/cove_config.gd")
 var fails := 0
+var _checks := 0   # executed-check tally: guards against a silently-empty suite reading as green
 func _check(name: String, ok: bool) -> void:
+	_checks += 1
 	print(("PASS  " if ok else "FAIL  ") + name)
 	if not ok: fails += 1
 func _init() -> void:
@@ -35,7 +37,7 @@ func _init() -> void:
 	_check("rect carve noop", rectf.is_water(Vector2(0, 0)))
 	rectf.free(); maskf.free()
 	_test_carve_cell_contract()
-	print("RESULT: " + ("ALL PASS" if fails == 0 else "%d FAILED" % fails))
+	print("RESULT: " + ("ALL PASS" if fails == 0 else "%d FAILED" % fails) + " (%d checks)" % _checks)
 	quit()
 
 ## carve_cell(cx,cy) must flip EXACTLY one cell — the fixed 3x3-bleed regression guard. carve()'s

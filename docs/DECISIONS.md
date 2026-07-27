@@ -195,3 +195,25 @@ hint at roster size 2, and follow presence (facing-mirrored formation, staggered
 face-the-tidekeeper, tweened wake pop). Lint suite `tests/test_companion_library.gd` guards the
 records + the no-steal contract. Spec:
 `docs/superpowers/specs/2026-07-24-character-setups-polish-design.md`.
+
+## D-0020 — Cleared chokes and purified barrels persist; restoration work is never undone by walking away (2026-07-26, Maram)
+A pre-slice-6 audit found a **player-visible bug nobody had logged**: `debris_field.setup()` and
+`shore_pollution._spawn_barrels()` respawned their full config count on **every** non-restored
+visit. A five-second portal hop therefore undid the frog's tongue work — and because oxygen is 30%
+of the estuary blend and its win recipe needs `oxygen >= 0.9` (≤1 of 11 chokes alive), the meter
+visibly dropped and the win **re-locked**. The same defect let `material` and the `spring_clean`
+feat be farmed by re-entering a reach.
+**Ruled a BUG, not D-0012 backslide.** D-0012 sanctions reaches drifting backward, but 100%
+instant regression on a scene crossing reads as *lost work*, not as a living world; backslide, if
+it is ever authored, must be time-based and legible. Fix follows the shipped indexed-mark idiom
+exactly (`curio_<i>`, `seal_<n>`): `floating_debris` gained `idx` + a `cleared(idx)` signal;
+`debris_field` skips persisted indices and files an **echo-guarded** `debris_<i>`;
+`shore_pollution` does the same with `barrel_<i>`. **No `SAVE_VERSION` bump and no WorldState
+change** — new per-cove keys are additive, and a live save simply has none of them yet (fresh
+profile → today's behavior). One subtlety locked by test: the placement draw happens **before** the
+already-cleared skip, because `random_surface_x` advances the rng — skipping the draw would shift
+every surviving clump's column on reload. Guarded by `tests/test_choke_persistence.gd` (13 checks).
+**Ruled alongside:** the canals (the game's FIRST level) ships `invasive_count = 3` — master §3.5
+wants the antagonist school visible early as the thing your current verbs pointedly cannot solve.
+Purely a setup beat today: the canals' `in_play` is `[purity]`, so clarity/invasive still weigh
+nothing in the meter or the win — they start counting when the otter's Herd lands (slice 6).
