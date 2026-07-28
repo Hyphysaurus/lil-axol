@@ -42,6 +42,8 @@ const SHELL_STEER := 7.0          # how fast the heading curves toward the aim (
 const SHELL_MIN_FRAC := 0.6       # never drops below this fraction of top speed (always gliding)
 const SHELL_CARVE_RADIUS := 13.0  # carve reach along the shell's path (~1.6 rock cells)
 const SHELL_CARVE_EVERY := 0.05   # carve this often so the tunnel reads continuous
+const SHELL_RADIUS := 9.0         # collision probe reach ahead of the spinning shell
+const SHELL_BOUNCE := 0.35        # how much speed survives a bounce off unbreakable terrain
 const SPIN_SPEED := 20.0          # shell rotation, rad/s (the tucked frame spun in code)
 const STAMINA_SECONDS := 3.0      # full-spin duration
 const REFILL_SECONDS := 2.4       # empty -> full recharge time while resting
@@ -61,6 +63,8 @@ const HOP_RANGE := 52.0        # longest single hop
 const HOP_TIME := 0.32         # seconds per hop arc
 const HOP_APEX := 15.0         # arc height at mid-hop
 const HOP_REST := 0.16         # squat beat between chained hops
+const FROG_DIVE_DEPTH := 22.0  # target this far below the waterline -> the frog stops hopping and
+                               # swims down after you (also the hysteresis against boundary flapping)
 const PAD_SNAP := 18.0         # landing point snaps onto a lilypad within this
 
 # --- the shared partner-action button, keyed by who's ACTIVE (spec REVIEW AMENDMENT, Critical —
@@ -352,11 +356,12 @@ func _process(delta: float) -> void:
 	var slot := SLOT_OFFSETS[_slot]
 	var target := (get_parent() as Node2D).to_local(axo.global_position) \
 		+ Vector2(0.0, lift) + Vector2(slot.x * _mirror, slot.y)
-	if _kind == Kind.FROG:
-		# the frog is a SURFACE-AND-LAND creature (spec §9): it rides the waterline and hops the
-		# banks/lilypads — never dives. Clamping the follow target here retires the deep-water
-		# swim jank at the source; the axolotl remains free to dip under alone.
-		target.y = minf(target.y, _cfg.surface_y - 2.0)
+	# THE FROG DIVES (Maram's ruling, 2026-07-27), reversing spec §9's surface-only rule. The old
+	# `target.y = minf(target.y, surface_y - 2.0)` clamp lived here and pinned the frog to the
+	# waterline — it was hiding deep-water follow jank rather than fixing it, so the frog skated the
+	# surface while you swam away beneath it. The jank is addressed properly below: it still crosses
+	# the surface in hop arcs, and only switches to the paddling swim once your target is genuinely
+	# deep (FROG_DIVE_DEPTH), which is also the hysteresis that stops it flapping between the two.
 	target.x = clampf(target.x, _cfg.water_left - 260.0, _cfg.water_right - 8.0)   # onto the BEACH too, not just the water's edge
 	# GROUND HOLD, field-true: over actual water never rise above the line; elsewhere hold at
 	# the reach's bank ceiling (derived on maps, hub const on legacy). A follow target must
@@ -373,7 +378,11 @@ func _process(delta: float) -> void:
 		gap = Vector2.ZERO
 	_land_t = maxf(0.0, _land_t - delta)
 	_strike_t = maxf(0.0, _strike_t - delta)
-	if _kind == Kind.FROG and position.y <= _cfg.surface_y + 10.0:
+	# a frog whose target is genuinely deep SWIMS after you; at or near the surface it still hops.
+	var frog_diving := _kind == Kind.FROG and target.y > _cfg.surface_y + FROG_DIVE_DEPTH
+	if frog_diving and _hop_t >= 0.0:
+		_hop_t = -1.0     # abandon a mid-air arc rather than land it underwater
+	if _kind == Kind.FROG and not frog_diving and position.y <= _cfg.surface_y + 10.0:
 		# the frog at the surface moves in real HOPS (spec §9 — it "hops the banks/lilypads");
 		# only a still-submerged frog (the just-woken friend rising off the seabed) paddles the
 		# generic swim up to the waterline first
@@ -563,6 +572,63 @@ func _begin_pilot() -> void:
 	_shell_vel = (d.normalized() if d.length() > 4.0 else Vector2(_face, 0.0)) * SHELL_SPEED
 	_shell_p.emitting = true
 
+## Terrain is REAL for the spinning shell now. The companion is a plain Node2D with no physics body,
+## and the spin was `position += vel * delta` fenced only by the reach's outer rect — so it sailed
+## straight through banks, block-land and every hand-placed wall (Maram, 2026-07-27). Queried against
+## the PHYSICS space rather than the ReachField mask on purpose: a painted reach keeps its terrain in
+## both a mask and rect bodies, but the legacy hub/estuary keep theirs ONLY in hand-placed
+## StaticBody2Ds that the field knows nothing about. Physics is the one source both reaches share.
+## Breakables are skipped deliberately — the 20Hz carve beat eats those, and stopping on rubble would
+## kill the tunnel fantasy and re-seal the portal plug the shell exists to smash.
+func _shell_solid_at(world_p: Vector2) -> bool:
+	var space := get_world_2d().direct_space_state
+	var q := PhysicsPointQueryParameters2D.new()
+	q.position = world_p
+	q.collide_with_areas = false
+	q.collide_with_bodies = true
+	for hit in space.intersect_point(q, 8):
+		var col: Object = hit.get("collider")
+		if col == null or col is CharacterBody2D:
+			continue                          # the tidekeeper herself is not terrain
+		var n: Node = col as Node
+		var breakable := false
+		while n != null:
+			if n.is_in_group("blastable") or n.is_in_group("turtle_blastable"):
+				breakable = true
+				break
+			n = n.get_parent()
+		if not breakable:
+			return true
+	return false
+
+## Centre plus one radius ahead, so a fast spin can't tunnel through a thin wall between frames.
+func _shell_blocked(world_p: Vector2) -> bool:
+	if _shell_solid_at(world_p):
+		return true
+	var head := _shell_vel.normalized()
+	return head != Vector2.ZERO and _shell_solid_at(world_p + head * SHELL_RADIUS)
+
+## Advance the spin, sliding along a wall it merely grazes and bouncing off a head-on hit. `step` is
+## the same vector in local and global space — the world parent only ever translates.
+func _shell_move(step: Vector2) -> void:
+	if _shell_solid_at(global_position):
+		position += step        # already embedded (terrain carved from under us) — let it escape
+		return
+	if not _shell_blocked(global_position + step):
+		position += step
+		return
+	var sx := Vector2(step.x, 0.0)
+	var sy := Vector2(0.0, step.y)
+	if absf(step.x) > 0.01 and not _shell_solid_at(global_position + sx):
+		position += sx
+		_shell_vel.y = -_shell_vel.y * SHELL_BOUNCE
+	elif absf(step.y) > 0.01 and not _shell_solid_at(global_position + sy):
+		position += sy
+		_shell_vel.x = -_shell_vel.x * SHELL_BOUNCE
+	else:
+		_shell_vel = -_shell_vel * SHELL_BOUNCE
+		_impact(1, true)        # a real bonk: crunch, shake, rumble
+
 ## Pilot the spinning shell: curve toward the aim, keep gliding, carve any rubble along the path,
 ## drain stamina. Ends on release, on a menu opening, or when the shell exhausts (pops out dizzy).
 func _run_pilot(delta: float) -> void:
@@ -581,7 +647,7 @@ func _run_pilot(delta: float) -> void:
 	if _shell_vel.length() < SHELL_SPEED * SHELL_MIN_FRAC:
 		var head := _shell_vel.normalized() if _shell_vel.length() > 1.0 else Vector2(_face, 0.0)
 		_shell_vel = head * SHELL_SPEED * SHELL_MIN_FRAC
-	position += _shell_vel * delta
+	_shell_move(_shell_vel * delta)
 	# stay inside the reach: on a painted map the camera bounds ARE the reach (grown in 8px so the
 	# shell never rides the map edge). Legacy keeps the exact hand-tuned numbers: the water, a
 	# beach-width of land on the left, and INTO the right bank's face — the portal plug is carved
