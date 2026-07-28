@@ -19,5 +19,5 @@ fish_count = 9
 curios = Array[Vector2]([Vector2(140, 152), Vector2(-330, -48), Vector2(-120, -16)])
 exit_enabled = true
 exit_target = "res://estuary.tscn"
-exit_pos = Vector2(385, 45)
+exit_pos = Vector2(358, 44)
 exit_blocked = true
