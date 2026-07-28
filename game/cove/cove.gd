@@ -124,7 +124,16 @@ func _spawn_travellers() -> void:
 	var friend := _live("Friend")
 	if friend and "friend_kind" in config:
 		local_kind = config.friend_kind
-	var slot := 1                              # slot 0 belongs to the scene's own friend
+	# the party ceiling is the number of authored follow slots (four, by design). Say so out loud
+	# rather than letting clampi quietly stack two companions on one offset.
+	if Settings.run_roster.size() > CompanionScript.SLOT_OFFSETS.size():
+		push_warning("Cove: party of %d exceeds the %d follow slots — add SLOT_OFFSETS entries before growing the roster." % [
+			Settings.run_roster.size(), CompanionScript.SLOT_OFFSETS.size()])
+	# slot 0 belongs to the scene's own friend ONLY when that friend is actually in your party. If
+	# it's still asleep (or this reach has no friend at all) nobody is following from slot 0, so the
+	# travellers may use it — otherwise a full four-companion party in such a reach needs slots 1..4,
+	# and SLOT_OFFSETS only defines four, so clampi would silently stack the last two on one spot.
+	var slot := 1 if (local_kind >= 0 and Settings.run_roster.has(local_kind)) else 0
 	for kind in Settings.run_roster:
 		if kind == local_kind:
 			continue                           # the local friend IS this partner — no double
