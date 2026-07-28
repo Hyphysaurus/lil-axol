@@ -217,3 +217,62 @@ every surviving clump's column on reload. Guarded by `tests/test_choke_persisten
 wants the antagonist school visible early as the thing your current verbs pointedly cannot solve.
 Purely a setup beat today: the canals' `in_play` is `[purity]`, so clarity/invasive still weigh
 nothing in the meter or the win — they start counting when the otter's Herd lands (slice 6).
+
+## D-0021 — The frog dives (2026-07-27, Maram — playtest ruling; amends master §9)
+Master §9 shipped the frog **surface + land only, never dives**: `Kind.FROG`'s follow target carried a
+hard `minf(target.y, surface_y - 2.0)` clamp. In play that reads as a partner *skating the ceiling*
+while you swim away beneath it — Maram ruled it out at first sight. The clamp was also load-bearing in
+the wrong way: it was **hiding deep-water follow jank rather than fixing it**, which is why removing it
+required real work instead of deleting a line. The frog now still crosses water in ballistic hop arcs
+and switches to the paddling swim only once your target is genuinely deep (`FROG_DIVE_DEPTH = 22px`
+below the waterline), which doubles as the **hysteresis** that stops it flapping between hop and swim at
+the boundary; an in-flight arc is **abandoned** on the switch rather than landed underwater. No new art
+was needed — `swimforward`/`swimidle` were already authored in `frog_anims.tres` and had been
+unreachable since slice 1. Master §9's bullet is annotated in place. The rest of §9 (integer
+`friend_scale`, no runtime fractional scaling of pixel art, no perch AI) is untouched.
+
+## D-0022 — On the 8px grid, an intended passage is THREE cells minimum (2026-07-27, arithmetic + two playtests)
+Maram reported the same canals gap impassable **twice**. The first fix narrowed the axolotl's collider
+16×18 → 14×18; the gap stayed shut. The arithmetic says why: the opening at map cells x=47..48, row 10
+is exactly **two cells = 16px**, so a 14px body has **one pixel of clearance per side** — traversable in
+theory, never in practice, at any tuning. The fix is authorial, not mechanical: two EARTH cells erased
+at (46,9)/(46,10) in `marsh_draft_terrain.png`, eroding the platform's right edge by one column for a
+three-cell / 24px shaft (~5px clearance per side). `test_reach_map`'s golden EARTH tally moves
+2556 → 2554 with a note, since the map content changed on purpose.
+**The rule for every painted reach from here: author any intended passage at three cells minimum.**
+A two-cell opening will always *look* walkable and never be — the most expensive kind of level bug,
+because it reads as a movement problem and pulls you into tuning the character. A one-cell notch is
+decorative by definition and needs no clearance.
+
+**ENFORCED 2026-07-28** by `tests/test_reach_geometry.gd`, and the route there is worth recording
+because two more obvious designs failed first. **Connectivity cannot catch this class.** Flood-filling
+the map twice — once with a point agent, once with a D-0022-sized body — and reporting what only the
+point can reach came back **green against the pre-widening map**: the two-cell shaft was a *shortcut*,
+not the only way through, so nothing was ever cut off. Maram's bug was never "I can't get there"; it
+was "**this reads as a passage and isn't**" — a legibility defect, invisible to any reachability
+measure. Conversely a purely local "flag every 2-cell opening" rule fires on scenery: its first run
+flagged the open air under a one-cell pillar you simply walk around. Since intent is precisely what
+geometry cannot infer, the shipped gate **names every constriction and fails on any not written down**
+in an `ACCEPTED_TIGHT` allowlist, one documented line per exemption. Both connectivity checks were
+kept anyway — they answer a different real question (content the player genuinely cannot reach) and
+are green today.
+
+## D-0023 — Verb access is never gated on a painting session: sandbox rect reaches carry finished verbs into play (2026-07-27)
+D-0014 made the painted-PNG ingester the authoring pipeline and "a reach = a painting session." The
+cost surfaced on 07-27: the **dragonfly's Survey verb has been fully built and tested since slice 4**
+and was **unreachable in play** — no reach anywhere set `friend_kind = 3`, so Zuni could not be
+rescued and the verb could never fire. A finished, tested mechanic sat dark for two slices waiting on
+a painting session that also blocks reach 2.
+**Ruled:** a verb ships in a **legacy-rect sandbox reach** rather than waiting for its painted home.
+Two shipped: `creek.tscn` (Zuni, `friend_kind = 3` — Survey live the moment she's rescued, stocked
+with debris/pests/a small invasive school so a sweep has something to reveal) and `refugio.tscn`
+(Nutria, `friend_kind = 2`, `invasive_count = 6` — the school Herd will act on; her verbs land with
+slice 6). Both reuse the hub's proven tank geometry (`seabed_y = 166`), which the same day's vent fix
+now snaps to correctly. **The shipped progression is untouched** — canals ⇄ estuary ⇄ hub is
+unchanged; the sandbox hangs off the hub's previously-unused second door (hub → creek ⇄ refugio → hub).
+Painted reaches remain the real levels; a sandbox is a **proving ground**, not a substitute, and is
+expected to be superseded when its painted reach lands. No curios authored in either — cards key off
+`"<id>_<index>"` in `field_guide.gd` and would need writing first.
+⚠ **OPEN — Maram's ruling:** both are live on the deployed build, so a player can meet Nutria, get the
+full rescue ceremony, and receive a partner whose button does nothing until slice 6. Leave open, gate
+the refugio door, or keep the spur dev-only?

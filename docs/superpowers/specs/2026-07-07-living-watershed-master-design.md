@@ -316,6 +316,13 @@ mascot is wanted), chicken (livestock — farm set-dressing only, never a citize
 - **Frog: surface + land only** — never dives. For `Kind.FROG` the follow target's y clamps to
   `surface_y` over water (kicks the surface via `swimforward`, rests `swimidle`, hops land &
   lilypads; tongue works from the surface). No perch AI — the marsh is shallow.
+
+  > **AMENDED 2026-07-27 (D-0021, shipped `9d8d71f`):** **the frog dives.** The `surface_y` clamp is
+  > gone — in play it read as a partner skating the ceiling while you swam away beneath it, and it was
+  > hiding deep-water follow jank rather than fixing it. The frog still crosses water in ballistic hop
+  > arcs and switches to the paddling swim only once your target is genuinely deep
+  > (`FROG_DIVE_DEPTH = 22px`, which doubles as the hop↔swim hysteresis); an in-flight arc is abandoned
+  > on the switch. The rest of this bullet (anims, tongue from the surface, no perch AI) stands.
 - **Integer scale:** `friend_scale` → **1.0** (estuary 0.7 & library 0.85 retired). Rule for
   all partners: **no runtime fractional scaling of pixel art**; if the frog reads too big, fix
   in art with a one-time integer resize.
