@@ -1,0 +1,43 @@
+[gd_resource type="Resource" script_class="CoveConfig" load_steps=4 format=3 uid="uid://b0creek0cfg01"]
+
+[ext_resource type="Script" path="res://game/cove/cove_config.gd" id="1_cfg"]
+[ext_resource type="SpriteFrames" path="res://game/companion/dragonfly_frames.tres" id="2_dragonflyframes"]
+[ext_resource type="Resource" path="res://game/companion/dragonfly_anims.tres" id="3_dragonflyanims"]
+
+[resource]
+script = ExtResource("1_cfg")
+id = "creek"
+has_water = true
+water_left = -142.0
+water_right = 377.0
+surface_y = -27.0
+seabed_y = 166.0
+spill_left = -130.0
+spill_right = 320.0
+clean_rate = 1.4
+kelp_count = 5
+fish_count = 6
+debris_count = 4
+pest_count = 5
+lilypad_count = 4
+reed_count = 14
+invasive_count = 3
+in_play = Array[StringName]([&"purity"])
+win_recipe = {}
+win_threshold = 0.98
+friend_enabled = true
+friend_pos = Vector2(350, 60)
+friend_kind = 3
+friend_frames = ExtResource("2_dragonflyframes")
+friend_anims = ExtResource("3_dragonflyanims")
+friend_scale = 1.0
+env_water_tint = Color(0.78, 0.92, 0.82, 1)
+env_land_tint = Color(0.86, 0.85, 0.7, 1)
+leak_enabled = false
+exit_enabled = true
+exit_target = "res://main.tscn"
+exit_pos = Vector2(358, 44)
+exit_blocked = false
+exit2_enabled = true
+exit2_target = "res://refugio.tscn"
+exit2_pos = Vector2(-120, 40)

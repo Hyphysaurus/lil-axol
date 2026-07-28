@@ -1,0 +1,40 @@
+[gd_resource type="Resource" script_class="CoveConfig" load_steps=4 format=3 uid="uid://b0refugio0cfg1"]
+
+[ext_resource type="Script" path="res://game/cove/cove_config.gd" id="1_cfg"]
+[ext_resource type="SpriteFrames" path="res://game/companion/otter_frames.tres" id="2_otterframes"]
+[ext_resource type="Resource" path="res://game/companion/otter_anims.tres" id="3_otteranims"]
+
+[resource]
+script = ExtResource("1_cfg")
+id = "refugio"
+has_water = true
+water_left = -142.0
+water_right = 377.0
+surface_y = -27.0
+seabed_y = 166.0
+spill_left = -130.0
+spill_right = 320.0
+clean_rate = 1.4
+kelp_count = 6
+fish_count = 5
+debris_count = 4
+pest_count = 3
+lilypad_count = 3
+reed_count = 18
+invasive_count = 6
+in_play = Array[StringName]([&"purity"])
+win_recipe = {}
+win_threshold = 0.98
+friend_enabled = true
+friend_pos = Vector2(335, 148)
+friend_kind = 2
+friend_frames = ExtResource("2_otterframes")
+friend_anims = ExtResource("3_otteranims")
+friend_scale = 1.0
+env_water_tint = Color(0.7, 0.88, 0.9, 1)
+env_land_tint = Color(0.84, 0.8, 0.68, 1)
+leak_enabled = false
+exit_enabled = true
+exit_target = "res://creek.tscn"
+exit_pos = Vector2(358, 44)
+exit_blocked = false

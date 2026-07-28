@@ -21,3 +21,6 @@ exit_enabled = true
 exit_target = "res://estuary.tscn"
 exit_pos = Vector2(358, 44)
 exit_blocked = true
+exit2_enabled = true
+exit2_target = "res://creek.tscn"
+exit2_pos = Vector2(-120, 40)

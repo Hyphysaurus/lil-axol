@@ -163,6 +163,7 @@ func _apply_saved() -> void:
 		if friend and friend.has_method("wake_instant"):
 			friend.wake_instant()
 			_heal_friend_marks()
+			_seat_friend_with_party(friend)
 		if oil and oil.has_method("set_clean_fraction"):
 			oil.set_clean_fraction(1.0)
 		if portal and portal.has_method("force_open"):
@@ -177,12 +178,24 @@ func _apply_saved() -> void:
 	if friend and friend.has_method("wake_instant") and bool(WorldState.get_cove(id, "friend_awake", false)):
 		friend.wake_instant()
 		_heal_friend_marks()
+		_seat_friend_with_party(friend)
 	if oil and oil.has_method("set_clean_fraction"):
 		var f := float(WorldState.get_cove(id, "cleanliness", 0.0))
 		if f > 0.02:
 			oil.set_clean_fraction(f)
 	if portal and portal.has_method("force_open") and bool(WorldState.get_cove(id, "portal_cleared", false)):
 		portal.force_open()
+
+## An ALREADY-rescued friend belongs at your side, not back in the corner where you first found it.
+## wake_instant restores its rescued STATE but left it standing on friend_pos, so re-entering a reach
+## re-materialised the frog ~650px down the estuary (and the hub's turtle likewise) and it had to
+## swim the whole reach to catch up — while every OTHER party member spawned beside you, because
+## travellers are seated off the axolotl. Seats the local friend the same way, on its own slot 0.
+func _seat_friend_with_party(friend: Node) -> void:
+	var axo := _w("Axolotl") as Node2D
+	if axo == null or not (friend is Node2D):
+		return
+	(friend as Node2D).position = axo.position + CompanionScript.SLOT_OFFSETS[0]
 
 ## Back-fill the friend marks a cold-boot party rebuild needs (WorldState.awake_friend_kinds) for
 ## saves written before friend_kind was recorded — including a fully restored reach, whose friend is
