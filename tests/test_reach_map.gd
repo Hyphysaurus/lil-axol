@@ -39,7 +39,10 @@ func _process(_delta: float) -> bool:
 	_check("dims", rm.gw == 120 and rm.gh == 60)
 	var t := {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0}
 	for c in rm.grid: t[c] += 1
-	_check("tally earth", t[1] == 2556);  _check("tally rubble", t[2] == 102)
+	# 2554, not the original 2556: two EARTH cells at (46,9)/(46,10) were erased on 2026-07-27 to
+	# widen the shaft at x=47..48 from two cells to three. A 16px gap cannot pass a 14px body with
+	# any usable margin, so it read as solid in play — see the axolotl collider note in axolotl.tscn.
+	_check("tally earth", t[1] == 2554);  _check("tally rubble", t[2] == 102)
 	_check("tally water", t[3] == 2348);  _check("tally climb", t[4] == 125)
 	_check("table row", rm.table_row == 22)
 	_check("surface_y", absf(cfg.surface_y - (cfg.map_origin.y + 22.0 * 8.0)) < 0.01)

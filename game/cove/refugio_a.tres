@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="CoveConfig" load_steps=4 format=3 uid="uid://b0refugio0cfg1"]
+[gd_resource type="Resource" script_class="CoveConfig" format=3 uid="uid://bsad0lpwjba3k"]
 
 [ext_resource type="Script" path="res://game/cove/cove_config.gd" id="1_cfg"]
 [ext_resource type="SpriteFrames" path="res://game/companion/otter_frames.tres" id="2_otterframes"]
