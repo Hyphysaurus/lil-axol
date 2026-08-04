@@ -19,6 +19,7 @@ const IrisWipe := preload("res://game/fx/iris_wipe.gd")
 const CompanionScript := preload("res://game/companion/companion.gd")
 const ReachMapScript := preload("res://game/cove/reach_map.gd")
 const PixelShell := preload("res://game/fx/pixel_shell.gd")
+const MapOverlayScript := preload("res://game/hud/map_overlay.gd")
 
 var _echo := false
 
@@ -85,6 +86,9 @@ func _ready() -> void:
 	_inject(_w("InvasiveSchool"))
 	_inject($Hints)      # needs the cove id for the once-per-world Cascade tutorial mark
 	_inject(get_node_or_null("RescueCard"))   # HUD ceremony card: stateless, but stays root-side (KEEP_AT_ROOT)
+	var map_overlay := MapOverlayScript.new()
+	map_overlay.name = "MapOverlay"
+	add_child(map_overlay)   # the watershed chart (Batch D) — added AFTER the shell so it stays root-side
 	_inject(_w("ScoutDragonfly"))
 	_inject(_w("FeatEcho"))
 	_apply_environment()

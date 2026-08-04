@@ -42,6 +42,12 @@ func _toggle(on: bool) -> void:
 func _resume() -> void:
 	_toggle(false)
 
+func _open_map() -> void:
+	_toggle(false)                      # hand the pause + ui lock over to the map cleanly
+	var m := get_tree().get_first_node_in_group("map_overlay")
+	if m and m.has_method("open"):
+		m.open()
+
 func _open_settings() -> void:
 	var menu := get_node_or_null("../SettingsMenu")
 	if menu:
@@ -92,6 +98,7 @@ func _build() -> void:
 
 	_first_btn = _button("resume", _resume)
 	vb.add_child(_first_btn)
+	vb.add_child(_button("map", _open_map))     # the touch path to the watershed chart (M elsewhere)
 	vb.add_child(_button("settings", _open_settings))
 	vb.add_child(_button("credits", _open_credits))
 	vb.add_child(_button("new day", _new_day))

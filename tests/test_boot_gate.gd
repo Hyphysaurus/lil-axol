@@ -49,6 +49,7 @@ func _process(_delta: float) -> bool:
 					_check("%s root carries its own config" % id, String(root.get("config").id) == id)
 				var ws = get_root().get_node("WorldState")
 				_check("%s arrival stamped visited" % id, bool(ws.get_cove(id, "visited", false)))
+				_check("%s carries the map overlay" % id, get_first_node_in_group("map_overlay") != null)
 				_scene.queue_free()
 				_scene = null
 				_idx += 1
