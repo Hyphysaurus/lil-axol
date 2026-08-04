@@ -1,6 +1,20 @@
 # LilAxol — Build Status
 
-**Updated:** 2026-08-04 — **Batch C of the polish pass shipped** (`ea8e820` + `9e72f71`, committed,
+**Updated:** 2026-08-04 (second pass) — **Batch D shipped: "the watershed", the map overlay**
+(`2d9d40b`, **D-0024**), plus the canals shaft re-widened to four cells (`3a6ee60`) after Maram's
+live playtest caught 24px still fighting touch jumps. M / pad Select / the rest menu's "map"
+button pauses the cove over a chart derived entirely from live data (registry graph + door
+colours + `visited`/`restored`/`current_id` — zero hand-authored map data): visited reaches as
+discs in their door colours with names, a gold ring on where you stand, a pearl on the restored,
+and a nameless dark "?" one door beyond the known (Maram's ruling; sealed doors draw plainly —
+the rubble stays a surprise). Rules are pure + suite-held (`map_chart.gd` / `test_map_chart.gd`,
+RED-proven); the overlay only draws. **The wayfinding gap is closed** — both halves. Gates: **20
+suites / 493 checks all green.** Batch B (camera feel) is now the only batch left in the polish
+pass. **Queued from the playtest:** a perf measurement pass (07-24 harness, live vs pre-Batch-C)
+and a post-clear content conversation (mine `game-loop-post-win-design.md`; the real answer is
+slice 6).
+
+**Previously:** 2026-08-04 — **Batch C of the polish pass shipped** (`ea8e820` + `9e72f71`, committed,
 **not yet deployed**): the world has NAMES and doors tell you where they lead.
 `game/world/reach_registry.gd` is the identity table (hub=**El Embarcadero**, estuary=**El Tular**,
 canals=**Las Acequias**, creek=**El Arroyo**, refugio=**El Refugio** — Californio Spanish, Maram
@@ -331,12 +345,11 @@ contradict the visible water. Revisit as an entity-reconciled pass with slice 6.
 
 ## KNOWN GAPS / LOOSE ENDS
 
-- 🔴 **Wayfinding, remaining half (was: "none of any kind").** Batch C closed the door half
-  (2026-08-04): every portal names its destination at 90px and glows its door tint from afar, and
-  `WorldState.visited` records where you have been. **Still missing: the map overlay itself**
-  (Batch D — the layer MetSys would have provided) and any at-a-glance answer to "how do these five
-  reaches connect?". The registry's `doors_of()` already derives the full graph, so the overlay is
-  a rendering task, not a data one.
+- *(Closed 2026-08-04 — Batch C signage + Batch D's watershed chart, D-0024.)* ~~Wayfinding:
+  no destination labels, no direction cues, no record of where you have been, no map.~~ Doors
+  name and colour their destinations; `WorldState.visited` remembers; M / pad Select / the rest
+  menu opens the derived map. Not yet built: a dedicated on-screen touch chip for the map (the
+  rest-menu button is the touch path until Maram's eyeball says it needs one).
 - *(Closed 2026-07-28 — see `tests/test_reach_geometry.gd` under BUILT.)* ~~Painted-map traversal is
   not linted; nothing enforces D-0022.~~
 - ⚠ **`destructible_rock.reveal()` is dead code** — Survey can't reveal locked gates/rubble until the

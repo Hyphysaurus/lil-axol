@@ -276,3 +276,16 @@ expected to be superseded when its painted reach lands. No curios authored in ei
 ⚠ **OPEN — Maram's ruling:** both are live on the deployed build, so a player can meet Nutria, get the
 full rescue ceremony, and receive a partner whose button does nothing until slice 6. Leave open, gate
 the refugio door, or keep the spur dev-only?
+
+## D-0024 — The map is memory: an auto-derived watershed chart, not an authored painting (2026-08-04)
+Wayfinding's second half (the first was Batch C's door signage). The map overlay ("the watershed",
+M / pad Select / rest-menu button) is **derived entirely from live data** — registry names + door
+graph (`doors_of()`), door colours, `WorldState.visited/is_restored/current_id` — with zero
+hand-authored map data: a new reach in the registry appears on the chart with no other edit.
+**Ruled (Maram):** unvisited reaches adjacent to anywhere visited draw as a nameless, tintless,
+edgeless "?" (a tease in the same grammar as the doors); anything further is absent. Sealed doors
+draw like any open door — the rubble stays a surprise at the door itself. Layout is BFS-from-hub
+over the FULL graph so the chart grows without rearranging. The rules live in `map_chart.gd`
+(pure) under `tests/test_map_chart.gd`; the overlay only draws. This deliberately does NOT
+preclude a hand-painted world map later (D-0014's register) — the chart is the honest data layer
+a painting could skin.
