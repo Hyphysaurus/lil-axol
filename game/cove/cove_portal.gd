@@ -59,9 +59,10 @@ var _exit_to := ""        # instance destination (map reaches); falls back to _c
 var _entry_key := ""      # save key suffix + arrival identity ("west"/"east"/...)
 var _dormant := false     # a promise, not a door: drawn dark, no swirl, no trigger
 var _signed := false      # this door has named its destination once this session
-## The light at the end of the throat — AQUA by default, lerped toward the destination reach's own
-## `env_water_tint` so the estuary's door glows its green-tea and the canals' door does not. Only a
-## PART of the way (LOOK_THROUGH): the far light must still read as light, not as a coloured dot.
+## The light at the end of the throat — AQUA by default, lerped toward the destination's door tint
+## (its own `env_water_tint`, or the registry's signage colour for reaches that author none) so the
+## estuary's door glows its green-tea and the way home glows the hub's lantern gold. Only a PART of
+## the way (LOOK_THROUGH): the far light must still read as light, not as a coloured dot.
 var _far := Palette.AQUA
 const LOOK_THROUGH := 0.45
 
@@ -154,7 +155,7 @@ func setup(cfg: CoveConfig) -> void:
 func _read_destination() -> void:
 	if _dormant or _exit_to.is_empty():
 		return
-	var tint := Registry.water_tint_for_scene(_exit_to)
+	var tint := Registry.door_tint_for_scene(_exit_to)
 	if tint.a > 0.0:
 		_far = Palette.AQUA.lerp(Color(tint.r, tint.g, tint.b), LOOK_THROUGH)
 

@@ -38,7 +38,9 @@ const INFO := {
 	1: { "name": "Meno", "species": "Montezuma leopard frog", "verb_name": "Tongue Snap",
 		"verb_teach": "Press the SPIN button to snap Meno's tongue — or jump off his back for a boost!" },
 	2: { "name": "Nutria", "species": "Neotropical river otter", "verb_name": "",
-		"verb_teach": "" },
+		# honest copy, not a verb: her kit lands with slice 6, and a silent card left players
+		# tapping a dead chip wondering what they'd missed
+		"verb_teach": "Nutria paddles along beside you — happy just to keep you company, for now." },
 	3: { "name": "Zuni", "species": "Great darner dragonfly", "verb_name": "Survey",
 		"verb_teach": "Zuni can Survey the reach — tap her chip, then press SPIN to reveal what hides." },
 }

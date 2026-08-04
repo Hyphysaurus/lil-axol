@@ -40,6 +40,7 @@ func _process(_delta: float) -> bool:
 	_test_configs_match(Registry)
 	_test_doors_resolve(Registry)
 	_test_all_reachable_from_hub(Registry)
+	_test_door_tints(Registry)
 	print("RESULT: %s (%d checks)" % ["FAIL x%d" % _fails if _fails > 0 else "ALL PASS", _checks])
 	quit(1 if _fails > 0 else 0)
 	return true
@@ -79,6 +80,27 @@ func _test_doors_resolve(Registry) -> void:
 			total += 1
 			_check("%s door via %s -> known reach (%s)" % [id, d["via"], d["to_scene"]], not String(d["to"]).is_empty())
 	_check("the world has doors at all (%d)" % total, total > 0)
+
+## Door colours (Maram, 2026-08-04): every door must be able to SAY its destination's colour, even
+## when the destination authors no water tint — hub + canals ship default-aqua water, and repainting
+## them was rejected, so the registry carries a signage-only `door_color` for those two. Explicit
+## colour wins, the reach's own `env_water_tint` is the fallback, and a transparent result is a
+## registry gap the map overlay would inherit as an unmarked door.
+func _test_door_tints(Registry) -> void:
+	var seen := {}
+	for id in Registry.ids():
+		var t: Color = Registry.door_tint_of(id)
+		_check("%s door tint is opaque" % id, t.a > 0.0)
+		seen[t.to_html()] = true
+	_check("all door tints distinct (%d)" % seen.size(), seen.size() == Registry.ids().size())
+	# fallback path: an authored water tint keeps speaking for its own door
+	var est_cfg = load(Registry.config_of("estuary"))
+	_check("estuary door tint falls back to its water", Registry.door_tint_of("estuary") == est_cfg.env_water_tint)
+	# signage-only guarantee: the ruling must not have repainted anyone's water
+	_check("hub still authors no water tint", Registry.water_tint_of("hub").a == 0.0)
+	_check("canals still author no water tint", Registry.water_tint_of("canals").a == 0.0)
+	# the portal's actual call is by scene path
+	_check("door tint resolves via scene path", Registry.door_tint_for_scene(Registry.scene_of("hub")) == Registry.door_tint_of("hub"))
 
 ## Every reach must be walkable from the hub. A reach nobody can open a door to is content that
 ## exists and cannot be played — the D-0023 failure mode, made mechanical.

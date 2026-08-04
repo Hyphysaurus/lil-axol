@@ -12,6 +12,7 @@ func _init() -> void:
 	_test_round_trip()
 	_test_corrupt_quarantine()
 	_test_new_tide()
+	_test_visited()
 	print("RESULT: %s (%d checks)" % ["FAIL x%d" % _fails if _fails > 0 else "ALL PASS", _checks])
 	quit(1 if _fails > 0 else 0)
 
@@ -71,6 +72,27 @@ func _test_new_tide() -> void:
 	ws.mark("canals", "seal_2", true)
 	_check("tide: world records again after the wipe", ws.has_progress())
 	ws.free()
+
+## VISITED (Batch C pt 2): the map overlay's memory. Stamped by the cove root on arrival (the
+## wiring is proven live in tests/test_visited_wiring.gd); this covers the store semantics —
+## including the self-heal, where recorded progress counts as a visit on saves older than the flag.
+func _test_visited() -> void:
+	var path := "user://test_ws_visited.save"
+	var a := _fresh(path)
+	_check("visited: fresh world has none", a.has_visited("hub") == false)
+	a.mark_visited("hub")
+	_check("visited: arrival stamps", a.has_visited("hub"))
+	a.mark_visited("hub")
+	_check("visited: re-arrival harmless", a.has_visited("hub"))
+	a.mark("estuary", "friend_awake", true)   # a pre-flag save: progress, no visited key
+	_check("visited: old progress self-heals", a.has_visited("estuary"))
+	_check("visited: unvisited reach stays false", a.has_visited("creek") == false)
+	a.free()
+	var b: Node = WS.new()
+	b.save_path = path
+	b.load_file()
+	_check("visited: persists across reload", b.has_visited("hub"))
+	b.free()
 
 func _test_corrupt_quarantine() -> void:
 	var path := "user://test_ws_bad.save"

@@ -43,6 +43,8 @@ func _ready() -> void:
 	_echo = WorldState.echo
 	WorldState.echo = false          # one reload only; consuming it here makes crossings normal
 	WorldState.current_id = config.id
+	if not _echo:
+		WorldState.mark_visited(config.id)   # the map's memory; echo replays leave the world untouched
 	# slice 3 (spec 2026-07-23): the pixel shell wraps every world child into a 320x180
 	# SubViewport FIRST; HUD stays at root; world coords are contract-identical.
 	var shell := PixelShell.new()

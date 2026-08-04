@@ -40,6 +40,10 @@ func _test_info() -> void:
 		if not kind in VERBLESS:
 			_check("kind %d verb_name" % kind, info.get("verb_name", "") != "")
 			_check("kind %d verb_teach" % kind, info.get("verb_teach", "") != "")
+		else:
+			# a verbless friend may carry honest teach copy, but must not NAME a verb that
+			# doesn't exist — the card would promise a button with nothing behind it
+			_check("kind %d verbless: names no verb" % kind, info.get("verb_name", "") == "")
 	_check("unknown kind -> empty", Library.info(99).is_empty())
 
 func _test_no_steal() -> void:

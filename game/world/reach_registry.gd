@@ -26,6 +26,7 @@ const REACHES := {
 		"name": "El Embarcadero",     # the landing you launch from; Xochimilco's real trajinera docks
 		"scene": "res://main.tscn",
 		"config": "res://game/cove/cove_a.tres",
+		"door_color": Color(0.95, 0.84, 0.55),   # lantern gold — the lit dock you set out from
 	},
 	"estuary": {
 		"name": "El Tular",           # the tule marsh — the shallow reed reach (seabed_y 96)
@@ -36,6 +37,7 @@ const REACHES := {
 		"name": "Las Acequias",       # the worked irrigation canals — a garden, not a wilderness
 		"scene": "res://canals.tscn",
 		"config": "res://game/cove/canals_a.tres",
+		"door_color": Color(0.82, 0.74, 0.92),   # flower-market lilac — Xochimilco is a field of flowers
 	},
 	"creek": {
 		"name": "El Arroyo",          # the seasonal creek
@@ -90,6 +92,20 @@ static func water_tint_of(id: String) -> Color:
 
 static func water_tint_for_scene(path: String) -> Color:
 	return water_tint_of(id_for_scene(path))
+
+## What colour is the DOOR to this place? An explicit `door_color` wins; otherwise the reach's own
+## `env_water_tint`. The split exists because hub + canals author NO water tint (their water is the
+## default aqua), so their doors stayed unmarked — Maram ruled (2026-08-04) the registry carries a
+## signage-only colour for them rather than authoring tints that would repaint shipped water.
+## Transparent still means "no opinion, use your default", same contract as water_tint_of.
+static func door_tint_of(id: String) -> Color:
+	var explicit: Variant = REACHES.get(id, {}).get("door_color")
+	if explicit is Color:
+		return explicit
+	return water_tint_of(id)
+
+static func door_tint_for_scene(path: String) -> Color:
+	return door_tint_of(id_for_scene(path))
 
 ## The graph, derived from the configs rather than duplicated here. Returns
 ## [{to, to_scene, via}] — `via` is "exit"/"exit2" on a legacy rect reach, or the painted edge

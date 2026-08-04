@@ -56,6 +56,19 @@ func mark(id: String, key: String, value: Variant) -> void:
 func is_restored(id: String) -> bool:
 	return bool(get_cove(id, "restored", false))
 
+## VISITED (Batch C pt 2) — the map overlay's memory of where you have been. The cove root stamps
+## every non-echo arrival (cove._ready), so simply walking somewhere is enough to put it on the map;
+## no milestone required. Additive key, no version bump. The stamp is skipped when already set so a
+## portal-hopping player doesn't rewrite the save file on every crossing.
+func mark_visited(id: String) -> void:
+	if not bool(get_cove(id, "visited", false)):
+		mark(id, "visited", true)
+
+## Old saves self-heal: any recorded progress in a reach proves the player has been there, so a
+## cove section counts as visited even when the save predates the flag.
+func has_visited(id: String) -> bool:
+	return bool(get_cove(id, "visited", false)) or _cfg.has_section("cove_" + id)
+
 ## Every rescued partner's Kind, across ALL coves. The travelling party is world progress, not a
 ## session flag: Settings.run_roster lives only in memory and was refilled solely by the friend of
 ## the reach you happened to be standing in (companion.wake_instant -> roster_include). So one page
