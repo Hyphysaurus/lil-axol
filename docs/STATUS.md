@@ -1,6 +1,25 @@
 # LilAxol — Build Status
 
-**Updated:** 2026-07-28 (doc true-up; verified against code + git through `73ec50d`, all claims
+**Updated:** 2026-08-04 — **Batch C of the polish pass shipped** (`ea8e820` + `9e72f71`, committed,
+**not yet deployed**): the world has NAMES and doors tell you where they lead.
+`game/world/reach_registry.gd` is the identity table (hub=**El Embarcadero**, estuary=**El Tular**,
+canals=**Las Acequias**, creek=**El Arroyo**, refugio=**El Refugio** — Californio Spanish, Maram
+2026-07-28), with the door graph *derived* from the .tres configs so wiring keeps one home. Portal
+signage runs at two ranges: far = throat light + swirl motes take 45% of the destination's door
+tint; near (90px) = "This way lies <Name>." via hints. Doors home glow too — hub and canals author
+no `env_water_tint`, so the registry carries **signage-only door colours** for them (hub lantern
+gold, canals flower-market lilac; Maram's 2026-08-04 ruling — shipped water untouched, tint values
+await her eyeball on a deploy). `WorldState.visited` is live: the cove root stamps every non-echo
+arrival (additive key, old saves self-heal from any cove section) — **the map overlay (Batch D) now
+has its "been here" source.** Nutria's rescue card carries honest copy instead of silence (the
+"teaches a nonexistent verb" loose end was a STALE ledger claim — grep-verified nothing ever taught
+one; the real gap was the silent card before a dead chip). Gates: **19 suites / 459 checks all
+green** — new suites `test_visited_wiring.gd` (arrival stamps; an echo run does NOT) and
+`test_boot_gate.gd` (the "five reaches boot clean" gate promoted from a manual eyeball to a
+save-safe suite that also asserts each root carries its own config). All new gates RED-proven.
+Batch B (camera feel) still not started; Batch D (map overlay) is now unblocked.
+
+**Previously:** 2026-07-28 (doc true-up; verified against code + git through `73ec50d`, all claims
 below re-run, not copied) — covering the **2026-07-27 playtest-response day**, seven commits,
 `4cbbd69..73ec50d`, all deployed. Maram played and filed reports; four of five were one root cause
 deeper than they looked. **The estuary was unwinnable** — `cove.tscn` hardcodes thermal vents at
@@ -87,10 +106,10 @@ read. Roster order: **Turtle → Frog → Dragonfly → Otter → Bat**.
 - **Shipped progression:** hub ⇄ estuary ⇄ canals — unchanged by the 07-27 work.
 - **Sandbox spur:** hub → creek ⇄ refugio → hub, hanging off the hub's previously-unused second door.
 - **Canals' east edge is dormant** (its `map_exits` carries only `west`) — the reach-2 tease.
-- ⚠ **Nothing in-game tells the player any of this.** There is no map, no minimap, no compass, no
-  door signage and no destination label anywhere in `game/` — a portal draws a receding tunnel and an
-  aqua far-light, identical for every door. MetSys (which would have provided the map layer) was
-  removed as unused in the 07-26 hygiene pass. **This is the top polish gap, ahead of slice 6.**
+- ⚠ **Doors now tell the player where they lead (Batch C, 2026-08-04)** — far tint + near name via
+  the reach registry — **but there is still no map or minimap.** MetSys (which would have provided
+  the map layer) was removed as unused in the 07-26 hygiene pass; the replacement is Batch D's
+  overlay, now unblocked by `WorldState.visited`.
 - Reach 2 still blocks on Maram's painted map (`assets/maps/reach_template.png` is the blank;
   canals' east door wakes when it lands). The creek/refugio sandboxes deliberately **do not**
   (D-0023): they are legacy rect, so no painting session gates them.
@@ -312,15 +331,12 @@ contradict the visible water. Revisit as an entity-reconciled pass with slice 6.
 
 ## KNOWN GAPS / LOOSE ENDS
 
-- 🔴 **No wayfinding of any kind (top gap as of 2026-07-28, Maram's call).** Grep-verified: zero
-  `minimap` / `world_map` / `compass` / `signpost` / travel-menu code in `game/`. Every portal draws
-  the identical receding tunnel + aqua far-light, with **no destination label, no direction cue and no
-  record of where you have been** — and there are now **five** reaches across two spurs. The player
-  cannot tell that the hub's left door leads somewhere new, that the canals is a dead end going east,
-  or how to get back. MetSys (the metroidvania map addon) was removed as unused on 07-26 — correctly,
-  it was never wired, but nothing replaced the layer it would have provided. Adjacent: `WorldState`
-  has no `visited` mark, so a map has no "been here" source today (`restored`/`friend_awake`/
-  `portal_<edge>` are the closest proxies).
+- 🔴 **Wayfinding, remaining half (was: "none of any kind").** Batch C closed the door half
+  (2026-08-04): every portal names its destination at 90px and glows its door tint from afar, and
+  `WorldState.visited` records where you have been. **Still missing: the map overlay itself**
+  (Batch D — the layer MetSys would have provided) and any at-a-glance answer to "how do these five
+  reaches connect?". The registry's `doors_of()` already derives the full graph, so the overlay is
+  a rendering task, not a data one.
 - *(Closed 2026-07-28 — see `tests/test_reach_geometry.gd` under BUILT.)* ~~Painted-map traversal is
   not linted; nothing enforces D-0022.~~
 - ⚠ **`destructible_rock.reveal()` is dead code** — Survey can't reveal locked gates/rubble until the
@@ -382,8 +398,10 @@ contradict the visible water. Revisit as an entity-reconciled pass with slice 6.
   deployed build off the hub's second door. As shipped a player can wander into the refugio, meet
   Nutria with the full rescue ceremony, and receive a partner **whose button does nothing** (Herd/Haul
   land with slice 6); neither reach has curios or field-guide cards. Options: leave them open (honest
-  sandbox, slightly hollow), gate the refugio door until slice 6, or keep both dev-only. **Ruling
-  needed before the polish pass ships.**
+  sandbox, slightly hollow), gate the refugio door until slice 6, or keep both dev-only. **Ruled
+  2026-07-28: they stay open.** Batch C softened the hollow edge — Nutria's card now says plainly
+  she's company, not a verb, so the dead chip no longer reads as the player's failure to find
+  something.
 - **Slice-6 rulings still open** (carried from the 07-26 pass): how Build is input (contextual
   same-press vs contact-ability vs 2nd button); Herd feel (self-driving ~60 lines vs piloted ~200);
   material costs + whether a reach may visibly stall.
