@@ -42,7 +42,9 @@ func _process(_delta: float) -> bool:
 	# 2554, not the original 2556: two EARTH cells at (46,9)/(46,10) were erased on 2026-07-27 to
 	# widen the shaft at x=47..48 from two cells to three. A 16px gap cannot pass a 14px body with
 	# any usable margin, so it read as solid in play — see the axolotl collider note in axolotl.tscn.
-	_check("tally earth", t[1] == 2554);  _check("tally rubble", t[2] == 102)
+	# 2552 as of 2026-08-04: (45,9)/(45,10) erased too — Maram played the 3-cell shaft on touch and
+	# reported it STILL too tight, so it is now four cells (32px), a real margin at jump speeds.
+	_check("tally earth", t[1] == 2552);  _check("tally rubble", t[2] == 102)
 	_check("tally water", t[3] == 2348);  _check("tally climb", t[4] == 125)
 	_check("table row", rm.table_row == 22)
 	_check("surface_y", absf(cfg.surface_y - (cfg.map_origin.y + 22.0 * 8.0)) < 0.01)
