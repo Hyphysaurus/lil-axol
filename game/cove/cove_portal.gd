@@ -9,10 +9,17 @@ extends Node2D
 
 const RockScript := preload("res://game/cove/destructible_rock.gd")
 const IrisWipe := preload("res://game/fx/iris_wipe.gd")
+const Registry := preload("res://game/world/reach_registry.gd")
 
 const PLUG_COLS := 5
 const PLUG_ROWS := 9           # sized to the carved mouth (72px vs the rim's ~70) — no rubble sticking past rock
 const TRIGGER_RADIUS := 28.0   # how close the axolotl must get to the OPEN passage to cross
+## SIGNAGE (2026-07-28): every door in this game drew the identical unlabelled tunnel, so nothing
+## anywhere told the player where one led — with five reaches across two spurs, "I can't find my way
+## back to the hub" was the result. Two cues, at two ranges: the far light carries the COLOUR of the
+## reach beyond (visible across the water), and closing to this radius names it in words. Matches the
+## dormant door's existing 90px tease, so a sealed door and an open one speak at the same distance.
+const SIGN_RADIUS := 90.0
 const FADE_TIME := 0.6
 # the throat's vanishing point, in local pre-squash space: each ring steps toward it so the
 # passage recedes INTO the bank, and the portal light lives at its far end — a small bright
@@ -51,6 +58,12 @@ var _armed := false
 var _exit_to := ""        # instance destination (map reaches); falls back to _cfg.exit_target
 var _entry_key := ""      # save key suffix + arrival identity ("west"/"east"/...)
 var _dormant := false     # a promise, not a door: drawn dark, no swirl, no trigger
+var _signed := false      # this door has named its destination once this session
+## The light at the end of the throat — AQUA by default, lerped toward the destination reach's own
+## `env_water_tint` so the estuary's door glows its green-tea and the canals' door does not. Only a
+## PART of the way (LOOK_THROUGH): the far light must still read as light, not as a coloured dot.
+var _far := Palette.AQUA
+const LOOK_THROUGH := 0.45
 
 ## ReachMap's construction path — a painted portal marker, never a scene-authored $Portal (which
 ## uses setup() instead; the two never both run on the same instance). No rubble plug of its own:
@@ -65,6 +78,7 @@ func configure(cfg: CoveConfig, exit_to: String, entry_key: String, dormant: boo
 	_exit_to = exit_to
 	_entry_key = entry_key
 	_dormant = dormant
+	_read_destination()
 	z_index = 8                        # over the map land quad (z-map); legacy stays z2
 	if dormant:
 		_glow = 0.0
@@ -90,6 +104,7 @@ func setup(cfg: CoveConfig) -> void:
 		return
 	_exit_to = target
 	_entry_key = entry_key_out
+	_read_destination()                 # before the swirl is built below — it carries the tint too
 	position = cfg.exit2_pos if use_second_exit else cfg.exit_pos
 	z_index = 2
 	if not use_second_exit and cfg.exit_blocked:
@@ -127,10 +142,21 @@ func setup(cfg: CoveConfig) -> void:
 	_swirl.gravity = Vector2.ZERO
 	_swirl.scale_amount_min = 0.4
 	_swirl.scale_amount_max = 1.1
-	_swirl.color = Color(Palette.AQUA, 0.75)
+	_swirl.color = Color(_far, 0.75)        # the current carries the colour of the place it flows to
 	_swirl.z_index = 3                     # over the mouth, under the axolotl
 	add_child(_swirl)
 	queue_redraw()                          # draw the carved mouth right away (behind any plug)
+
+## Look up what lies through this door, once, at construction. A dormant door stays its own plum-seam
+## promise (naming a place that does not exist yet would spoil the tease), and an unknown destination
+## simply leaves the AQUA default — the registry returns "" / a transparent tint rather than throwing,
+## so a door wired to a scene nobody registered still draws and still works.
+func _read_destination() -> void:
+	if _dormant or _exit_to.is_empty():
+		return
+	var tint := Registry.water_tint_for_scene(_exit_to)
+	if tint.a > 0.0:
+		_far = Palette.AQUA.lerp(Color(tint.r, tint.g, tint.b), LOOK_THROUGH)
 
 func _on_open() -> void:
 	if _open:
@@ -187,6 +213,13 @@ func _process(delta: float) -> void:
 	if axo == null:
 		return
 	var dist := to_local(axo.global_position).length()
+	# name the place beyond as you close on it — once per door per session (hints dedupes on the id)
+	if not _signed and dist < SIGN_RADIUS:
+		_signed = true
+		var place := Registry.name_for_scene(_exit_to)
+		if not place.is_empty():
+			get_tree().call_group("hints", "nudge", "door_" + Registry.id_for_scene(_exit_to),
+				"This way lies %s." % place)
 	if not _armed:
 		if dist > TRIGGER_RADIUS:
 			_armed = true
@@ -239,12 +272,12 @@ func _draw() -> void:
 		# THE PORTAL: a small ring of otherwater light at the END of the tunnel — the next reach
 		# glimpsed through the passage. Small and far beats big and loud: it beckons, not shouts.
 		var g := _glow * (0.7 + 0.3 * sin(_pulse * 2.4))
-		draw_circle(VANISH, 8.0, Color(Palette.AQUA, 0.35 * g))       # light spilling into the throat
-		draw_circle(VANISH, 5.0, Color(Palette.AQUA, 0.8 * g))        # the bright far ring
+		draw_circle(VANISH, 8.0, Color(_far, 0.35 * g))               # light spilling into the throat
+		draw_circle(VANISH, 5.0, Color(_far, 0.8 * g))                # the bright far ring
 		draw_circle(VANISH, 2.5, Color(Palette.FOAM, 0.9 * g))        # daylight on the other side
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	if _glow <= 0.01:
 		return
 	# a faint spill washing out of the mouth onto the bank — the only glow at the mouth plane
 	var g2 := _glow * (0.7 + 0.3 * sin(_pulse * 2.4))
-	draw_circle(Vector2.ZERO, 16.0, Color(Palette.AQUA, 0.08 * g2))
+	draw_circle(Vector2.ZERO, 16.0, Color(_far, 0.08 * g2))
