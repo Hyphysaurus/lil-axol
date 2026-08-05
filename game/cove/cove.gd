@@ -94,8 +94,10 @@ func _ready() -> void:
 	_apply_environment()
 	if Settings.arrive_via_portal:
 		var entry_key := Settings.arrive_entry
+		var from_scene := Settings.arrive_from
 		Settings.arrive_via_portal = false
 		Settings.arrive_entry = ""      # one-shot, same idiom as arrive_via_portal above
+		Settings.arrive_from = ""
 		if config.has_map:
 			# ReachMap._place_spawn() (run earlier, inside _inject(_w("ReachMap"))) already positioned
 			# the axolotl at the painted entry portal marker — a map reach's hardcoded left-edge water
@@ -105,7 +107,7 @@ func _ready() -> void:
 			# bottom doors send the axolotl IN, not outward/sideways.
 			_arrive_wipe(_w("Axolotl") as CharacterBody2D, ReachMapScript.edge_inward(entry_key))
 		else:
-			_arrive()
+			_arrive(from_scene)
 	if not _echo:
 		_wire_saves()      # wires FIRST: if a re-seed ever crosses the win gate, it must save/score
 		_apply_saved()
@@ -247,10 +249,28 @@ func _exit_tree() -> void:
 ## A tunnel crossing brought us here (legacy/classic reach): the axolotl emerges at THIS cove's
 ## passage mouth (the left edge of the water — you exited the last cove travelling right), already
 ## swimming, behind an opening iris — the two coves read as one continuous passage.
-func _arrive() -> void:
+## EDGE-AWARE legacy arrival (Batch B): come out of the door you actually crossed. The reach finds
+## its own door whose target is the scene you left and spawns you a body's length inside it, facing
+## into the cove. No match — a direct boot, a one-way passage, an old session — keeps the classic
+## west waterline mouth, byte-identical to the pre-Batch-B behavior.
+func _arrive(from_scene: String = "") -> void:
 	var axo := _w("Axolotl") as CharacterBody2D
-	axo.position = Vector2(config.water_left + 34.0, config.surface_y + 46.0)
-	_arrive_wipe(axo)
+	var mouth := Vector2(config.water_left + 34.0, config.surface_y + 46.0)
+	var dir := Vector2.RIGHT
+	if from_scene != "":
+		var doors: Array = []
+		if config.exit_enabled:
+			doors.append([String(config.exit_target), config.exit_pos])
+		if config.exit2_enabled:
+			doors.append([String(config.exit2_target), config.exit2_pos])
+		for d in doors:
+			if d[0] == from_scene:
+				var center_x: float = (config.water_left + config.water_right) * 0.5
+				dir = Vector2.LEFT if (d[1] as Vector2).x > center_x else Vector2.RIGHT
+				mouth = (d[1] as Vector2) + dir * 26.0
+				break
+	axo.position = mouth
+	_arrive_wipe(axo, dir)
 
 ## The arrival flourish shared by both reach kinds: still-swimming velocity + an opening iris wipe.
 ## The legacy path (_arrive above) repositions the axolotl to a hardcoded waterline mouth first; a

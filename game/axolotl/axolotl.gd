@@ -56,6 +56,9 @@ var _stick_aim := Vector2.ZERO # touch: last non-neutral stick aim (sticky aim)
 var _stick_aim_t := 0.0        # time left on the sticky aim
 var _reticle: Reticle          # aim indicator: shows where spray/bubble/dash point
 var _shake := 0.0              # camera impact shake, kicked by shake() and decayed in _juice
+const CAM_FOLLOW := 9.0        # Batch B camera spring: how fast the eased camera closes on the body
+const CAM_SNAP_DIST := 120.0   # a jump bigger than this is a teleport (arrival, restart) — no glide
+const CORNER_NUDGES := [2.0, 4.0, 6.0]   # rising-jump corner correction probe widths (under a cell)
 var _climbing := false         # latched onto a climbable root curtain (designated surfaces only)
 var _climb_wall: Node2D = null # the curtain we're latched to (its ledge_side steers the crest hop)
 var _climb_fx_cd := 0.0        # cadence for the climb rustle + falling leaf motes while moving
@@ -126,6 +129,10 @@ func setup(cfg: CoveConfig) -> void:
 		var br := (get_parent() as Node2D).to_global(b.end)
 		_cam.limit_left = int(tl.x);   _cam.limit_top = int(tl.y)
 		_cam.limit_right = int(br.x);  _cam.limit_bottom = int(br.y)
+	# Batch B camera spring: the camera follows on its own eased position (see _juice), not by
+	# inheriting the body transform. Seeded on the body so the first frame has no glide-in.
+	_cam.top_level = true
+	_cam.global_position = global_position
 
 ## Axo position in the cove's (parent) frame — the water bounds are authored there.
 ## Run standalone (Play Current Scene), the parent is the Window, not a cove: fall back
@@ -389,6 +396,24 @@ func _physics_process(delta: float) -> void:
 		_gill_kick_fx()
 		Sfx.play("jump", -2.0, 1.25)       # a brighter chirp for the second hop
 		gill_kicked.emit()
+	# CORNER CORRECTION (Batch B): a rising jump that grazes a block corner by a few pixels slides
+	# around it instead of dying on it — the vertical sibling of _try_step_up below. Only when the
+	# frame's climb is genuinely blocked; probe the smallest shift first, input side first; every
+	# candidate is test_move-gated on BOTH axes so the nudge can never pass through geometry.
+	if velocity.y < 0.0 and not is_on_floor() \
+			and test_move(global_transform, Vector2(0.0, velocity.y * delta)):
+		var sides: Array = [1.0, -1.0] if dir >= 0.0 else [-1.0, 1.0]
+		var corrected := false
+		for n in CORNER_NUDGES:
+			for s in sides:
+				var shift := Vector2(n * s, 0.0)
+				if not test_move(global_transform, shift) \
+						and not test_move(global_transform.translated(shift), Vector2(0.0, velocity.y * delta)):
+					position += shift
+					corrected = true
+					break
+			if corrected:
+				break
 	move_and_slide()
 	_try_step_up(dir)
 	if is_on_floor() and not _was_on_floor:
@@ -659,10 +684,24 @@ func _juice(delta: float) -> void:
 	var gz := PixelShellRef.grid_zoom
 	var z := (0.85 * gz) if (_sitting or _idle_t >= AFK_AT) else gz
 	_cam.zoom = _cam.zoom.lerp(Vector2(z, z), clampf(1.5 * delta, 0.0, 1.0))
-	# impact shake: a fast-decaying jitter on the camera offset (kicked via shake())
+	# CAMERA SPRING (Batch B): the camera is top_level (set in setup) and eases toward the body
+	# instead of riding it rigidly — then SNAPS to the effect grid, so smoothing can never park
+	# the world on a sub-effect-pixel offset (the shimmer that killed naive smoothing on this
+	# shell). One effect px = 1/grid_zoom world px (0.5 on the 640x360 desktop grid, 1.0 touch).
+	# Teleports (arrivals, restarts) jump instantly past CAM_SNAP_DIST; the iris wipe masks them.
+	var cam_target := global_position
+	if _cam.global_position.distance_to(cam_target) > CAM_SNAP_DIST:
+		_cam.global_position = cam_target
+	else:
+		_cam.global_position = _cam.global_position.lerp(cam_target, clampf(CAM_FOLLOW * delta, 0.0, 1.0))
+	var eff_px := 1.0 / gz
+	_cam.global_position = (_cam.global_position / eff_px).round() * eff_px
+	# impact shake: a fast-decaying jitter on the camera offset (kicked via shake()) — snapped to
+	# the same grid so a shaking frame never lands sub-effect-pixel either
 	if _shake > 0.05:
 		_shake = move_toward(_shake, 0.0, 11.0 * delta)
-		_cam.offset = Vector2(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0)) * _shake
+		var jolt := Vector2(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0)) * _shake
+		_cam.offset = (jolt / eff_px).round() * eff_px
 	elif _cam.offset != Vector2.ZERO:
 		_shake = 0.0
 		_cam.offset = Vector2.ZERO

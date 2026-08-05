@@ -242,6 +242,8 @@ func _cross() -> void:
 		Settings.run_score = keeper.score   # the arcade run spans coves (see shine.gd / new_day.gd)
 	Settings.arrive_via_portal = true       # tells the next scene: continue the swim, don't reset
 	Settings.arrive_entry = _entry_key      # which door we crossed through ("" on legacy passages)
+	Settings.arrive_from = get_tree().current_scene.scene_file_path   # so a legacy destination can
+	                                        # find its own door pointing back (Batch B edge-aware)
 	Sfx.play("chime", -4.0, 1.2)
 	Sfx.play("splash", -10.0, 0.8)          # a low swallow of water as the tunnel takes you
 	var wipe := IrisWipe.new()

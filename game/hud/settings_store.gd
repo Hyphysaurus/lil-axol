@@ -29,6 +29,9 @@ var run_active := -1                 # the kind travelling with you (-1 = alone)
 var arrive_via_portal := false       # session-only: the next scene load is a tunnel crossing — spawn
                                      # the axolotl at the passage mouth, moving, behind an iris reveal
 var arrive_entry := ""               # which edge/door we arrive through on a map reach ("" = legacy)
+var arrive_from := ""                # the scene we crossed FROM (Batch B): lets a legacy reach find
+                                     # its own door pointing back and arrive you there, not at the
+                                     # hardcoded west mouth ("" = direct boot / unknown -> west mouth)
 
 ## A partner was rescued: add it to the roster and make it the active traveller (meeting a new
 ## friend = they join you now; you can swap back to an old friend any time).
