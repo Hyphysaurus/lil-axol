@@ -1,6 +1,22 @@
 # LilAxol — Build Status
 
-**Updated:** 2026-08-04 (second pass) — **Batch D shipped: "the watershed", the map overlay**
+**Updated:** 2026-08-04 (third pass) — **Batch B shipped (`8c360a7`): THE POLISH PASS IS COMPLETE**
+(A geometry gate · B feel · C names/signage/visited · D map). Batch B's three: **edge-aware legacy
+arrivals** (crossing into a rect reach spawns you at the door you came through — the reach finds
+its own door whose target is the scene you left via `Settings.arrive_from`; unknown origin keeps
+the classic west mouth byte-identically; RED-proven in `tests/test_edge_arrivals.gd`), a **camera
+spring** (top_level Camera2D easing toward the body, snapped to the effect grid every frame so
+smoothing can never sit sub-effect-pixel — the shimmer that forbids naive smoothing on this shell;
+shake snaps too; teleports jump instantly under the iris), and **corner correction** (a rising
+jump grazing a block corner by ≤6px slides around it, test_move-gated both axes — the vertical
+sibling of `_try_step_up`). Camera + corner are FEEL changes awaiting Maram's eyeball. Also today:
+her live playtest found the REAL gap — the allowlisted under-leg corridor, leg now gone
+(`1155c9f`); ACCEPTED_TIGHT emptied (an allowlist line must survive a player, not just an audit).
+Gates: **21 suites / 498 checks all green.** **Next up (her queue):** frog post-rescue spawn feel
+(raised, uninvestigated), NEW LEVEL DESIGN (she wants to paint reaches — D-0014 pipeline ready),
+perf measurement pass, post-clear content (slice 6).
+
+**Previously:** 2026-08-04 (second pass) — **Batch D shipped: "the watershed", the map overlay**
 (`2d9d40b`, **D-0024**), plus the canals shaft re-widened to four cells (`3a6ee60`) after Maram's
 live playtest caught 24px still fighting touch jumps. M / pad Select / the rest menu's "map"
 button pauses the cove over a chart derived entirely from live data (registry graph + door
