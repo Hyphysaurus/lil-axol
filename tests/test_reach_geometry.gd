@@ -58,7 +58,10 @@ const PAINTED: Array = [
 ## reached the same verdict on 07-27 from the other axis ("the 1-cell decorative notch at x=42 rows
 ## 13-14 … was never a passage"). Verified by dumping the classified grid, not by assuming.
 const ACCEPTED_TIGHT := {
-	"canals": ["horizontal corridor 2 cells tall at col 42, rows 13..14"],
+	# (emptied 2026-08-04: the canals' col-42 under-leg corridor — accepted on 07-28 as "decorative,
+	# walk around it" — was exactly the gap Maram kept reporting. The walk-around was a climb curtain
+	# that reads as scenery, so in play there was no way around; the leg is gone, the entry with it.
+	# An allowlist line must survive a PLAYER, not just an audit.)
 }
 
 const SETTLE_FRAMES := 8        # let the physics server register the freshly added bodies

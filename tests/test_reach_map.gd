@@ -44,7 +44,10 @@ func _process(_delta: float) -> bool:
 	# any usable margin, so it read as solid in play — see the axolotl collider note in axolotl.tscn.
 	# 2552 as of 2026-08-04: (45,9)/(45,10) erased too — Maram played the 3-cell shaft on touch and
 	# reported it STILL too tight, so it is now four cells (32px), a real margin at jump speeds.
-	_check("tally earth", t[1] == 2552);  _check("tally rubble", t[2] == 102)
+	# 2550 later that day: the L-platform's leg (42,11)/(42,12) erased — the real gap she was
+	# reporting was the 16px under-leg corridor (flush with standing height); the arm now rides its
+	# climb-trunk like every other platform here and the corridor has full headroom.
+	_check("tally earth", t[1] == 2550);  _check("tally rubble", t[2] == 102)
 	_check("tally water", t[3] == 2348);  _check("tally climb", t[4] == 125)
 	_check("table row", rm.table_row == 22)
 	_check("surface_y", absf(cfg.surface_y - (cfg.map_origin.y + 22.0 * 8.0)) < 0.01)
