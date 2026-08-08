@@ -7,7 +7,7 @@ extends Node2D
 
 const CurioScript := preload("res://game/cove/curio.gd")
 const FieldGuide := preload("res://game/log/field_guide.gd")
-const DISPLAY_FONT := preload("res://assets/fonts/LilitaOne.ttf")
+const DISPLAY_FONT := UiFont.DISPLAY
 
 const CARD_HOLD := 7.0        # seconds the card stays before melting away
 const CARD_FADE := 0.4

@@ -18,7 +18,7 @@ const WIN_ENABLED := true
 const HOLD_SECONDS := 2.5
 const FADE_SPEED := 1.2
 const SUBLINE_SECONDS := 6.0
-const DISPLAY_FONT := preload("res://assets/fonts/LilitaOne.ttf")   # the game's chunky display face
+const DISPLAY_FONT := UiFont.DISPLAY   # the game's chunky display face
 
 var is_restored := false           # one-shot latch; afterglow content may read this
 var _last_clean := 0.0             # latest cleanliness, so wake/vent re-checks have the current value

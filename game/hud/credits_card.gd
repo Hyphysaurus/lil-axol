@@ -5,7 +5,7 @@ extends CanvasLayer
 ## The credit text lives in one CREDITS block below (content, not logic) so it's easy to edit.
 
 ## bbcode credits — [center]/[b]/[color] format a RichTextLabel. Edit freely; it's just text.
-const CREDITS := "[center][color=#ffdd8c]~ Lil Axolotl: Tidekeeper ~[/color]
+const CREDITS := "[center][color=#ffdd8c]~ Tidekeeper ~[/color]
 
 a game by [b]Mario Alberto Ramirez[/b]
 (Hyphysaurus)
@@ -23,9 +23,14 @@ Red oil barrel - pixel practice
 
 
 [color=#9fd8e0]AUDIO[/color]
-Theme - synthesized for LilAxol
-SFX - Helton Yan · TomMusic · SwishSwoosh
-Typeface - 'Axolotl'
+Theme - synthesized for Tidekeeper
+SFX - Helton Yan (CC BY 4.0)
+TomMusic · SwishSwoosh
+
+
+[color=#9fd8e0]TYPE[/color]
+Lilita One · Maven Pro · Rubik
+all SIL Open Font License 1.1
 
 
 [color=#9fd8e0]BUILT WITH[/color]

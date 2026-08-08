@@ -1,6 +1,44 @@
 Fonts
 
-Axolotl.ttf — from the shared Asset Library (Dev/Asset Library/Fonts/).
-  ⚠ No license file was stored with it. Likely the "Axolotl" display font from
-  dafont (Vladimir Nikolic): free for personal use, donation expected for
-  commercial. VERIFY BEFORE SHIPPING and record the terms here.
+All three shipping faces are SIL Open Font License 1.1. Licence texts sit beside
+them in this folder.
+
+LilitaOne.ttf      — Lilita One, SIL OFL 1.1. The DISPLAY face: the wordmark,
+                     the restoration/feat banners, the "+N" shine pops.
+
+MavenPro-*.ttf     — Maven Pro, SIL OFL 1.1 (LICENSE-MavenPro-OFL.txt). The
+                     HEADING face: card and overlay titles, every button.
+
+Rubik-*.ttf        — Rubik, SIL OFL 1.1 (LICENSE-Rubik-OFL.txt). The TEXT face,
+                     and the project-wide default in project.godot. Chosen for
+                     the 15px line — tallies and the map legend — which is the
+                     smallest type in the game and sits over a bright sky.
+
+Both new faces came from Maram's own library
+(Dev/Asset Library/Visual Novel/fonts/fonts), a 59-family set that is almost
+entirely SIL OFL. Nothing was downloaded.
+
+Which face goes where is decided in ONE place: game/hud/ui_font.gd.
+
+--------------------------------------------------------------------------
+REMOVED 2026-08-07 — Axolotl.ttf
+
+It was the project-wide default font, and it went for two independent reasons.
+
+1. LICENCE. This file used to say: "No license file was stored with it. Likely
+   the 'Axolotl' display font from dafont (Vladimir Nikolic): free for personal
+   use, donation expected for commercial. VERIFY BEFORE SHIPPING." It was never
+   verified, and meanwhile the game shipped to the open web and became the
+   largest band on a portfolio being sent to employers. "Free for personal use"
+   does not cover that.
+
+2. IT COULD NOT DRAW THE WRITING. Its cmap carries 356 codepoints and is missing
+   — … → ≈ ↓ ≤. The em-dash is this codebase's house punctuation, so twenty-one
+   user-facing strings contained a glyph it lacked, and on the live build they
+   rendered as tofu boxes:
+       "Oreochromis / Cyprinus ▯ introduced"
+       "…stir the silt ▯ most of what swims these canals…"
+       "gold ring ▯ you are here · pearl ▯ restored"
+
+tests/test_font_glyphs.gd now fails the suite if any shipping face cannot draw a
+character the game's own strings use, so neither fault can return quietly.

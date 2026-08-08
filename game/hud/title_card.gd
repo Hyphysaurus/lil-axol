@@ -5,7 +5,7 @@ extends CanvasLayer
 ## the session flag on the Settings autoload. Holds a UI lock so gameplay input stays neutral.
 
 const FADE_SPEED := 1.6
-const DISPLAY_FONT := preload("res://assets/fonts/LilitaOne.ttf")   # chunky rounded wordmark font
+const DISPLAY_FONT := UiFont.DISPLAY   # chunky rounded wordmark font
 
 var _root: Control
 var _fade := 1.0
@@ -103,11 +103,15 @@ func _build() -> void:
 	vb.add_theme_constant_override("separation", 6)
 	_root.add_child(vb)
 
+	# The game is called TIDEKEEPER. It said "Lil Axolotl" here with the real name demoted to a
+	# tilde-wrapped subtitle — while the portfolio that links here leads its largest band with
+	# "Tidekeeper", so anyone arriving from that link landed on a different game. LilAxol stays
+	# as the repo and folder name; it is a working title, not the title.
 	var title := Label.new()
-	title.text = "Lil Axolotl"
+	title.text = "Tidekeeper"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_override("font", DISPLAY_FONT)   # chunky rounded wordmark, burned by the shader
-	title.add_theme_font_size_override("font_size", 76)
+	title.add_theme_font_size_override("font_size", UiFont.WORDMARK)
 	# the burning shader multiplies by this, so FOAM (near-white) lets the Sweetie 16 fire read true
 	title.add_theme_color_override("font_color", Palette.FOAM)
 	title.add_theme_color_override("font_shadow_color", Color(Palette.INK, 0.85))
@@ -119,10 +123,10 @@ func _build() -> void:
 	vb.add_child(title)
 
 	var sub := Label.new()
-	sub.text = "~ tidekeeper ~"
+	sub.text = "a lil axolotl game"
 	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	sub.add_theme_font_override("font", DISPLAY_FONT)
-	sub.add_theme_font_size_override("font_size", 28)
+	sub.add_theme_font_size_override("font_size", UiFont.SUBTITLE)
 	sub.add_theme_color_override("font_color", Color(Palette.GOLD, 0.95))
 	vb.add_child(sub)
 

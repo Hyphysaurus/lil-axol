@@ -4,7 +4,7 @@ extends CanvasLayer
 ## Sits below the banner's corner-sun spot; hides while any menu is up. Pure view over
 ## the "shine" group's signals.
 
-const DISPLAY_FONT := preload("res://assets/fonts/LilitaOne.ttf")   # chunky rounded score/combo font
+const DISPLAY_FONT := UiFont.DISPLAY   # chunky rounded score/combo font
 
 var _score := 0
 var _shown := 0.0              # rolling display value
@@ -161,7 +161,7 @@ class ChargeOrb extends Control:
 ## The banked RECLAIM material tally — a cleaned-barrel ring glyph + count, beside the Shine
 ## orb. Only shown once material > 0; redraws on change only (no idle per-frame churn).
 class MaterialGlyph extends Control:
-	const FONT := preload("res://assets/fonts/LilitaOne.ttf")
+	const FONT := UiFont.DISPLAY
 	var count := 0:
 		set(v):
 			count = v

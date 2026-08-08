@@ -20,7 +20,7 @@ signal feat_called(title: String, points: int)   # a named feat landed -> the ca
 signal feat_echoed(at: Vector2)                   # ...and WHERE, for the world's own celebration (feat_echo)
 signal flow_changed(frac: float, active: bool)    # Flow meter fill (0..1) + whether TIDAL FLOW is live
 
-const DISPLAY_FONT := preload("res://assets/fonts/LilitaOne.ttf")   # chunky rounded font for the "+N" pops
+const DISPLAY_FONT := UiFont.DISPLAY   # chunky rounded font for the "+N" pops
 const BASE := 10000.0          # Shine for scrubbing the whole spill at x1
 const CHARGE_COST := 1500.0    # unmultiplied base-Shine per Bubble Bomb
 const CHARGE_EVENT_CAP := 60.0 # max charge from any single scrub event: a bubble pop is ONE

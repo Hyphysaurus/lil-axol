@@ -4,7 +4,7 @@ extends CanvasLayer
 ## Flow bar at top-centre that fills, then glows and pulses through TIDAL FLOW. Pure presentation —
 ## it reads Shine's signals and never touches the economy; hides while any menu is up.
 
-const DISPLAY_FONT := preload("res://assets/fonts/LilitaOne.ttf")
+const DISPLAY_FONT := UiFont.DISPLAY
 
 var _root: Control
 var _flowbar: FlowBar

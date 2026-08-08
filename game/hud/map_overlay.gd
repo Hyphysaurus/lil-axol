@@ -125,7 +125,7 @@ func _build() -> void:
 	var head := Label.new()
 	head.text = "the watershed"
 	head.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	head.add_theme_font_size_override("font_size", 30)
+	UiFont.apply(head, UiFont.HEADING, UiFont.TITLE)
 	head.add_theme_color_override("font_color", Color(0.95, 0.99, 1.0))
 	vb.add_child(head)
 	_canvas = ChartCanvas.new()

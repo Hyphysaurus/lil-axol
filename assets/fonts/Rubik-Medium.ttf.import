@@ -2,13 +2,13 @@
 
 importer="font_data_dynamic"
 type="FontFile"
-uid="uid://drr3vaop38spx"
-path="res://.godot/imported/Axolotl.ttf-aad5e527b006097534be77d3d860a672.fontdata"
+uid="uid://07kn5xlkb6ae"
+path="res://.godot/imported/Rubik-Medium.ttf-90ecbde6ccb9c455b54302f0f9a833f5.fontdata"
 
 [deps]
 
-source_file="res://assets/fonts/Axolotl.ttf"
-dest_files=["res://.godot/imported/Axolotl.ttf-aad5e527b006097534be77d3d860a672.fontdata"]
+source_file="res://assets/fonts/Rubik-Medium.ttf"
+dest_files=["res://.godot/imported/Rubik-Medium.ttf-90ecbde6ccb9c455b54302f0f9a833f5.fontdata"]
 
 [params]
 

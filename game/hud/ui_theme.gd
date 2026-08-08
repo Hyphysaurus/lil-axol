@@ -34,7 +34,13 @@ static func _button_box(bg: Color, border: Color) -> StyleBoxFlat:
 	return s
 
 ## Give a Button the whole watery treatment (idle + a brighter seafoam hover/press/focus).
+##
+## The FACE comes from here too, now that there is one place to ask (see ui_font.gd). Every
+## button in the game already routes through this function, so wiring type in here is what makes
+## "the interface speaks in Maven Pro" true everywhere at once rather than card by card — the
+## same argument the file header makes about StyleBoxes.
 static func style_button(b: Button) -> void:
+	UiFont.apply_button(b)
 	var normal := _button_box(Color(0.09, 0.22, 0.24, 0.92), Color(SEAFOAM, 0.22))
 	var hot := _button_box(Color(0.15, 0.35, 0.35, 0.96), Color(SEAFOAM, 0.55))
 	b.add_theme_stylebox_override("normal", normal)

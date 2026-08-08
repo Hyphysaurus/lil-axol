@@ -14,7 +14,7 @@ ss2d/version="3.3.1"
 
 [application]
 
-config/name="LilAxol"
+config/name="Tidekeeper"
 run/main_scene="uid://bcanals0scn01"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
@@ -45,7 +45,7 @@ enabled=PackedStringArray("res://addons/lit/plugin.cfg", "res://addons/mcp_bridg
 
 [gui]
 
-theme/custom_font="res://assets/fonts/Axolotl.ttf"
+theme/custom_font="res://assets/fonts/Rubik-Regular.ttf"
 theme/default_font_size=22
 
 [input]

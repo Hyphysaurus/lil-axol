@@ -11,7 +11,7 @@ extends CanvasLayer
 ## reach_state groups; hides while any menu is up. Purely visual.
 
 const MILESTONES := [0.25, 0.5, 0.75, 1.0]
-const DISPLAY_FONT := preload("res://assets/fonts/LilitaOne.ttf")   # matches the Shine score font
+const DISPLAY_FONT := UiFont.DISPLAY   # matches the Shine score font
 
 var _clean := 0.0
 var _shown := 0.0              # smoothed MAIN bar value (health when wired), so the bar glides

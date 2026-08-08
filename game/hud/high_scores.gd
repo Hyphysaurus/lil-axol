@@ -5,7 +5,7 @@ extends CanvasLayer
 ## one-shot per day (New Day reloads rebuild it fresh). Holds a UI lock while open.
 
 const SHOW_DELAY := 3.4        # let the banner celebrate first
-const DISPLAY_FONT := preload("res://assets/fonts/LilitaOne.ttf")   # the game's chunky display face
+const DISPLAY_FONT := UiFont.DISPLAY   # the game's chunky display face
 
 var _root: Control
 var _entry: VBoxContainer
@@ -119,7 +119,7 @@ func _build() -> void:
 	head.text = "~ the tide board ~"
 	head.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	head.add_theme_font_override("font", DISPLAY_FONT)
-	head.add_theme_font_size_override("font_size", 30)
+	UiFont.apply(head, UiFont.HEADING, UiFont.TITLE)
 	head.add_theme_color_override("font_color", Palette.GOLD)
 	vb.add_child(head)
 
@@ -147,7 +147,7 @@ func _build() -> void:
 	_input.alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_input.custom_minimum_size = Vector2(140.0, 44.0)
 	_input.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	_input.add_theme_font_size_override("font_size", 30)
+	UiFont.apply(_input, UiFont.HEADING, UiFont.TITLE)
 	_input.text_changed.connect(func(t: String) -> void:
 		_input.text = t.to_upper()
 		_input.caret_column = _input.text.length())
